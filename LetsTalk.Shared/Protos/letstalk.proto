@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option csharp_namespace = "LetsTalk";
+
+package letstalk;
+
+import "google/protobuf/empty.proto";
+import "person.proto";
+import "message.proto";
+
+service LetsTalk {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Join (Person) returns (stream Message);
+  rpc Send (Message) returns (google.protobuf.Empty);
+  rpc Leave (Person) returns (google.protobuf.Empty);
+}
+
+message RegisterRequest {
+  string username = 1;
+}
+
+message RegisterResponse {
+  optional Person person = 1;
+}
+
+message RequestResult {
+  bool is_good = 1;
+}

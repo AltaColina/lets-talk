@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option csharp_namespace = "LetsTalk";
+
+package letstalk;
+
+import "person.proto";
+
+message Message {
+  int64 timestamp = 1;
+  Person person = 2;
+  string text = 3;
+}
