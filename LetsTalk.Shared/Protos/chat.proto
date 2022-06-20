@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+option csharp_namespace = "LetsTalk";
+
+package letstalk;
+
+message Chat {
+  string id = 1;
+  string name = 2;
+}

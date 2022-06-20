@@ -12,8 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Protos\chat.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Protos\message.proto" />
-    <None Include="Protos\person.proto" />
     <None Include="Protos\letstalk.proto" />
   </ItemGroup>
 

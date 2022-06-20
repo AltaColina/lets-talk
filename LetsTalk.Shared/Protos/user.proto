@@ -4,6 +4,7 @@ option csharp_namespace = "LetsTalk";
 
 package letstalk;
 
-message Person {
-  string username = 1;
+message User {
+  string id = 1;
+  string username = 2;
 }
