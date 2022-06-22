@@ -1,16 +1,32 @@
 using LetsTalk.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Additional configuration is required to successfully run gRPC on macOS.
-// For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
-
-// Add services to the container.
+var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("A very big token key might be required, heh?"));
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(opts =>
+    {
+        opts.RequireHttpsMetadata = false;
+        opts.SaveToken = true;
+        opts.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = securityKey,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+        };
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton<IAuthenticationManager>(new JwtAuthenticationManager(securityKey));
 builder.Services.AddGrpc();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapGrpcService<LetsTalkService>();
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 

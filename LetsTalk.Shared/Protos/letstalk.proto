@@ -12,7 +12,7 @@ import "chat.proto";
 service LetsTalk {
   /* User operations. */
   rpc Register (RegisterRequest) returns (RegisterResponse);
-  rpc Login (LoginRequest) returns (google.protobuf.Empty);
+  rpc Login (LoginRequest) returns (LoginResponse);
   rpc Join (JoinRequest) returns (stream Message);
   rpc Leave (LeaveRequest) returns (google.protobuf.Empty);
   rpc Send (Message) returns (google.protobuf.Empty);
@@ -25,6 +25,7 @@ service LetsTalk {
 
 message RegisterRequest {
   string username = 1;
+  string password = 2;
 }
 
 message RegisterResponse {
@@ -33,6 +34,11 @@ message RegisterResponse {
 
  message LoginRequest {
    User user = 1;
+   string password = 2;
+ }
+
+ message LoginResponse {
+   string token = 1;
  }
 
 message JoinRequest {

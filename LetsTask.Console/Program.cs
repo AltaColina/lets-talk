@@ -14,18 +14,19 @@ var options = new GrpcChannelOptions
 };
 
 using var channel = GrpcChannel.ForAddress("http://localhost:5219", options);
-
 var client = new LetsTalkClient(channel);
 
 // Register.
 var user = default(User);
 while (user is null)
 {
-    Console.WriteLine("Please enter a unique username.");
+    Console.Write("Username: ");
     var username = Console.ReadLine();
+    Console.Write("Password: ");
+    var password = Console.ReadLine();
     try
     {
-        var registerResponse = await client.RegisterAsync(new RegisterRequest { Username = username });
+        var registerResponse = await client.RegisterAsync(new RegisterRequest { Username = username, Password = password });
         user = registerResponse.User;
     }
     catch (RpcException ex) when (ex.StatusCode == StatusCode.AlreadyExists)
@@ -35,15 +36,35 @@ while (user is null)
 }
 
 // Login.
-await client.LoginAsync(new LoginRequest { User = user });
-// Add private channel.
-await client.PostChatAsync(new PostChatRequest { Name = $"{user.Username}'s chat" });
+var token = default(string);
+while (token is null)
+{
+    Console.WriteLine($"Enter password for {user.Username}");
+    var password = Console.ReadLine();
+    try
+    {
+        var loginResponse = await client.LoginAsync(new LoginRequest { User = user, Password = password });
+        token = loginResponse.Token;
+    }
+    catch (RpcException ex) when (ex.StatusCode == StatusCode.Unauthenticated)
+    {
+        Console.WriteLine($"Username or password incorrect.");
+    }
+}
+
+// Now, with token to be passed on subsequent calls, create a meta object with the header.
+// This should be done at channel level, since it's basically the same for each call.
+var headers = new Metadata();
+headers.Add("Authorization", $"Bearer {token}");
+
+// Add own private channel.
+await client.PostChatAsync(new PostChatRequest { Name = $"{user.Username}'s chat" }, headers);
 
 // Join a chat.
 var chat = default(Chat);
 while (chat is null)
 {
-    var chats = (await client.GetChatAsync(new GetChatRequest())).Chats;
+    var chats = (await client.GetChatAsync(new GetChatRequest(), headers)).Chats;
     Console.WriteLine("Select a channel to join by typing its number.");
     for (int i = 0; i < chats.Count; ++i)
         Console.WriteLine($"{i + 1}: {chats[i].Name}");
@@ -57,7 +78,7 @@ while (chat is null)
 }
 Task.Run(async () =>
 {
-    var call = client.Join(new JoinRequest { Chat = chat, User = user });
+    var call = client.Join(new JoinRequest { Chat = chat, User = user }, headers);
     while (await call.ResponseStream.MoveNext(CancellationToken.None))
     {
         var message = call.ResponseStream.Current;
@@ -69,7 +90,7 @@ Task.Run(async () =>
 
 // Send messages.
 while (Console.ReadLine() is string line && line != "exit")
-    await client.SendAsync(new Message { Chat = chat, User = user, Text = line });
+    await client.SendAsync(new Message { Chat = chat, User = user, Text = line }, headers);
 
 // Leave chat.
-await client.LeaveAsync(new LeaveRequest { Chat = chat, User = user });
+await client.LeaveAsync(new LeaveRequest { Chat = chat, User = user }, headers);

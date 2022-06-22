@@ -1,11 +1,13 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Tasks.Dataflow;
 
 namespace LetsTalk.Services;
 
+[Authorize]
 public class LetsTalkService : LetsTalk.LetsTalkBase
 {
     private static readonly User Server = new() { Username = "Server" };
@@ -15,6 +17,7 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
     private static readonly ConcurrentDictionary<string, Chat> Chats = new();
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, IServerStreamWriter<Message>>> Subscriptions = new();
     private static readonly ConcurrentDictionary<string, BufferBlock<Message>> MessageBuffers = new();
+    private readonly IAuthenticationManager _authenticationManager;
 
     static LetsTalkService()
     {
@@ -24,6 +27,12 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
             Subscriptions.TryAdd(chat.Id, new ConcurrentDictionary<string, IServerStreamWriter<Message>>());
             MessageBuffers.TryAdd(chat.Id, new BufferBlock<Message>(new DataflowBlockOptions { EnsureOrdered = true }));
         }
+    }
+
+
+    public LetsTalkService(IAuthenticationManager authenticationManager)
+    {
+        _authenticationManager = authenticationManager;
     }
 
     private static void ValidateUser(User user)
@@ -38,6 +47,7 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
             throw new RpcException(new Status(StatusCode.NotFound, "Chat does not exist"));
     }
 
+    [AllowAnonymous]
     public override Task<RegisterResponse> Register(RegisterRequest request, ServerCallContext context)
     {
         // TODO: Validate username here.
@@ -47,19 +57,18 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
         return Task.FromResult(new RegisterResponse { User = user });
     }
 
-    public override Task<Empty> Login(LoginRequest request, ServerCallContext context)
+    [AllowAnonymous]
+    public override Task<LoginResponse> Login(LoginRequest request, ServerCallContext context)
     {
         if (!RegisteredUsers.ContainsKey(request.User.Id))
-            throw new RpcException(new Status(StatusCode.Unauthenticated, "User is not registered"));
-        
-        var userId = request.User.Id;
-        if (LoggedUsers.TryAdd(userId, request.User))
-            return EmptyTaskResponse;
+            throw new RpcException(new Status(StatusCode.NotFound, "User is not registered"));
 
-        if (LoggedUsers.ContainsKey(userId))
-            throw new RpcException(new Status(StatusCode.AlreadyExists, "Already logged in"));
+        var token = _authenticationManager.Authenticate(request.User.Username, request.Password);
+        if (token is null)
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Incorrect username or password"));
 
-        throw new RpcException(new Status(StatusCode.Unknown, "Could not login"));
+        LoggedUsers.TryAdd(request.User.Id, request.User);
+        return Task.FromResult(new LoginResponse { Token = token });
     }
 
     public override async Task Join(JoinRequest request, IServerStreamWriter<Message> responseStream, ServerCallContext context)
