@@ -1,8 +1,9 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using LetsTalk.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks.Dataflow;
 
 namespace LetsTalk.Services;
@@ -10,14 +11,15 @@ namespace LetsTalk.Services;
 [Authorize]
 public class LetsTalkService : LetsTalk.LetsTalkBase
 {
-    private static readonly User Server = new() { Username = "Server" };
+    private static readonly Regex UsernameRegex = new("^[a-zA-Z][a-z0-9_-]{3,15}$");
+    private static readonly Person Server = new() { Username = "Server" };
     private static readonly Task<Empty> EmptyTaskResponse = Task.FromResult(new Empty());
-    private static readonly ConcurrentDictionary<string, User> RegisteredUsers = new();
-    private static readonly ConcurrentDictionary<string, User> LoggedUsers = new();
     private static readonly ConcurrentDictionary<string, Chat> Chats = new();
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, IServerStreamWriter<Message>>> Subscriptions = new();
     private static readonly ConcurrentDictionary<string, BufferBlock<Message>> MessageBuffers = new();
+    private readonly IPasswordHandler _passwordHandler;
     private readonly IAuthenticationManager _authenticationManager;
+    private readonly IUserRepository _userRepository;
 
     static LetsTalkService()
     {
@@ -29,16 +31,11 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
         }
     }
 
-
-    public LetsTalkService(IAuthenticationManager authenticationManager)
+    public LetsTalkService(IPasswordHandler passwordHandler, IAuthenticationManager authenticationManager, IUserRepository userRepository)
     {
+        _passwordHandler = passwordHandler;
         _authenticationManager = authenticationManager;
-    }
-
-    private static void ValidateUser(User user)
-    {
-        if (!LoggedUsers.ContainsKey(user.Id))
-            throw new RpcException(new Status(StatusCode.Unauthenticated, "User is not logged in"));
+        _userRepository = userRepository;
     }
 
     private static void ValidateChannel(Chat chat)
@@ -50,40 +47,68 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
     [AllowAnonymous]
     public override Task<RegisterResponse> Register(RegisterRequest request, ServerCallContext context)
     {
-        // TODO: Validate username here.
-        var user = new User { Id = Guid.NewGuid().ToString(), Username = request.Username };
-        if (!RegisteredUsers.TryAdd(user.Id, user))
-            throw new RpcException(new Status(StatusCode.ResourceExhausted, "Could not register user"));
-        return Task.FromResult(new RegisterResponse { User = user });
+        if (!UsernameRegex.IsMatch(request.Username))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid username"));
+
+        if (_userRepository.Get(request.Username) is not null)
+            throw new RpcException(new Status(StatusCode.AlreadyExists, "Username already in use"));
+
+        _userRepository.Insert(new User
+        {
+            Username = request.Username,
+            Password = _passwordHandler.Encrypt(request.Password, request.Username),
+            CreationTime = DateTime.UtcNow,
+            LastLoginTime = DateTime.MinValue
+        });
+        var token = _authenticationManager.Authenticate(request.Username, request.Password);
+        if (token is null)
+            throw new RpcException(new Status(StatusCode.Unknown, "Could not register"));
+        return Task.FromResult(new RegisterResponse
+        {
+            Person = new Person { Username = request.Username },
+            Token = token });
     }
 
     [AllowAnonymous]
     public override Task<LoginResponse> Login(LoginRequest request, ServerCallContext context)
     {
-        if (!RegisteredUsers.ContainsKey(request.User.Id))
-            throw new RpcException(new Status(StatusCode.NotFound, "User is not registered"));
-
-        var token = _authenticationManager.Authenticate(request.User.Username, request.Password);
+        var token = _authenticationManager.Authenticate(request.Username, request.Password);
         if (token is null)
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Incorrect username or password"));
+        
+        // Update last login.
+        var userInfo = _userRepository.Get(request.Username)!;
+        userInfo.LastLoginTime = DateTime.UtcNow;
+        _userRepository.Update(userInfo);
 
-        LoggedUsers.TryAdd(request.User.Id, request.User);
-        return Task.FromResult(new LoginResponse { Token = token });
+        return Task.FromResult(new LoginResponse
+        {
+            Person = new Person { Username = request.Username },
+            Token = token
+        });
+    }
+
+    public override Task<Empty> Logout(LogoutRequest request, ServerCallContext context)
+    {
+        var userId = request.Person.Username;
+        foreach (var (chatId, subscription) in Subscriptions)
+            if (subscription.TryRemove(userId, out _))
+                MessageBuffers[chatId].Post(new Message { Person = Server, Text = $"{userId} has joined channel '{Chats[chatId].Name}'." });
+        return EmptyTaskResponse;
     }
 
     public override async Task Join(JoinRequest request, IServerStreamWriter<Message> responseStream, ServerCallContext context)
     {
-        ValidateUser(request.User);
         ValidateChannel(request.Chat);
 
-        var channelId = request.Chat.Id;
-        var subscription = Subscriptions[channelId];
+        var chatId = request.Chat.Id;
+        var subscription = Subscriptions[chatId];
 
-        var userId = request.User.Id;
+        var userId = request.Person.Username;
         subscription.TryAdd(userId, responseStream);
 
-        var messageBuffer = MessageBuffers[channelId];
-        messageBuffer.Post(new Message { User = Server, Text = $"{request.User.Username}#{userId} has joined channel '{request.Chat.Name}'." });
+        var messageBuffer = MessageBuffers[chatId];
+        messageBuffer.Post(new Message { Person = Server, Text = $"{userId} has joined channel '{request.Chat.Name}'." });
 
         while (subscription.ContainsKey(userId))
         {
@@ -92,25 +117,22 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
         }
     }
 
-    public override Task<Empty> Send(Message request, ServerCallContext context)
-    {
-        ValidateUser(request.User);
-        ValidateChannel(request.Chat);
-        var messageBuffer = MessageBuffers[request.Chat.Id];
-        messageBuffer.Post(request);
-        return EmptyTaskResponse;
-    }
-
     public override Task<Empty> Leave(LeaveRequest request, ServerCallContext context)
     {
-        ValidateUser(request.User);
         ValidateChannel(request.Chat);
         var chatId = request.Chat.Id;
         var subscription = Subscriptions[chatId];
-        var userId = request.User.Id;
+        var userId = request.Person.Username;
         subscription.TryRemove(userId, out _);
-        LoggedUsers.TryRemove(userId, out _);
-        MessageBuffers[chatId].Post(new Message { User = Server, Text = $"{request.User.Username}#{userId} has left channel '{request.Chat.Name}'." });
+        MessageBuffers[chatId].Post(new Message { Person = Server, Text = $"{userId} has left channel '{request.Chat.Name}'." });
+        return EmptyTaskResponse;
+    }
+
+    public override Task<Empty> Send(Message request, ServerCallContext context)
+    {
+        ValidateChannel(request.Chat);
+        var messageBuffer = MessageBuffers[request.Chat.Id];
+        messageBuffer.Post(request);
         return EmptyTaskResponse;
     }
 

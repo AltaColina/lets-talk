@@ -5,11 +5,11 @@ option csharp_namespace = "LetsTalk";
 package letstalk;
 
 import "chat.proto";
-import "user.proto";
+import "person.proto";
 
 message Message {
   Chat chat = 1;
-  User user = 2;
+  Person person = 2;
   int64 timestamp = 3;
   string text = 4;
 }

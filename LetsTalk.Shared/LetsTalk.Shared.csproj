@@ -12,15 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Protos\chat.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Protos\message.proto" />
-    <None Include="Protos\letstalk.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Grpc.Core" Version="2.46.3" />
     <PackageReference Include="Google.Protobuf" Version="3.18.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.39.0" />

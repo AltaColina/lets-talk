@@ -5,14 +5,15 @@ option csharp_namespace = "LetsTalk";
 package letstalk;
 
 import "google/protobuf/empty.proto";
-import "user.proto";
+import "person.proto";
 import "message.proto";
 import "chat.proto";
 
 service LetsTalk {
-  /* User operations. */
+  /* Person operations. */
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
+  rpc Logout (LogoutRequest) returns (google.protobuf.Empty);
   rpc Join (JoinRequest) returns (stream Message);
   rpc Leave (LeaveRequest) returns (google.protobuf.Empty);
   rpc Send (Message) returns (google.protobuf.Empty);
@@ -29,26 +30,32 @@ message RegisterRequest {
 }
 
 message RegisterResponse {
-  optional User user = 1;
+   string token = 1;
+   Person person = 2;
 }
 
  message LoginRequest {
-   User user = 1;
+   string username = 1;
    string password = 2;
  }
 
  message LoginResponse {
    string token = 1;
+   Person person = 2;
+ }
+
+ message LogoutRequest {
+   Person person = 1;
  }
 
 message JoinRequest {
   Chat chat = 1;
-  User user = 2;
+  Person person = 2;
 }
 
 message LeaveRequest {
   Chat chat = 1;
-  User user = 2;
+  Person person = 2;
 }
 
 message GetChatRequest {

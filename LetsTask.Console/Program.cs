@@ -16,39 +16,62 @@ var options = new GrpcChannelOptions
 using var channel = GrpcChannel.ForAddress("http://localhost:5219", options);
 var client = new LetsTalkClient(channel);
 
-// Register.
-var user = default(User);
-while (user is null)
+var startChoice = -2;
+while (startChoice < 0 || startChoice > 2)
 {
-    Console.Write("Username: ");
-    var username = Console.ReadLine();
-    Console.Write("Password: ");
-    var password = Console.ReadLine();
-    try
-    {
-        var registerResponse = await client.RegisterAsync(new RegisterRequest { Username = username, Password = password });
-        user = registerResponse.User;
-    }
-    catch (RpcException ex) when (ex.StatusCode == StatusCode.AlreadyExists)
-    {
-        Console.WriteLine($"User '{username}' already exists.");
-    }
+    Console.WriteLine("1: Register");
+    Console.WriteLine("2: Login");
+    Console.WriteLine("0: Exit");
+    var line = Console.ReadLine();
+    if (!Int32.TryParse(line, out startChoice))
+        Console.WriteLine("Invalid choice.");
 }
 
-// Login.
+if (startChoice == 0)
+    return;
+
+var person = default(Person);
 var token = default(string);
-while (token is null)
+// Register or login.
+if (startChoice == 1)
 {
-    Console.WriteLine($"Enter password for {user.Username}");
-    var password = Console.ReadLine();
-    try
+    while (person is null)
     {
-        var loginResponse = await client.LoginAsync(new LoginRequest { User = user, Password = password });
-        token = loginResponse.Token;
+        Console.Write("Username: ");
+        var username = Console.ReadLine();
+        Console.Write("Password: ");
+        var password = Console.ReadLine();
+        try
+        {
+            var registerResponse = await client.RegisterAsync(new RegisterRequest { Username = username, Password = password });
+            person = registerResponse.Person;
+            token = registerResponse.Token;
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.AlreadyExists)
+        {
+            Console.WriteLine($"User '{username}' already exists.");
+        }
     }
-    catch (RpcException ex) when (ex.StatusCode == StatusCode.Unauthenticated)
+}
+else
+{
+    // Login.
+    while (token is null)
     {
-        Console.WriteLine($"Username or password incorrect.");
+        Console.Write("Username: ");
+        var username = Console.ReadLine();
+        Console.Write("Password: ");
+        var password = Console.ReadLine();
+        try
+        {
+            var loginResponse = await client.LoginAsync(new LoginRequest { Username = username, Password = password });
+            person = loginResponse.Person;
+            token = loginResponse.Token;
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.Unauthenticated)
+        {
+            Console.WriteLine($"Username or password incorrect.");
+        }
     }
 }
 
@@ -58,9 +81,9 @@ var headers = new Metadata();
 headers.Add("Authorization", $"Bearer {token}");
 
 // Add own private channel.
-await client.PostChatAsync(new PostChatRequest { Name = $"{user.Username}'s chat" }, headers);
+await client.PostChatAsync(new PostChatRequest { Name = $"{person.Username}'s chat" }, headers);
 
-// Join a chat.
+// List chats.
 var chat = default(Chat);
 while (chat is null)
 {
@@ -68,29 +91,39 @@ while (chat is null)
     Console.WriteLine("Select a channel to join by typing its number.");
     for (int i = 0; i < chats.Count; ++i)
         Console.WriteLine($"{i + 1}: {chats[i].Name}");
+    Console.WriteLine("0: Exit LetsTalk");
     var input = Console.ReadLine();
     if (!Int32.TryParse(input, out int number))
         Console.WriteLine("Input must be a number.");
-    else if ((number - 1) is var index && (index < 0 || index >= chats.Count))
-        Console.WriteLine($"Must be a number between {1} and {chats.Count}.");
+    else if (number == 0)
+        break;
+    else if ((number - 1) is var index && index >= chats.Count)
+        Console.WriteLine($"Must be a number between {0} and {chats.Count}.");
     else
         chat = chats[index];
 }
-Task.Run(async () =>
+// Join chat and send messages.
+if (chat is not null)
 {
-    var call = client.Join(new JoinRequest { Chat = chat, User = user }, headers);
-    while (await call.ResponseStream.MoveNext(CancellationToken.None))
+    Task.Run(async () =>
     {
-        var message = call.ResponseStream.Current;
-        Console.WriteLine($"{message.User.Username}: {message.Text}");
-    }
-})
-    .ConfigureAwait(false)
-    .GetAwaiter();
+        var call = client.Join(new JoinRequest { Chat = chat, Person = person }, headers);
+        while (await call.ResponseStream.MoveNext(CancellationToken.None))
+        {
+            var message = call.ResponseStream.Current;
+            Console.WriteLine($"{message.Person.Username}: {message.Text}");
+        }
+    })
+        .ConfigureAwait(false)
+        .GetAwaiter();
 
-// Send messages.
-while (Console.ReadLine() is string line && line != "exit")
-    await client.SendAsync(new Message { Chat = chat, User = user, Text = line }, headers);
+    // Send messages.
+    while (Console.ReadLine() is string line && line != "exit")
+        await client.SendAsync(new Message { Chat = chat, Person = person, Text = line }, headers);
+}
 
-// Leave chat.
-await client.LeaveAsync(new LeaveRequest { Chat = chat, User = user }, headers);
+//// Leave chat.
+//await client.LeaveAsync(new LeaveRequest { Chat = chat, Person = person }, headers);
+
+// Logout.
+await client.LogoutAsync(new LogoutRequest { Person = person }, headers);
