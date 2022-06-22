@@ -5,7 +5,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("A very big token key might be required, heh?"));
+var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration.GetSection("SecurityKey").Value));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opts =>
     {
