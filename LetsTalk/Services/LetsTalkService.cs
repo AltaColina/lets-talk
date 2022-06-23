@@ -199,6 +199,7 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
         return Task.FromResult(response);
     }
 
+    [Authorize(Policy = "Administrator")]
     public override Task<PostChatResponse> PostChat(PostChatRequest request, ServerCallContext context)
     {
         var chat = new Chat { Id = Guid.NewGuid().ToString(), Name = request.Name };
@@ -210,6 +211,7 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
         return Task.FromResult(new PostChatResponse { Chat = chat });
     }
 
+    [Authorize(Policy = "Administrator")]
     public override Task<Empty> DeleteChat(DeleteChatRequest request, ServerCallContext context)
     {
         var chatId = request.Chat.Id;

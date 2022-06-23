@@ -27,10 +27,11 @@ public sealed class JwtAuthenticationManager : IAuthenticationManager
 
     private static ClaimsIdentity GetIdentity(User user)
     {
-        return new ClaimsIdentity(new Claim[]
-        {
-            new Claim(ClaimTypes.Name, user.Id)
-        });
+        ClaimsIdentity identity = new ClaimsIdentity();
+        identity.AddClaim(new Claim(ClaimTypes.Name, user.Id));
+        if (user.IsAdministrator)
+            identity.AddClaim(new Claim(ClaimTypes.Role, "Administrator"));
+        return identity;
     }
 
     private static string GenerateRefreshToken()

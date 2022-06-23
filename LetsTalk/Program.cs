@@ -2,6 +2,7 @@ using LetsTalk.Services;
 using LiteDB;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -24,7 +25,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(opts =>
+{
+    opts.AddPolicy("Administrator", policy => policy.RequireClaim(ClaimTypes.Role, "Administrator"));
+});
 builder.Services.AddSingleton(new LiteDatabase(builder.Configuration.GetConnectionString("LiteDB"), BsonMapper.Global.UseCamelCase()));
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IAuthenticationManager, JwtAuthenticationManager>();

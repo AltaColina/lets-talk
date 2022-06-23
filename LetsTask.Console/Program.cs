@@ -85,8 +85,8 @@ person = refreshResponse.Person;
 var headers = new Metadata();
 headers.Add("Authorization", $"Bearer {token.AccessToken}");
 
-// Add own private channel.
-await client.PostChatAsync(new PostChatRequest { Name = $"{person.Username}'s chat" }, headers);
+//// Add own private channel. Can no longer do this, requires "Administrator" role.
+//await client.PostChatAsync(new PostChatRequest { Name = $"{person.Username}'s chat" }, headers);
 
 // List chats.
 var chat = default(Chat);
