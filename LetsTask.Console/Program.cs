@@ -30,8 +30,8 @@ while (startChoice < 0 || startChoice > 2)
 if (startChoice == 0)
     return;
 
-var person = default(Person);
-var token = default(string);
+var person = default(Person)!;
+var token = default(Token)!;
 // Register or login.
 if (startChoice == 1)
 {
@@ -75,10 +75,15 @@ else
     }
 }
 
+// Test refresh token.
+var refreshResponse = await client.RefreshAsync(new RefreshRequest { Username = person.Username, RefreshToken = token.RefreshToken });
+token = refreshResponse.Token;
+person = refreshResponse.Person;
+
 // Now, with token to be passed on subsequent calls, create a meta object with the header.
 // This should be done at channel level, since it's basically the same for each call.
 var headers = new Metadata();
-headers.Add("Authorization", $"Bearer {token}");
+headers.Add("Authorization", $"Bearer {token.AccessToken}");
 
 // Add own private channel.
 await client.PostChatAsync(new PostChatRequest { Name = $"{person.Username}'s chat" }, headers);

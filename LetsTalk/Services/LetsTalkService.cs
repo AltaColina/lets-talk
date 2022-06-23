@@ -53,16 +53,26 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
         if (_userRepository.Get(request.Username) is not null)
             throw new RpcException(new Status(StatusCode.AlreadyExists, "Username already in use"));
 
-        _userRepository.Insert(new User
+        // TODO: Validate password?
+
+        var creationDateTime = DateTime.UtcNow;
+        var user = new User
         {
-            Username = request.Username,
-            Password = _passwordHandler.Encrypt(request.Password, request.Username),
-            CreationTime = DateTime.UtcNow,
-            LastLoginTime = DateTime.MinValue
+            Id = request.Username,
+            Secret = _passwordHandler.Encrypt(request.Password, request.Username),
+            CreationTime = creationDateTime,
+            LastLoginTime = creationDateTime,
+        };
+
+        var token = _authenticationManager.GenerateToken(user);
+        
+        user.RefreshTokens.Add(new RefreshToken
+        {
+            Id = token.RefreshToken,
+            ExpiresIn = DateTime.UnixEpoch.AddSeconds(token.RefreshTokenExpiresIn)
         });
-        var token = _authenticationManager.Authenticate(request.Username, request.Password);
-        if (token is null)
-            throw new RpcException(new Status(StatusCode.Unknown, "Could not register"));
+        _userRepository.Insert(user);
+        
         return Task.FromResult(new RegisterResponse
         {
             Person = new Person { Username = request.Username },
@@ -76,10 +86,16 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
         if (token is null)
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Incorrect username or password"));
         
-        // Update last login.
-        var userInfo = _userRepository.Get(request.Username)!;
-        userInfo.LastLoginTime = DateTime.UtcNow;
-        _userRepository.Update(userInfo);
+        // Update user.
+        var user = _userRepository.Get(request.Username)!;
+        user.LastLoginTime = DateTime.UtcNow;
+        user.RefreshTokens.RemoveAll(token => token.ExpiresIn < user.LastLoginTime);
+        user.RefreshTokens.Add(new RefreshToken
+        {
+            Id = token.RefreshToken,
+            ExpiresIn = DateTime.UnixEpoch.AddSeconds(token.RefreshTokenExpiresIn)
+        });
+        _userRepository.Update(user);
 
         return Task.FromResult(new LoginResponse
         {
@@ -95,6 +111,31 @@ public class LetsTalkService : LetsTalk.LetsTalkBase
             if (subscription.TryRemove(userId, out _))
                 MessageBuffers[chatId].Post(new Message { Person = Server, Text = $"{userId} has joined channel '{Chats[chatId].Name}'." });
         return EmptyTaskResponse;
+    }
+
+    [AllowAnonymous]
+    public override Task<RefreshResponse> Refresh(RefreshRequest request, ServerCallContext context)
+    {
+        var token = _authenticationManager.Refresh(request.Username, request.RefreshToken);
+        if (token is null)
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Incorrect username or password"));
+
+        // Update user.
+        var user = _userRepository.Get(request.Username)!;
+        user.LastLoginTime = DateTime.UtcNow;
+        user.RefreshTokens.RemoveAll(token => token.Id == request.RefreshToken || token.ExpiresIn < user.LastLoginTime);
+        user.RefreshTokens.Add(new RefreshToken
+        {
+            Id = token.RefreshToken,
+            ExpiresIn = DateTime.UnixEpoch.AddSeconds(token.RefreshTokenExpiresIn)
+        });
+        _userRepository.Update(user);
+
+        return Task.FromResult(new RefreshResponse
+        {
+            Person = new Person { Username = request.Username },
+            Token = token
+        });
     }
 
     public override async Task Join(JoinRequest request, IServerStreamWriter<Message> responseStream, ServerCallContext context)

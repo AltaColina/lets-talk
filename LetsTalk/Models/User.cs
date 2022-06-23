@@ -7,9 +7,9 @@ namespace LetsTalk.Models;
 
 public class User
 {
-    public string Id { get => Username; }
-    [NotNull] public string? Username { get; init; }
-    [NotNull] public string? Password { get; init; }
+    [NotNull] public string? Id { get; init; }
+    [NotNull] public string? Secret { get; init; }
     public DateTime CreationTime { get; init; }
     public DateTime LastLoginTime { get; set; }
+    public List<RefreshToken> RefreshTokens { get; init; } = new();
 }

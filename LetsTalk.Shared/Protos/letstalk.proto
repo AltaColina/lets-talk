@@ -8,12 +8,14 @@ import "google/protobuf/empty.proto";
 import "person.proto";
 import "message.proto";
 import "chat.proto";
+import "token.proto";
 
 service LetsTalk {
   /* Person operations. */
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc Logout (LogoutRequest) returns (google.protobuf.Empty);
+  rpc Refresh (RefreshRequest) returns (RefreshResponse);
   rpc Join (JoinRequest) returns (stream Message);
   rpc Leave (LeaveRequest) returns (google.protobuf.Empty);
   rpc Send (Message) returns (google.protobuf.Empty);
@@ -30,7 +32,7 @@ message RegisterRequest {
 }
 
 message RegisterResponse {
-   string token = 1;
+   Token token = 1;
    Person person = 2;
 }
 
@@ -40,12 +42,22 @@ message RegisterResponse {
  }
 
  message LoginResponse {
-   string token = 1;
+   Token token = 1;
    Person person = 2;
  }
 
  message LogoutRequest {
    Person person = 1;
+ }
+
+ message RefreshRequest {
+   string username = 1;
+   string refreshToken = 2;
+ }
+
+ message RefreshResponse {
+   Token token = 1;
+   Person person = 2;
  }
 
 message JoinRequest {

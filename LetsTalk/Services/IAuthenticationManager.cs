@@ -1,6 +1,10 @@
-﻿namespace LetsTalk.Services;
+﻿using LetsTalk.Models;
+
+namespace LetsTalk.Services;
 
 public interface IAuthenticationManager
 {
-    string? Authenticate(string username, string password);
+    Token GenerateToken(User user);
+    Token? Authenticate(string username, string password);
+    Token? Refresh(string username, string refreshToken);
 }
