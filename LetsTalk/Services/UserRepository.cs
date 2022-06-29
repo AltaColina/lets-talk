@@ -1,4 +1,5 @@
-﻿using LetsTalk.Models;
+﻿using LetsTalk.Interfaces;
+using LetsTalk.Models;
 using LiteDB;
 
 namespace LetsTalk.Services;

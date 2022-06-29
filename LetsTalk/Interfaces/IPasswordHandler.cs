@@ -1,4 +1,4 @@
-﻿namespace LetsTalk.Services;
+﻿namespace LetsTalk.Interfaces;
 
 public interface IPasswordHandler
 {

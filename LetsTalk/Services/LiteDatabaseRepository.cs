@@ -1,4 +1,5 @@
-﻿using LiteDB;
+﻿using LetsTalk.Interfaces;
+using LiteDB;
 
 namespace LetsTalk.Services;
 
@@ -8,11 +9,11 @@ public abstract class LiteDatabaseRepository<T> : IRepository<T>
 
     public LiteDatabaseRepository(LiteDatabase liteDatabase) => Collection = liteDatabase.GetCollection<T>();
 
-    public IEnumerable<T> GetAll() => Collection.FindAll();
-    public T? Get(string id) => Collection.FindById(id);
+    public async Task<IEnumerable<T>> GetAllAsync() => await Task.FromResult(Collection.FindAll());
+    public async Task<T?> GetAsync(string id) => await Task.FromResult(Collection.FindById(id));
 
-    public void Insert(T entity) => Collection.Insert(entity);
-    public void Update(T entity) => Collection.Update(entity);
-    public void Upsert(T entity) => Collection.Upsert(entity);
-    public void Delete(string id) => Collection.Delete(id);
+    public async Task InsertAsync(T entity) => await Task.FromResult(Collection.Insert(entity));
+    public async Task UpdateAsync(T entity) => await Task.FromResult(Collection.Update(entity));
+    public async Task UpsertAsync(T entity) => await Task.FromResult(Collection.Upsert(entity));
+    public async Task DeleteAsync(string id) => await Task.FromResult(Collection.Delete(id));
 }

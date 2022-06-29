@@ -1,4 +1,5 @@
-﻿using LetsTalk.Models;
+﻿using LetsTalk.Interfaces;
+using LetsTalk.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -61,24 +62,24 @@ public sealed class JwtAuthenticationManager : IAuthenticationManager
         };
     }
 
-    public Token? Authenticate(string username, string password)
+    public async Task<Token?> AuthenticateAsync(string username, string password)
     {
         if (String.IsNullOrWhiteSpace(username) || String.IsNullOrWhiteSpace(password))
             return null;
 
-        var user = _userRepository.Get(username);
+        var user = await _userRepository.GetAsync(username);
         if (user is null || !_passwordHandler.IsValid(user.Secret, password, username))
             return null;
 
         return GenerateToken(user);
     }
 
-    public Token? Refresh(string username, string refreshToken)
+    public async Task<Token?> RefreshAsync(string username, string refreshToken)
     {
         if (String.IsNullOrWhiteSpace(username) || String.IsNullOrWhiteSpace(refreshToken))
             return null;
 
-        var user = _userRepository.Get(username);
+        var user = await _userRepository.GetAsync(username);
         if (user is null || user.RefreshTokens.SingleOrDefault(token => token.Id == refreshToken) is not RefreshToken token)
             return null;
 

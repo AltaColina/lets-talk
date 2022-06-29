@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "LetsTalk";
+option csharp_namespace = "LetsTalk.Models";
 
 package letstalk;
 

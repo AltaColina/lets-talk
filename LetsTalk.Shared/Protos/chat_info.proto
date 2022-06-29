@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-option csharp_namespace = "LetsTalk";
+option csharp_namespace = "LetsTalk.Models";
 
 package letstalk;
 
-message Chat {
+message ChatInfo {
   string id = 1;
   string name = 2;
 }

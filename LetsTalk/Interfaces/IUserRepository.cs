@@ -1,5 +1,5 @@
 ﻿using LetsTalk.Models;
 
-namespace LetsTalk.Services;
+namespace LetsTalk.Interfaces;
 
 public interface IUserRepository : IRepository<User> { }

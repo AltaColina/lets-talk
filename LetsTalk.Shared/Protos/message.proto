@@ -1,15 +1,12 @@
 syntax = "proto3";
 
-option csharp_namespace = "LetsTalk";
+option csharp_namespace = "LetsTalk.Models";
 
 package letstalk;
 
-import "chat.proto";
-import "person.proto";
-
 message Message {
-  Chat chat = 1;
-  Person person = 2;
+  string chat_id = 1;
+  string username = 2;
   int64 timestamp = 3;
   string text = 4;
 }

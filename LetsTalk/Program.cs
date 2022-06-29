@@ -1,5 +1,8 @@
+using LetsTalk.Behaviors;
+using LetsTalk.Interfaces;
 using LetsTalk.Services;
 using LiteDB;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -31,14 +34,28 @@ builder.Services.AddAuthorization(opts =>
 });
 builder.Services.AddSingleton(new LiteDatabase(builder.Configuration.GetConnectionString("LiteDB"), BsonMapper.Global.UseCamelCase()));
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IChatRepository, ChatRepository>();
 builder.Services.AddSingleton<IAuthenticationManager, JwtAuthenticationManager>();
-builder.Services.AddGrpc();
+
+builder.Services.AddMediatR(typeof(Program), typeof(LetsTalk.Shared.IAssemblyMarker));
+
+builder.Services.AddGrpc(opts => opts.Interceptors.Add<GrpcExceptionFilter>());
+builder.Services.AddControllers(opts => opts.Filters.Add<HttpExceptionFilter>());
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGrpcService<LetsTalkService>();
+app.MapControllers();
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 app.Run();

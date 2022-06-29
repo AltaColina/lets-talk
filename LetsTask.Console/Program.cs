@@ -2,8 +2,8 @@
 
 using Grpc.Core;
 using Grpc.Net.Client;
-using LetsTalk;
-using LetsTalkClient = LetsTalk.LetsTalk.LetsTalkClient;
+using LetsTalk.Models;
+using LetsTalkClient = LetsTalk.Models.LetsTalk.LetsTalkClient;
 
 var options = new GrpcChannelOptions
 {
@@ -89,7 +89,7 @@ headers.Add("Authorization", $"Bearer {token.AccessToken}");
 //await client.PostChatAsync(new PostChatRequest { Name = $"{person.Username}'s chat" }, headers);
 
 // List chats.
-var chat = default(Chat);
+var chat = default(ChatInfo);
 while (chat is null)
 {
     var chats = (await client.GetChatAsync(new GetChatRequest(), headers)).Chats;
@@ -112,11 +112,11 @@ if (chat is not null)
 {
     Task.Run(async () =>
     {
-        var call = client.Join(new JoinRequest { Chat = chat, Person = person }, headers);
+        var call = client.Join(new JoinRequest { ChatId = chat.Id, Username = person.Username }, headers);
         while (await call.ResponseStream.MoveNext(CancellationToken.None))
         {
             var message = call.ResponseStream.Current;
-            Console.WriteLine($"{message.Person.Username}: {message.Text}");
+            Console.WriteLine($"{message.Username}: {message.Text}");
         }
     })
         .ConfigureAwait(false)
@@ -124,11 +124,11 @@ if (chat is not null)
 
     // Send messages.
     while (Console.ReadLine() is string line && line != "exit")
-        await client.SendAsync(new Message { Chat = chat, Person = person, Text = line }, headers);
+        await client.SendAsync(new Message { ChatId = chat.Id, Username = person.Username, Text = line }, headers);
 }
 
 //// Leave chat.
 //await client.LeaveAsync(new LeaveRequest { Chat = chat, Person = person }, headers);
 
 // Logout.
-await client.LogoutAsync(new LogoutRequest { Person = person }, headers);
+await client.LogoutAsync(new LogoutRequest { Username = person.Username }, headers);
