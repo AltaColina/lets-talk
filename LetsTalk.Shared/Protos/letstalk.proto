@@ -23,6 +23,7 @@ service LetsTalk {
   /* Chat operations. */
   rpc GetChat(GetChatRequest) returns (GetChatResponse);
   rpc PostChat(PostChatRequest) returns (PostChatResponse);
+  rpc PutChat(PutChatRequest) returns (google.protobuf.Empty);
   rpc DeleteChat(DeleteChatRequest) returns (google.protobuf.Empty);
 }
 
@@ -86,6 +87,10 @@ message PostChatRequest {
 }
 
 message PostChatResponse {
+  ChatInfo chat = 1;
+}
+
+message PutChatRequest {
   ChatInfo chat = 1;
 }
 

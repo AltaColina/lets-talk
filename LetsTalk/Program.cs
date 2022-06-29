@@ -5,6 +5,7 @@ using LiteDB;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -42,7 +43,24 @@ builder.Services.AddMediatR(typeof(Program), typeof(LetsTalk.Shared.IAssemblyMar
 builder.Services.AddGrpc(opts => opts.Interceptors.Add<GrpcExceptionFilter>());
 builder.Services.AddControllers(opts => opts.Filters.Add<HttpExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(opts =>
+{
+    var securitySchema = new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
+    };
+    opts.OperationFilter<AuthorizeOperationFilter>();
+    opts.AddSecurityDefinition("bearer", securitySchema);
+    //var securityRequirement = new OpenApiSecurityRequirement
+    //{
+    //    [securitySchema] = new[] { "Bearer" }
+    //};
+    //opts.AddSecurityRequirement(securityRequirement);
+});
 
 var app = builder.Build();
 

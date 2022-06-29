@@ -13,7 +13,7 @@ public sealed class ChatRoom
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     [NotNull] public string? Id { get; init; }
-    [NotNull] public string? Name { get; init; }
+    [NotNull] public string? Name { get; set; }
     public CancellationToken CancellationToken { get => _cancellationTokenSource.Token; }
 
     public void CancelAllSubscritpions()

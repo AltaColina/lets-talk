@@ -42,7 +42,7 @@ public class LetsTalkService : LetsTalk.Models.LetsTalk.LetsTalkBase
     [AllowAnonymous]
     public override async Task<RefreshResponse> Refresh(RefreshRequest request, ServerCallContext context)
     {
-            return await _mediator.Send(request);
+        return await _mediator.Send(request);
     }
 
     public override async Task Join(JoinRequest request, IServerStreamWriter<Message> responseStream, ServerCallContext context)
@@ -73,6 +73,13 @@ public class LetsTalkService : LetsTalk.Models.LetsTalk.LetsTalkBase
     public override async Task<PostChatResponse> PostChat(PostChatRequest request, ServerCallContext context)
     {
         return await _mediator.Send(request);
+    }
+
+    [Authorize(Policy = "Administrator")]
+    public override async Task<Empty> PutChat(PutChatRequest request, ServerCallContext context)
+    {
+        await _mediator.Send(request);
+        return EmptyResponse;
     }
 
     [Authorize(Policy = "Administrator")]
