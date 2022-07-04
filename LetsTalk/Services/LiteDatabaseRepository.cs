@@ -17,3 +17,5 @@ public abstract class LiteDatabaseRepository<T> : IRepository<T>
     public async Task UpsertAsync(T entity) => await Task.FromResult(Collection.Upsert(entity));
     public async Task DeleteAsync(string id) => await Task.FromResult(Collection.Delete(id));
 }
+
+

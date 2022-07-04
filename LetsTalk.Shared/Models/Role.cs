@@ -2,7 +2,7 @@
 
 public enum Role
 {
-    Default,
+    User,
     Moderator,
     Administrator,
     Banned,

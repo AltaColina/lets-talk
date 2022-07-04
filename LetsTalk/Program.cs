@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,18 +34,49 @@ builder.Services.AddAuthorization(opts =>
 {
     opts.AddPolicy("Administrators", policy => policy.RequireClaim(ClaimTypes.Role, "Administrator"));
 });
-builder.Services.AddSingleton(new LiteDatabase(builder.Configuration.GetConnectionString("LiteDB"), BsonMapper.Global.UseCamelCase()));
+builder.Services.AddSingleton(services =>
+{
+    var passwordHandler= services.GetRequiredService<IPasswordHandler>();
+    var database = new LiteDatabase(builder.Configuration.GetConnectionString("LiteDB"), BsonMapper.Global.UseCamelCase());
+    if (!database.CollectionExists(nameof(User)))
+    {
+        var creationTime = DateTimeOffset.UtcNow;
+        database.GetCollection<User>().Insert(new User
+        {
+            Id = "admin",
+            Secret = passwordHandler.Encrypt("super", "admin"),
+            CreationTime = creationTime,
+            LastLoginTime = creationTime,
+            Roles =
+            {
+                Role.User,
+                Role.Moderator,
+                Role.Administrator
+            }
+        });
+    }
+    if (!database.CollectionExists(nameof(Chat)))
+    {
+        database.GetCollection<Chat>().Insert(new Chat
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = "General"
+        });
+    }
+    return database;
+});
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IChatRepository, ChatRepository>();
 
-builder.Services.AddScoped<IPasswordHandler, PasswordHandler>();
+builder.Services.AddSingleton<IPasswordHandler, PasswordHandler>();
 builder.Services.AddScoped<ITokenProvider, JwtTokenProvider>();
 builder.Services.AddScoped<IAuthenticationManager, AuthenticationManager>();
 
 builder.Services.AddMediatR(typeof(Program), typeof(LetsTalk.Shared.IAssemblyMarker));
 
 builder.Services.AddSignalR(opts => opts.EnableDetailedErrors = true);
-builder.Services.AddControllers(opts => opts.Filters.Add<HttpExceptionFilter>());
+builder.Services.AddControllers(opts => opts.Filters.Add<HttpExceptionFilter>())
+    .AddJsonOptions(opts => opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts =>
 {
@@ -72,6 +104,5 @@ app.UseAuthorization();
 app.UseCors(opts => opts.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.MapControllers();
 app.MapHub<LetsTalkHub>("/letsTalk", opts => opts.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
-app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 app.Run();

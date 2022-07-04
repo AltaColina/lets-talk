@@ -6,5 +6,7 @@ namespace LetsTalk.Services;
 
 public class UserRepository : LiteDatabaseRepository<User>, IUserRepository
 {
-    public UserRepository(LiteDatabase liteDatabase) : base(liteDatabase) { }
+    public UserRepository(LiteDatabase liteDatabase) : base(liteDatabase)
+    {
+    }
 }

@@ -47,6 +47,7 @@ public sealed class AuthenticationManager : IAuthenticationManager
             Secret = _passwordHandler.Encrypt(request.Password, request.Username),
             CreationTime = creationDateTime,
             LastLoginTime = creationDateTime,
+            Roles = { Role.User }
         };
 
         var identity = GetIdentity(user);

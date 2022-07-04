@@ -10,9 +10,9 @@ namespace LetsTalk.Controllers;
 [Route("api/[controller]")]
 public class ChatController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly ISender _mediator;
 
-    public ChatController(IMediator mediator) => _mediator = mediator;
+    public ChatController(ISender mediator) => _mediator = mediator;
 
     [HttpGet]
     [Authorize]

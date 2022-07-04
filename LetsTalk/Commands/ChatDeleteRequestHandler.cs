@@ -5,11 +5,11 @@ using MediatR;
 
 namespace LetsTalk.Commands;
 
-public sealed class DeleteChatRequestHandler : IRequestHandler<ChatDeleteRequest>
+public sealed class ChatDeleteRequestHandler : IRequestHandler<ChatDeleteRequest>
 {
     private readonly IChatRepository _chatRepository;
 
-    public DeleteChatRequestHandler(IChatRepository chatRepository)
+    public ChatDeleteRequestHandler(IChatRepository chatRepository)
     {
         _chatRepository = chatRepository;
     }
