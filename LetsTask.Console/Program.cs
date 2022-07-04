@@ -1,20 +1,17 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using LetsTalk.Models;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
-using Grpc.Core;
-using Grpc.Net.Client;
-using LetsTalk.Models;
-using LetsTalkClient = LetsTalk.Models.LetsTalk.LetsTalkClient;
+using LetsTask.Console;
 
-var options = new GrpcChannelOptions
-{
-    HttpHandler = new HttpClientHandler
-    {
-        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-    }
-};
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((hostContext, services) => services.AddHttpClient<LetsTalkHttpClient>("LetsTalk", http => http.BaseAddress = new("https://localhost:7219/letsTalk")))
+    .UseConsoleLifetime()
+    .Build();
 
-using var channel = GrpcChannel.ForAddress("http://localhost:5219", options);
-var client = new LetsTalkClient(channel);
+host.Start();
+
 
 var startChoice = -2;
 while (startChoice < 0 || startChoice > 2)
@@ -30,8 +27,11 @@ while (startChoice < 0 || startChoice > 2)
 if (startChoice == 0)
     return;
 
+var httpClient = host.Services.GetRequiredService<LetsTalkHttpClient>();
+
 var person = default(Person)!;
-var token = default(Token)!;
+var accessToken = default(Token)!;
+var refreshToken = default(Token)!;
 // Register or login.
 if (startChoice == 1)
 {
@@ -43,20 +43,21 @@ if (startChoice == 1)
         var password = Console.ReadLine();
         try
         {
-            var registerResponse = await client.RegisterAsync(new RegisterRequest { Username = username, Password = password });
-            person = registerResponse.Person;
-            token = registerResponse.Token;
+            var response = await httpClient.RegisterAsync(new RegisterRequest { Username = username, Password = password });
+            person = response.Person;
+            accessToken = response.AccessToken;
+            refreshToken = response.RefreshToken;
         }
-        catch (RpcException ex) when (ex.StatusCode == StatusCode.AlreadyExists)
+        catch (HttpRequestException ex)
         {
-            Console.WriteLine($"User '{username}' already exists.");
+            Console.WriteLine(ex.Message);
         }
     }
 }
 else
 {
     // Login.
-    while (token is null)
+    while (accessToken is null)
     {
         Console.Write("Username: ");
         var username = Console.ReadLine();
@@ -64,35 +65,33 @@ else
         var password = Console.ReadLine();
         try
         {
-            var loginResponse = await client.LoginAsync(new LoginRequest { Username = username, Password = password });
-            person = loginResponse.Person;
-            token = loginResponse.Token;
+            var response = await httpClient.LoginAsync(new LoginRequest { Username = username, Password = password });
+            person = response.Person;
+            accessToken = response.AccessToken;
+            refreshToken = response.RefreshToken;
         }
-        catch (RpcException ex) when (ex.StatusCode == StatusCode.Unauthenticated)
+        catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Username or password incorrect.");
+            Console.WriteLine(ex.Message);
         }
     }
 }
+// Add Authorization to HttpClient.
+httpClient.AcessToken = accessToken;
 
-// Test refresh token.
-var refreshResponse = await client.RefreshAsync(new RefreshRequest { Username = person.Username, RefreshToken = token.RefreshToken });
-token = refreshResponse.Token;
-person = refreshResponse.Person;
+var connection = new HubConnectionBuilder()
+    .WithUrl("https://localhost:7219/letsTalk", opts => opts.AccessTokenProvider = () => Task.FromResult<string?>(accessToken.Id))
+    .Build();
 
-// Now, with token to be passed on subsequent calls, create a meta object with the header.
-// This should be done at channel level, since it's basically the same for each call.
-var headers = new Metadata();
-headers.Add("Authorization", $"Bearer {token.AccessToken}");
+connection.On<Message>(Methods.ServerMessage, message => Console.WriteLine(message.Content));
+connection.On<Message>(Methods.UserMessage, message => Console.WriteLine($"{message.Username}: {message.Content}"));
 
-//// Add own private channel. Can no longer do this, requires "Administrator" role.
-//await client.PostChatAsync(new PostChatRequest { Name = $"{person.Username}'s chat" }, headers);
+await connection.StartAsync();
 
-// List chats.
-var chat = default(ChatInfo);
+var chat = default(Chat);
 while (chat is null)
 {
-    var chats = (await client.GetChatAsync(new GetChatRequest(), headers)).Chats;
+    var chats = (await httpClient.ChatGetAsync(new ChatGetRequest())).Chats;
     Console.WriteLine("Select a channel to join by typing its number.");
     for (int i = 0; i < chats.Count; ++i)
         Console.WriteLine($"{i + 1}: {chats[i].Name}");
@@ -107,28 +106,16 @@ while (chat is null)
     else
         chat = chats[index];
 }
-// Join chat and send messages.
+
 if (chat is not null)
 {
-    Task.Run(async () =>
-    {
-        var call = client.Join(new JoinRequest { ChatId = chat.Id, Username = person.Username }, headers);
-        while (await call.ResponseStream.MoveNext(CancellationToken.None))
-        {
-            var message = call.ResponseStream.Current;
-            Console.WriteLine($"{message.Username}: {message.Text}");
-        }
-    })
-        .ConfigureAwait(false)
-        .GetAwaiter();
+    await connection.InvokeAsync(Methods.Join, chat.Id);
 
     // Send messages.
-    while (Console.ReadLine() is string line && line != "exit")
-        await client.SendAsync(new Message { ChatId = chat.Id, Username = person.Username, Text = line }, headers);
+    while (Console.ReadLine() is string message && message != "exit")
+        await connection.InvokeAsync(Methods.UserMessage, chat.Id, message);
+
+    await connection.InvokeAsync(Methods.Leave, chat.Id);
 }
 
-//// Leave chat.
-//await client.LeaveAsync(new LeaveRequest { Chat = chat, Person = person }, headers);
-
-// Logout.
-await client.LogoutAsync(new LogoutRequest { Username = person.Username }, headers);
+await host.WaitForShutdownAsync();

@@ -1,5 +1,9 @@
 ﻿using MediatR;
+using System.Diagnostics.CodeAnalysis;
 
 namespace LetsTalk.Models;
 
-public sealed partial class LogoutRequest : IRequest<Unit> { }
+public sealed class LogoutRequest : IRequest<Unit>
+{
+    [NotNull] public string? Username { get; init; }
+}

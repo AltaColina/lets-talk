@@ -2,8 +2,8 @@
 
 namespace LetsTalk.Models;
 
-public sealed class RefreshToken
+public sealed class Token
 {
     [NotNull] public string? Id { get; init; }
-    public DateTime ExpiresIn { get; init; }
+    public DateTimeOffset ExpiresIn { get; init; }
 }

@@ -2,4 +2,4 @@
 
 namespace LetsTalk.Interfaces;
 
-public interface IChatRepository : IRepository<ChatRoom> { }
+public interface IChatRepository : IRepository<Chat> { }

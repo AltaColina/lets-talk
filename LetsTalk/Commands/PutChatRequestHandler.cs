@@ -5,7 +5,7 @@ using MediatR;
 
 namespace LetsTalk.Commands;
 
-public sealed class PutChatRequestHandler : IRequestHandler<PutChatRequest>
+public sealed class PutChatRequestHandler : IRequestHandler<ChatPutRequest>
 {
     private readonly IChatRepository _chatRepository;
 
@@ -14,7 +14,7 @@ public sealed class PutChatRequestHandler : IRequestHandler<PutChatRequest>
         _chatRepository = chatRepository;
     }
 
-    public async Task<Unit> Handle(PutChatRequest request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(ChatPutRequest request, CancellationToken cancellationToken)
     {
         var chatRoom = await _chatRepository.GetAsync(request.Chat.Id);
         if (chatRoom is null)

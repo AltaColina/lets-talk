@@ -15,8 +15,8 @@ public sealed class LogoutRequestHandler : IRequestHandler<LogoutRequest>
 
     public async Task<Unit> Handle(LogoutRequest request, CancellationToken cancellationToken)
     {
-        var chatRooms = await _chatRepository.GetAllAsync();
-        await Task.WhenAll(chatRooms.Select(chatRoom => chatRoom.LeaveAsync(request.Username)));
-        return Unit.Value;
+        //var chatRooms = await _chatRepository.GetAllAsync();
+        //await Task.WhenAll(chatRooms.Select(chatRoom => chatRoom.LeaveAsync(request.Username)));
+        return await Unit.Task;
     }
 }

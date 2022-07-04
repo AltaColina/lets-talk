@@ -5,7 +5,7 @@ using MediatR;
 
 namespace LetsTalk.Commands;
 
-public sealed class DeleteChatRequestHandler : IRequestHandler<DeleteChatRequest>
+public sealed class DeleteChatRequestHandler : IRequestHandler<ChatDeleteRequest>
 {
     private readonly IChatRepository _chatRepository;
 
@@ -14,7 +14,7 @@ public sealed class DeleteChatRequestHandler : IRequestHandler<DeleteChatRequest
         _chatRepository = chatRepository;
     }
 
-    public async Task<Unit> Handle(DeleteChatRequest request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(ChatDeleteRequest request, CancellationToken cancellationToken)
     {
         try
         {

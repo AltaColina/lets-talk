@@ -5,7 +5,7 @@ using MediatR;
 
 namespace LetsTalk.Commands;
 
-public sealed class GetChatRequestHandler : IRequestHandler<GetChatRequest, GetChatResponse>
+public sealed class GetChatRequestHandler : IRequestHandler<ChatGetRequest, ChatGetResponse>
 {
     private readonly IChatRepository _chatRepository;
 
@@ -14,29 +14,29 @@ public sealed class GetChatRequestHandler : IRequestHandler<GetChatRequest, GetC
         _chatRepository = chatRepository;
     }
 
-    public async Task<GetChatResponse> Handle(GetChatRequest request, CancellationToken cancellationToken)
+    public async Task<ChatGetResponse> Handle(ChatGetRequest request, CancellationToken cancellationToken)
     {
-        var response = new GetChatResponse();
+        var response = new ChatGetResponse();
 
-        switch (request.FilterCase)
+        switch (request)
         {
-            case GetChatRequest.FilterOneofCase.ChatId:
-                var chatRoom = await _chatRepository.GetAsync(request.ChatId);
-                if (chatRoom is null)
-                    throw new NotFoundException($"Chat {request.ChatId} does not exist");
-                response.Chats.Add(new ChatInfo { Id = chatRoom.Id, Name = chatRoom.Name });
+            case ChatGetRequest get when !String.IsNullOrWhiteSpace(get.ChatId):
+                var chat = await _chatRepository.GetAsync(get.ChatId);
+                if (chat is null)
+                    throw new NotFoundException($"Chat {get.ChatId} does not exist");
+                response.Chats.Add(chat);
                 break;
-            case GetChatRequest.FilterOneofCase.ChatName:
-                var chatRooms = (await _chatRepository.GetAllAsync()).Where(c => c.Name == request.ChatName);
-                if (!chatRooms.Any())
+            case ChatGetRequest get when !String.IsNullOrWhiteSpace(get.ChatName):
+                var chats = (await _chatRepository.GetAllAsync()).Where(c => c.Name == request.ChatName);
+                if (!chats.Any())
                     throw new NotFoundException($"No chats with name {request.ChatName} exist");
-                response.Chats.AddRange(chatRooms.Select(c => new ChatInfo { Id = c.Id, Name = c.Name }));
+                response.Chats.AddRange(chats);
                 break;
             default:
-                var chatRooms1 = (await _chatRepository.GetAllAsync());
-                if (!chatRooms1.Any())
+                var chatsAll = await _chatRepository.GetAllAsync();
+                if (!chatsAll.Any())
                     throw new NotFoundException($"No chats exist");
-                response.Chats.AddRange(chatRooms1.Select(c => new ChatInfo { Id = c.Id, Name = c.Name }));
+                response.Chats.AddRange(chatsAll);
                 break;
         }
 

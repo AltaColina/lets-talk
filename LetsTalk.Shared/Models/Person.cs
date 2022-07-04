@@ -2,8 +2,7 @@
 
 namespace LetsTalk.Models;
 
-public sealed class Message
+public sealed class Person
 {
     [NotNull] public string? Username { get; init; }
-    [NotNull] public string? Content { get; init; }
 }

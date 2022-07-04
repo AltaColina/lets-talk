@@ -4,7 +4,7 @@ namespace LetsTalk.Interfaces;
 
 public interface IAuthenticationManager
 {
-    Token GenerateToken(User user);
-    Task<Token?> AuthenticateAsync(string username, string password);
-    Task<Token?> RefreshAsync(string username, string refreshToken);
+    Task<AuthenticationResponse> AuthenticateAsync(RegisterRequest request);
+    Task<AuthenticationResponse> AuthenticateAsync(LoginRequest request);
+    Task<AuthenticationResponse> AuthenticateAsync(RefreshRequest request);
 }

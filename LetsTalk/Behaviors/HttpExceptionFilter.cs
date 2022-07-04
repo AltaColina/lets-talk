@@ -8,6 +8,9 @@ public class HttpExceptionFilter : ExceptionFilterAttribute
 {
     private readonly IReadOnlyDictionary<Type, Action<ExceptionContext>> _handlers = new Dictionary<Type, Action<ExceptionContext>>
     {
+        [typeof(ArgumentException)] = OnBadRequest,
+        [typeof(ArgumentNullException)] = OnBadRequest,
+        [typeof(ArgumentOutOfRangeException)] = OnBadRequest,
         [typeof(UnauthorizedException)] = OnUnauthorized,
         [typeof(ForbiddenException)] = OnForbidden,
         [typeof(NotFoundException)] = OnNotFound,
@@ -23,11 +26,23 @@ public class HttpExceptionFilter : ExceptionFilterAttribute
             base.OnException(context);
     }
 
+    private static void OnBadRequest(ExceptionContext context)
+    {
+        context.Result = new UnauthorizedObjectResult(new ProblemDetails
+        {
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
+            Title = "Bad Request",
+            Status = StatusCodes.Status400BadRequest,
+            Detail = context.Exception.Message,
+        });
+        context.ExceptionHandled = true;
+    }
+
     private static void OnUnauthorized(ExceptionContext context)
     {
         context.Result = new UnauthorizedObjectResult(new ProblemDetails
         {
-            //Type = "https://datatracker.ietf.org/doc/html/rfc7231$section-6.5.3",
+            //Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3",
             Title = "Unauthorized",
             Status = StatusCodes.Status401Unauthorized,
             Detail = context.Exception.Message,
@@ -39,7 +54,7 @@ public class HttpExceptionFilter : ExceptionFilterAttribute
     {
         context.Result = new ObjectResult(new ProblemDetails
         {
-            Type = "https://datatracker.ietf.org/doc/html/rfc7231$section-6.5.3",
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.3",
             Title = "Forbidden",
             Status = StatusCodes.Status403Forbidden,
             Detail = context.Exception.Message,
@@ -54,7 +69,7 @@ public class HttpExceptionFilter : ExceptionFilterAttribute
     {
         context.Result = new NotFoundObjectResult(new ProblemDetails
         {
-            Type = "https://datatracker.ietf.org/doc/html/rfc7231$section-6.5.4",
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4",
             Title = "Not Found",
             Status = StatusCodes.Status404NotFound,
             Detail = context.Exception.Message,
@@ -66,7 +81,7 @@ public class HttpExceptionFilter : ExceptionFilterAttribute
     {
         context.Result = new ConflictObjectResult(new ProblemDetails
         {
-            Type = "https://datatracker.ietf.org/doc/html/rfc7231$section-6.5.8",
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.8",
             Title = "Conflict",
             Status = StatusCodes.Status409Conflict,
             Detail = context.Exception.Message,
@@ -78,7 +93,7 @@ public class HttpExceptionFilter : ExceptionFilterAttribute
     {
         context.Result = new ObjectResult(new ProblemDetails
         {
-            Type = "https://datatracker.ietf.org/doc/html/rfc7231$section-6.6.1",
+            Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
             Title = "Internal Server Error",
             Status = StatusCodes.Status500InternalServerError,
             Detail = context.Exception.Message,

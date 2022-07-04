@@ -1,5 +1,10 @@
 ﻿using MediatR;
+using System.Diagnostics.CodeAnalysis;
 
 namespace LetsTalk.Models;
 
-public sealed partial class RegisterRequest : IRequest<RegisterResponse> { }
+public sealed class RegisterRequest : IRequest<AuthenticationResponse>
+{
+    [NotNull] public string? Username { get; init; }
+    [NotNull] public string? Password { get; init; }
+}
