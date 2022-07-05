@@ -16,11 +16,10 @@ public sealed class ChatPutRequestHandler : IRequestHandler<ChatPutRequest>
 
     public async Task<Unit> Handle(ChatPutRequest request, CancellationToken cancellationToken)
     {
-        var chatRoom = await _chatRepository.GetAsync(request.Chat.Id);
-        if (chatRoom is null)
-            throw new NotFoundException("Chat room does not exist");
-        chatRoom.Name = request.Chat.Name;
-        await _chatRepository.UpdateAsync(chatRoom);
+        var chat = await _chatRepository.GetAsync(request.Chat.Id);
+        if (chat is null)
+            throw new NotFoundException($"Chat {request.Chat.Id} does not exist");
+        await _chatRepository.UpdateAsync(chat);
         return Unit.Value;
     }
 }

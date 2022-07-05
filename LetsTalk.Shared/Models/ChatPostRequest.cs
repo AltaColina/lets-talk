@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace LetsTalk.Models;
 
-public sealed class ChatPostRequest : IRequest<ChatPostResponse>
+public sealed class ChatPostRequest : IRequest
 {
-    [NotNull] public string? Name { get; init; }
+    [NotNull] public Chat? Chat { get; init; }
 }

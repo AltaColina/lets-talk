@@ -5,7 +5,7 @@ using MediatR;
 
 namespace LetsTalk.Commands;
 
-public sealed class ChatPostRequestHandler : IRequestHandler<ChatPostRequest, ChatPostResponse>
+public sealed class ChatPostRequestHandler : IRequestHandler<ChatPostRequest>
 {
     private readonly IChatRepository _chatRepository;
 
@@ -14,18 +14,12 @@ public sealed class ChatPostRequestHandler : IRequestHandler<ChatPostRequest, Ch
         _chatRepository = chatRepository;
     }
     
-    public async Task<ChatPostResponse> Handle(ChatPostRequest request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(ChatPostRequest request, CancellationToken cancellationToken)
     {
-        var chat = new Chat { Id = Guid.NewGuid().ToString(), Name = request.Name };
-        try
-        {
-            await _chatRepository.InsertAsync(chat);
-        }
-        catch(Exception ex)
-        {
-            throw new UnknownException(ex.Message);
-        }
-
-        return new ChatPostResponse { Chat = chat };
+        var role = await _chatRepository.GetAsync(request.Chat.Id);
+        if (role is not null)
+            throw new ConflictException($"Role {request.Chat.Id} already exists");
+        await _chatRepository.InsertAsync(request.Chat);
+        return Unit.Value;
     }
 }

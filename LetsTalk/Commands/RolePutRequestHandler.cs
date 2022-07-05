@@ -7,20 +7,19 @@ namespace LetsTalk.Commands;
 
 public sealed class RolePutRequestHandler : IRequestHandler<RolePutRequest>
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
 
-    public RolePutRequestHandler(IUserRepository userRepository)
+    public RolePutRequestHandler(IRoleRepository roleRepository)
     {
-        _userRepository = userRepository;
+        _roleRepository = roleRepository;
     }
 
     public async Task<Unit> Handle(RolePutRequest request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetAsync(request.UserId);
-        if(user is null)
-            throw new NotFoundException($"User {request.UserId} does not exist");
-        user.Roles.UnionWith(request.Roles);
-        await _userRepository.UpdateAsync(user);
+        var role = await _roleRepository.GetAsync(request.Role.Id);
+        if (role is null)
+            throw new NotFoundException($"Role {request.Role.Id} does not exist");
+        await _roleRepository.UpdateAsync(role);
         return Unit.Value;
     }
 }

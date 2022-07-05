@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace LetsTalk.Models;
 
-public sealed class RolePutRequest : IRequest
+public sealed class RolePostRequest : IRequest
 {
     [NotNull] public Role? Role { get; init; }
 }

@@ -1,4 +1,5 @@
-﻿using LetsTalk.Exceptions;
+﻿using FluentValidation;
+using LetsTalk.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -6,11 +7,9 @@ namespace LetsTalk.Behaviors;
 
 public class HttpExceptionFilter : ExceptionFilterAttribute
 {
-    private readonly IReadOnlyDictionary<Type, Action<ExceptionContext>> _handlers = new Dictionary<Type, Action<ExceptionContext>>
+    private static readonly IReadOnlyDictionary<Type, Action<ExceptionContext>> _handlers = new Dictionary<Type, Action<ExceptionContext>>
     {
-        [typeof(ArgumentException)] = OnBadRequest,
-        [typeof(ArgumentNullException)] = OnBadRequest,
-        [typeof(ArgumentOutOfRangeException)] = OnBadRequest,
+        [typeof(ValidationException)] = OnBadRequest,
         [typeof(UnauthorizedException)] = OnUnauthorized,
         [typeof(ForbiddenException)] = OnForbidden,
         [typeof(NotFoundException)] = OnNotFound,
@@ -28,12 +27,13 @@ public class HttpExceptionFilter : ExceptionFilterAttribute
 
     private static void OnBadRequest(ExceptionContext context)
     {
-        context.Result = new UnauthorizedObjectResult(new ProblemDetails
+        var exception = (ValidationException)context.Exception;
+        context.Result = new BadRequestObjectResult(new ProblemDetails
         {
             Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
             Title = "Bad Request",
             Status = StatusCodes.Status400BadRequest,
-            Detail = context.Exception.Message,
+            Detail = String.Join(",", exception.Errors.Select(e => $"{e.ErrorMessage}")),
         });
         context.ExceptionHandled = true;
     }

@@ -55,23 +55,19 @@ public sealed class LetsTalkHttpClient
 
     public async Task<ChatGetResponse> ChatGetAsync(ChatGetRequest request)
     {
-        var url = request switch
-        {
-            ChatGetRequest get when !String.IsNullOrWhiteSpace(get.ChatId) => $"api/chat/{request.ChatId}",
-            ChatGetRequest get when !String.IsNullOrWhiteSpace(get.ChatName) => $"api/chat?chatName={request.ChatName}",
-            _ => "api/chat"
-        };
+        var url = !String.IsNullOrWhiteSpace(request.ChatId)
+            ? $"api/chat/{request.ChatId}"
+            : "api/chat";
         var response = await _httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<ChatGetResponse>())!;
     }
 
-    public async Task<ChatPostResponse> ChatPostAsync(ChatPostRequest request)
+    public async Task ChatPostAsync(ChatPostRequest request)
     {
         var httpContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
         var response = await _httpClient.PostAsync("api/chat", httpContent);
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<ChatPostResponse>())!;
     }
 
     public async Task ChatPutAsync(ChatPutRequest request)

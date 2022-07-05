@@ -14,48 +14,35 @@ public class ChatController : ControllerBase
 
     public ChatController(ISender mediator) => _mediator = mediator;
 
-    [HttpGet]
-    [Authorize]
-    [Route("{chatId}")]
-    public async Task<IActionResult> GetById([FromRoute] string? chatId)
+    [HttpGet, Authorize(Permissions.Chat.View)]
+    public async Task<IActionResult> Get()
     {
-        var request = !String.IsNullOrWhiteSpace(chatId)
-            ? new ChatGetRequest { ChatId = chatId }
-            : new ChatGetRequest();
-        var response = await _mediator.Send(request);
+        var response = await _mediator.Send(new ChatGetRequest());
         return Ok(response);
     }
 
-    [HttpGet]
-    [Authorize]
-    public async Task<IActionResult> GetByName([FromQuery] string? chatName)
+    [HttpGet("{chatId}"), Authorize(Permissions.Chat.View)]
+    public async Task<IActionResult> Get([FromRoute, Required] string chatId)
     {
-        var request = !String.IsNullOrWhiteSpace(chatName)
-            ? new ChatGetRequest { ChatName = chatName }
-            : new ChatGetRequest();
-        var response = await _mediator.Send(request);
+        var response = await _mediator.Send(new ChatGetRequest { ChatId = chatId, });
         return Ok(response);
     }
 
-    [HttpPost]
-    [Authorize("Administrators")]
+    [HttpPost, Authorize(Permissions.Chat.Create)]
     public async Task<IActionResult> Post([FromBody, Required] ChatPostRequest request)
     {
         var response = await _mediator.Send(request);
         return Ok(response);
     }
 
-    [HttpPut]
-    [Authorize("Administrators")]
+    [HttpPut, Authorize(Permissions.Chat.Edit)]
     public async Task<IActionResult> Put([FromBody, Required] ChatPutRequest request)
     {
         await _mediator.Send(request);
         return Ok();
     }
 
-    [HttpDelete]
-    [Route("{chatId}")]
-    [Authorize("Administrators")]
+    [HttpDelete("{chatId}"), Authorize(Permissions.Chat.Delete)]
     public async Task<IActionResult> Delete([FromRoute, Required] string chatId)
     {
         var request = new ChatDeleteRequest { ChatId = chatId };

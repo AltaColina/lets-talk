@@ -7,21 +7,21 @@ namespace LetsTalk.Commands;
 
 public sealed class RoleGetRequestHandler : IRequestHandler<RoleGetRequest, RoleGetResponse>
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
 
-    public RoleGetRequestHandler(IUserRepository userRepository)
+    public RoleGetRequestHandler(IRoleRepository roleRepository)
     {
-        _userRepository = userRepository;
+        _roleRepository = roleRepository;
     }
 
     public async Task<RoleGetResponse> Handle(RoleGetRequest request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetAsync(request.UserId);
-        if (user is null)
-            throw new NotFoundException($"User {request.UserId} does not exist");
-        return new RoleGetResponse
-        {
-            Roles = new List<Role>(user.Roles)
-        };
+        if (request.RoleId is null)
+            return new RoleGetResponse { Roles = new List<Role>(await _roleRepository.GetAllAsync()) };
+
+        var role = await _roleRepository.GetAsync(request.RoleId);
+        if (role is null)
+            throw new NotFoundException($"Role {request.RoleId} does not exist");
+        return new RoleGetResponse { Roles = { role } };
     }
 }

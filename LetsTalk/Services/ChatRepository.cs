@@ -9,10 +9,5 @@ public sealed class ChatRepository : LiteDatabaseRepository<Chat>, IChatReposito
 {
     public ChatRepository(LiteDatabase liteDatabase) : base(liteDatabase)
     {
-        Collection.Insert(new Chat
-        {
-            Id = Guid.NewGuid().ToString(),
-            Name = "General"
-        });
     }
 }

@@ -45,7 +45,7 @@ public sealed class LetsTalkHub : Hub
         await Clients.Group(chat.Id).SendAsync(Methods.ServerMessage, new Message
         {
             Username = "Server",
-            Content = $"{Context.User!.Identity!.Name} has joined chat {chat.Name}"
+            Content = $"{Context.User!.Identity!.Name} has joined chat {chat.Id}"
         });
     }
 
@@ -58,7 +58,7 @@ public sealed class LetsTalkHub : Hub
         await Clients.Group(chatId).SendAsync(Methods.ServerMessage, new Message
         {
             Username = "Server",
-            Content = $"{Context.User!.Identity!.Name} has left chat {chat.Name}"
+            Content = $"{Context.User!.Identity!.Name} has left chat {chat.Id}"
         });
     }
 

@@ -5,5 +5,5 @@ namespace LetsTalk.Models;
 
 public sealed class RoleGetRequest : IRequest<RoleGetResponse>
 {
-    [NotNull] public string? UserId { get; init; }
+    public string? RoleId { get; init; }
 }

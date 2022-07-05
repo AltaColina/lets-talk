@@ -94,7 +94,7 @@ while (chat is null)
     var chats = (await httpClient.ChatGetAsync(new ChatGetRequest())).Chats;
     Console.WriteLine("Select a channel to join by typing its number.");
     for (int i = 0; i < chats.Count; ++i)
-        Console.WriteLine($"{i + 1}: {chats[i].Name}");
+        Console.WriteLine($"{i + 1}: {chats[i].Id}");
     Console.WriteLine("0: Exit LetsTalk");
     var input = Console.ReadLine();
     if (!Int32.TryParse(input, out int number))

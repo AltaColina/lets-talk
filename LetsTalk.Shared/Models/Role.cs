@@ -1,9 +1,9 @@
-﻿namespace LetsTalk.Models;
+﻿using System.Diagnostics.CodeAnalysis;
 
-public enum Role
+namespace LetsTalk.Models;
+
+public sealed class Role
 {
-    User,
-    Moderator,
-    Administrator,
-    Banned,
+    [NotNull] public string? Id { get; init; }
+    public List<string> Permissions { get; init; } = new();
 }

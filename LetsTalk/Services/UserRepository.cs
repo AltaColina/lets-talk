@@ -4,7 +4,7 @@ using LiteDB;
 
 namespace LetsTalk.Services;
 
-public class UserRepository : LiteDatabaseRepository<User>, IUserRepository
+public sealed class UserRepository : LiteDatabaseRepository<User>, IUserRepository
 {
     public UserRepository(LiteDatabase liteDatabase) : base(liteDatabase)
     {
