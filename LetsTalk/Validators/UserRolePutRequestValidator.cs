@@ -8,5 +8,6 @@ public sealed class UserRolePutRequestValidator : AbstractValidator<UserRolePutR
     public UserRolePutRequestValidator()
     {
         RuleFor(e => e.UserId).NotEmpty();
+        RuleFor(e => e.Roles).NotNull();
     }
 }
