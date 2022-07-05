@@ -52,4 +52,18 @@ public class RoleController : ControllerBase
         await _mediator.Send(new RoleDeleteRequest { RoleId = roleId });
         return Ok();
     }
+
+    [HttpGet("{roleId}/user"), Authorize(Permissions.Role.User.View)]
+    public async Task<IActionResult> GetUsers([FromRoute, Required] string roleId)
+    {
+        var response = await _mediator.Send(new RoleUserGetRequest { RoleId = roleId });
+        return Ok(response);
+    }
+
+    [HttpPut("{roleId}/user"), Authorize(Permissions.Role.User.Edit)]
+    public async Task<IActionResult> PutUsers([FromRoute, Required] string roleId, [FromBody, Required] User user)
+    {
+        await _mediator.Send(new RoleUserPutRequest { RoleId = roleId, User = user });
+        return Ok();
+    }
 }
