@@ -25,7 +25,6 @@ public static class DependencyInjection
         {
             var passwordHandler = provider.GetRequiredService<IPasswordHandler>();
             var database = new LiteDatabase(options.ConnectionString, options.BsonMapper);
-            var roles = database.GetCollection<Role>();
             if (!database.CollectionExists(nameof(Role)))
             {
                 var allPermissions = GetStaticFieldNames(typeof(Permissions));
@@ -34,12 +33,7 @@ public static class DependencyInjection
                     new Role
                     {
                         Id = "User",
-                        Permissions =
-                        {
-                            Permissions.Chat.View,
-                            Permissions.Role.View,
-                            Permissions.User.View,
-                        }
+                        Permissions = new List<string>(allPermissions.Where(perm => perm.EndsWith("View", StringComparison.InvariantCultureIgnoreCase)))
                     },
                     new Role
                     {

@@ -52,4 +52,17 @@ public sealed class UserController : ControllerBase
         return Ok();
     }
 
+    [HttpGet("{userId}/role"), Authorize(Permissions.User.Role.View)]
+    public async Task<IActionResult> GetRoles([FromRoute, Required] string userId)
+    {
+        var response = await _mediator.Send(new UserRoleGetRequest { UserId = userId });
+        return Ok(response);
+    }
+
+    [HttpPut("{userId}/role"), Authorize(Permissions.User.Role.Edit)]
+    public async Task<IActionResult> PutRoles([FromRoute, Required] string userId, [FromBody, Required] UserRolePutRequest request)
+    {
+        var response = await _mediator.Send(new UserRolePutRequest { UserId = userId, Roles = request.Roles });
+        return Ok();
+    }
 }
