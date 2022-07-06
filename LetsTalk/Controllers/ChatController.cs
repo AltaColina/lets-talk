@@ -1,4 +1,5 @@
 ﻿using LetsTalk.Models;
+using LetsTalk.Models.Chats;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,16 +30,16 @@ public class ChatController : ControllerBase
     }
 
     [HttpPost, Authorize(Permissions.Chat.Create)]
-    public async Task<IActionResult> Post([FromBody, Required] ChatPostRequest request)
+    public async Task<IActionResult> Post([FromBody, Required] Chat chat)
     {
-        var response = await _mediator.Send(request);
-        return Ok(response);
+        await _mediator.Send(new ChatPostRequest { Chat = chat });
+        return Ok();
     }
 
     [HttpPut, Authorize(Permissions.Chat.Edit)]
-    public async Task<IActionResult> Put([FromBody, Required] ChatPutRequest request)
+    public async Task<IActionResult> Put([FromBody, Required] Chat chat)
     {
-        await _mediator.Send(request);
+        await _mediator.Send(new ChatPutRequest { Chat = chat });
         return Ok();
     }
 
@@ -47,6 +48,20 @@ public class ChatController : ControllerBase
     {
         var request = new ChatDeleteRequest { ChatId = chatId };
         await _mediator.Send(request);
+        return Ok();
+    }
+
+    [HttpGet("{chatId}/user"), Authorize(Permissions.Chat.User.View)]
+    public async Task<IActionResult> GetUsers([FromRoute, Required] string chatId)
+    {
+        var response = await _mediator.Send(new ChatUserGetRequest { ChatId = chatId });
+        return Ok(response);
+    }
+
+    [HttpPut("{chatId}/user"), Authorize(Permissions.Chat.User.View)]
+    public async Task<IActionResult> GetUsers([FromRoute, Required] string chatId, [FromBody, Required] string userId)
+    {
+        await _mediator.Send(new ChatUserPutRequest { ChatId = chatId, UserId = userId });
         return Ok();
     }
 }

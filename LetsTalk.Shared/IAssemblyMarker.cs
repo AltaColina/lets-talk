@@ -1,3 +1,3 @@
-﻿namespace LetsTalk.Shared;
+﻿namespace LetsTalk;
 
 public interface IAssemblyMarker { }

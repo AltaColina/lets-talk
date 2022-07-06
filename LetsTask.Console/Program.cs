@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
-using LetsTask.Console;
+using LetsTalk.Models.Auths;
+using LetsTalk.Interfaces;
 
 var host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices((hostContext, services) => services.AddHttpClient<LetsTalkHttpClient>("LetsTalk", http => http.BaseAddress = new("https://localhost:7219/letsTalk")))
+    .ConfigureServices((hostContext, services) => services.AddLetsTalkHttpClient(http => http.BaseAddress = new("https://localhost:7219/letsTalk")))
     .UseConsoleLifetime()
     .Build();
 
@@ -27,7 +28,7 @@ while (startChoice < 0 || startChoice > 2)
 if (startChoice == 0)
     return;
 
-var httpClient = host.Services.GetRequiredService<LetsTalkHttpClient>();
+var httpClient = host.Services.GetRequiredService<ILetsTalkHttpClient>();
 
 var person = default(Person)!;
 var accessToken = default(Token)!;
@@ -76,8 +77,6 @@ else
         }
     }
 }
-// Add Authorization to HttpClient.
-httpClient.AcessToken = accessToken;
 
 var connection = new HubConnectionBuilder()
     .WithUrl("https://localhost:7219/letsTalk", opts => opts.AccessTokenProvider = () => Task.FromResult<string?>(accessToken.Id))
@@ -91,7 +90,7 @@ await connection.StartAsync();
 var chat = default(Chat);
 while (chat is null)
 {
-    var chats = (await httpClient.ChatGetAsync(new ChatGetRequest())).Chats;
+    var chats = (await httpClient.ChatGetAsync()).Chats;
     Console.WriteLine("Select a channel to join by typing its number.");
     for (int i = 0; i < chats.Count; ++i)
         Console.WriteLine($"{i + 1}: {chats[i].Id}");

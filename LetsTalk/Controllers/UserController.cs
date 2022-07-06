@@ -1,4 +1,5 @@
 ﻿using LetsTalk.Models;
+using LetsTalk.Models.Users;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -63,6 +64,20 @@ public sealed class UserController : ControllerBase
     public async Task<IActionResult> PutRoles([FromRoute, Required] string userId, [FromBody, Required] UserRolePutRequest request)
     {
         var response = await _mediator.Send(new UserRolePutRequest { UserId = userId, Roles = request.Roles });
+        return Ok();
+    }
+
+    [HttpGet("{userId}/chat"), Authorize(Permissions.User.Chat.View)]
+    public async Task<IActionResult> GetChats([FromRoute, Required] string userId)
+    {
+        var response = await _mediator.Send(new UserChatGetRequest { UserId = userId });
+        return Ok(response);
+    }
+
+    [HttpPut("{userId}/chat"), Authorize(Permissions.User.Chat.Edit)]
+    public async Task<IActionResult> PutChats([FromRoute, Required] string userId, [FromBody, Required] UserChatPutRequest request)
+    {
+        var response = await _mediator.Send(new UserChatPutRequest { UserId = userId, Chats = request.Chats });
         return Ok();
     }
 }

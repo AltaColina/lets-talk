@@ -1,5 +1,6 @@
 ﻿using LetsTalk.Interfaces;
 using LetsTalk.Models;
+using LetsTalk.Models.Roles;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,9 +34,9 @@ public class RoleController : ControllerBase
     }
 
     [HttpPost, Authorize(Permissions.Role.Create)]
-    public async Task<IActionResult> Post([FromBody, Required] RolePostRequest request)
+    public async Task<IActionResult> Post([FromBody, Required] Role role)
     {
-        await _mediator.Send(request);
+        await _mediator.Send(new RolePostRequest { Role = role });
         return Ok();
     }
 
@@ -61,9 +62,9 @@ public class RoleController : ControllerBase
     }
 
     [HttpPut("{roleId}/user"), Authorize(Permissions.Role.User.Edit)]
-    public async Task<IActionResult> PutUsers([FromRoute, Required] string roleId, [FromBody, Required] User user)
+    public async Task<IActionResult> PutUsers([FromRoute, Required] string roleId, [FromBody, Required] string userId)
     {
-        await _mediator.Send(new RoleUserPutRequest { RoleId = roleId, User = user });
+        await _mediator.Send(new RoleUserPutRequest { RoleId = roleId, UserId = userId });
         return Ok();
     }
 }
