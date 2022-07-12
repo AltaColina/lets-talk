@@ -2,7 +2,6 @@
 using LetsTalk.Behaviors;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
-using LetsTalk.Repositories;
 using LetsTalk.Services;
 using LiteDB;
 using MediatR;
@@ -102,9 +101,7 @@ public static class LetsTalkDependencyInjection
         });
 
         // Add related repositories.
-        services.TryAddSingleton<IRoleRepository, RoleRepository>();
-        services.TryAddSingleton<IUserRepository, UserRepository>();
-        services.TryAddSingleton<IChatRepository, ChatRepository>();
+        services.TryAddSingleton(typeof(IRepository<>), typeof(LiteDatabaseRepository<>));
 
         return services;
 

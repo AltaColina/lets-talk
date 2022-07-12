@@ -1,4 +1,5 @@
 ﻿using LetsTalk.Interfaces;
+using LetsTalk.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics.CodeAnalysis;
 
@@ -11,10 +12,10 @@ internal sealed class PermissionRequirement : IAuthorizationRequirement
 
 internal sealed class PermissionHandler : AuthorizationHandler<PermissionRequirement>
 {
-    private readonly IRoleRepository _roleRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly IRepository<Role> _roleRepository;
+    private readonly IRepository<User> _userRepository;
 
-    public PermissionHandler(IRoleRepository roleRepository, IUserRepository userRepository)
+    public PermissionHandler(IRepository<Role> roleRepository, IRepository<User> userRepository)
     {
         _roleRepository = roleRepository;
         _userRepository = userRepository;

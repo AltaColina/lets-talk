@@ -11,9 +11,9 @@ internal sealed class AuthenticationManager : IAuthenticationManager
 {
     private readonly ITokenProvider _tokenProvider;
     private readonly IPasswordHandler _passwordHandler;
-    private readonly IUserRepository _userRepository;
+    private readonly IRepository<User> _userRepository;
 
-    public AuthenticationManager(ITokenProvider tokenProvider, IPasswordHandler passwordHandler, IUserRepository userRepository)
+    public AuthenticationManager(ITokenProvider tokenProvider, IPasswordHandler passwordHandler, IRepository<User> userRepository)
     {
         _tokenProvider = tokenProvider;
         _passwordHandler = passwordHandler;

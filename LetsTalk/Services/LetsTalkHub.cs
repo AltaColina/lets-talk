@@ -9,9 +9,9 @@ namespace LetsTalk.Services;
 [Authorize()]
 public sealed class LetsTalkHub : Hub
 {
-    private readonly IChatRepository _chatRepository;
+    private readonly IRepository<Chat> _chatRepository;
 
-    public LetsTalkHub(IChatRepository chatRepository)
+    public LetsTalkHub(IRepository<Chat> chatRepository)
     {
         _chatRepository = chatRepository;
     }
