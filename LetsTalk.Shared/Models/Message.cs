@@ -1,9 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace LetsTalk.Models;
+﻿namespace LetsTalk.Models;
 
 public sealed class Message
 {
-    [NotNull] public string? Username { get; init; }
-    [NotNull] public string? Content { get; init; }
+    public string ChatId { get; set; } = null!;
+    public string Username { get; set; } = null!;
+    public string Content { get; set; } = null!;
 }

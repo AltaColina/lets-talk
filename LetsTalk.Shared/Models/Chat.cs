@@ -1,8 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Ardalis.Specification;
+using System.Diagnostics.CodeAnalysis;
 
 namespace LetsTalk.Models;
 
-public sealed class Chat
+public sealed class Chat : IEntity<string>
 {
-    [NotNull] public string? Id { get; init; }
+    [NotNull] public string? Id { get; set; }
 }

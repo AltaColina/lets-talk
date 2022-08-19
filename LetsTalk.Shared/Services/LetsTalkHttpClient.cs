@@ -12,213 +12,132 @@ namespace LetsTalk.Services;
 internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
 {
     private readonly HttpClient _httpClient;
-    private AuthenticationResponse? _authentication;
-
-    private AuthenticationResponse? Authentication
-    {
-        get => _authentication;
-        set
-        {
-            _authentication = value;
-            _httpClient.DefaultRequestHeaders.Authorization = _authentication is not null
-                ? new AuthenticationHeaderValue("Bearer", _authentication.AccessToken.Id)
-                : null;
-        }
-    }
 
     public LetsTalkHttpClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
-    private async Task RefreshAuthenticationAsync()
-    {
-        if (Authentication is not null)
-        {
-            var dateTime = DateTimeOffset.UtcNow;
-            if (Authentication.AccessToken.ExpiresIn < dateTime && Authentication.RefreshToken.ExpiresIn > dateTime)
-            {
-                Authentication = await RefreshAsync(new RefreshRequest
-                {
-                    RefreshToken = Authentication.RefreshToken.Id,
-                    Username = Authentication.Person.Username
-                });
-            }
-        }
-    }
-
     public async Task<AuthenticationResponse> RegisterAsync(RegisterRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
         response.EnsureSuccessStatusCode();
-        Authentication = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
-        return Authentication!;
+        return (await response.Content.ReadFromJsonAsync<AuthenticationResponse>())!;
     }
 
     public async Task<AuthenticationResponse> LoginAsync(LoginRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
         response.EnsureSuccessStatusCode();
-        Authentication = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
-        return Authentication!;
+        return (await response.Content.ReadFromJsonAsync<AuthenticationResponse>())!;
     }
 
     public async Task<AuthenticationResponse> RefreshAsync(RefreshRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync("api/auth/refresh", request);
         response.EnsureSuccessStatusCode();
-        Authentication = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
-        return Authentication!;
+        return (await response.Content.ReadFromJsonAsync<AuthenticationResponse>())!;
     }
 
-    public async Task<ChatGetResponse> ChatGetAsync()
+    public async Task<ChatGetResponse> ChatGetAsync(string token) =>
+        await GetAsync<ChatGetResponse>("api/chat", token);
+
+    public async Task<ChatGetResponse> ChatGetAsync(string chatId, string token) =>
+        await GetAsync<ChatGetResponse>($"api/chat/{chatId}", token);
+
+    public async Task ChatPostAsync(Chat chat, string token) =>
+        await PostAsync("api/chat", chat, token);
+
+    public async Task ChatPutAsync(Chat chat, string token) =>
+        await PutAsync("api/chat", chat, token);
+
+    public async Task ChatDeleteAsync(string chatId, string token) =>
+        await DeleteAsync($"api/chat/{chatId}", token);
+
+    public async Task<ChatUserGetResponse> ChatUserGetAsync(string chatId, string token) =>
+        await GetAsync<ChatUserGetResponse>($"api/chat/{chatId}/user", token);
+
+    public async Task ChatUserPutAsync(string chatId, string userId, string token) =>
+        await PutAsync($"api/chat/{chatId}/user", userId, token);
+
+    public async Task<RoleGetResponse> RoleGetAsync(string token) =>
+        await GetAsync<RoleGetResponse>("api/role", token);
+
+    public async Task<RoleGetResponse> RoleGetAsync(string roleId, string token) =>
+        await GetAsync<RoleGetResponse>($"api/role/{roleId}", token);
+
+    public async Task RolePostAsync(Role role, string token) =>
+        await PostAsync("api/role", role, token);
+
+    public async Task RolePutAsync(Role role, string token) =>
+        await PutAsync("api/role", role, token);
+
+    public async Task RoleDeleteAsync(string roleId, string token) =>
+        await DeleteAsync($"api/role/{roleId}", token);
+
+    public async Task<RoleUserGetResponse> RoleUserGetAsync(string roleId, string token) =>
+        await GetAsync<RoleUserGetResponse>($"api/role/{roleId}/user", token);
+
+    public async Task RoleUserPutAsync(string roleId, string userId, string token) =>
+        await PutAsync($"api/role/{roleId}/user", userId, token);
+
+    public async Task<UserGetResponse> UserGetAsync(string token) =>
+        await GetAsync<UserGetResponse>("api/user", token);
+
+    public async Task<UserGetResponse> UserGetAsync(string userId, string token) =>
+        await GetAsync<UserGetResponse>($"api/user/{userId}", token);
+
+    public async Task UserPostAsync(User user, string token) =>
+        await PostAsync("api/user", user, token);
+
+    public async Task UserPutAsync(User user, string token) =>
+        await PutAsync("api/user", user, token);
+
+    public async Task UserDeleteAsync(string userId, string token) =>
+        await DeleteAsync($"api/user/{userId}", token);
+
+    public async Task<UserChatGetResponse> UserChatGetAsync(string userId, string token) =>
+        await GetAsync<UserChatGetResponse>($"api/user/{userId}/chat", token);
+
+    public async Task UserChatPutAsync(string userId, string chatId, string token) =>
+        await PutAsync($"api/user/{userId}/chat", chatId, token);
+
+    public async Task<UserRoleGetResponse> UserRoleGetAsync(string userId, string token) =>
+        await GetAsync<UserRoleGetResponse>($"api/user/{userId}/role", token);
+
+    public async Task UserRolePutAsync(string userId, string roleId, string token) =>
+        await PutAsync($"api/user/{userId}/role", token, roleId);
+
+    private async Task<T> GetAsync<T>(string uri, string token)
     {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<ChatGetResponse>("api/chat"))!;
+        var response = await _httpClient.SendAsync(CreateRequest<T>(HttpMethod.Get, uri, token));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<T>())!;
     }
 
-    public async Task<ChatGetResponse> ChatGetAsync(string chatId)
+    private async Task PostAsync<T>(string uri, T? value, string token)
     {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<ChatGetResponse>($"api/chat/{chatId}"))!;
-    }
-
-    public async Task ChatPostAsync(Chat chat)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PostAsJsonAsync("api/chat", chat);
+        var response = await _httpClient.SendAsync(CreateRequest<T>(HttpMethod.Post, uri, token, value));
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task ChatPutAsync(Chat chat)
+    private async Task PutAsync<T>(string uri, T? value, string token)
     {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PutAsJsonAsync("api/chat", chat);
+        var response = await _httpClient.SendAsync(CreateRequest<T>(HttpMethod.Put, uri, token, value));
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task ChatDeleteAsync(string chatId)
+    private async Task DeleteAsync(string uri, string token)
     {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.DeleteAsync($"api/chat/{chatId}");
+        var response = await _httpClient.SendAsync(CreateRequest<int>(HttpMethod.Delete, uri, token));
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<ChatUserGetResponse> ChatUserGetAsync(string chatId)
+    private static HttpRequestMessage CreateRequest<T>(HttpMethod method, string uri, string token, T? value = default)
     {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<ChatUserGetResponse>($"api/chat/{chatId}/user"))!;
-    }
-
-    public async Task ChatUserPutAsync(string chatId, string userId)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PutAsJsonAsync($"api/chat/{chatId}/user", userId);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task<RoleGetResponse> RoleGetAsync()
-    {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<RoleGetResponse>("api/role"))!;
-    }
-
-    public async Task<RoleGetResponse> RoleGetAsync(string roleId)
-    {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<RoleGetResponse>($"api/role/{roleId}"))!;
-    }
-
-    public async Task RolePostAsync(Role role)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PostAsJsonAsync("api/role", role);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task RolePutAsync(Role role)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PutAsJsonAsync("api/role", role);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task RoleDeleteAsync(string roleId)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.DeleteAsync($"api/role/{roleId}");
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task<RoleUserGetResponse> RoleUserGetAsync(string roleId)
-    {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<RoleUserGetResponse>($"api/role/{roleId}/user"))!;
-    }
-
-    public async Task RoleUserPutAsync(string roleId, string userId)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PutAsJsonAsync($"api/role/{roleId}/user", userId);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task<UserGetResponse> UserGetAsync()
-    {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<UserGetResponse>("api/user"))!;
-    }
-
-    public async Task<UserGetResponse> UserGetAsync(string userId)
-    {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<UserGetResponse>($"api/user/{userId}"))!;
-    }
-
-    public async Task UserPostAsync(User user)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PostAsJsonAsync("api/user", user);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task UserPutAsync(User user)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PutAsJsonAsync("api/user", user);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task UserDeleteAsync(string userId)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.DeleteAsync($"api/user/{userId}");
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task<UserChatGetResponse> UserChatGetAsync(string userId)
-    {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<UserChatGetResponse>($"api/user/{userId}/chat"))!;
-    }
-
-    public async Task UserChatPutAsync(string userId, string chatId)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PutAsJsonAsync($"api/user/{userId}/chat", chatId);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task<UserRoleGetResponse> UserRoleGetAsync(string userId)
-    {
-        await RefreshAuthenticationAsync();
-        return (await _httpClient.GetFromJsonAsync<UserRoleGetResponse>($"api/user/{userId}/role"))!;
-    }
-
-    public async Task UserRolePutAsync(string userId, string roleId)
-    {
-        await RefreshAuthenticationAsync();
-        var response = await _httpClient.PutAsJsonAsync($"api/user/{userId}/role", roleId);
-        response.EnsureSuccessStatusCode();
+        var request = new HttpRequestMessage(method, uri);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request.Content = JsonContent.Create(value);
+        return request;
     }
 }

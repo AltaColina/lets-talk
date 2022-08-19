@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using LetsTalk.Models.Auths;
 using LetsTalk.Interfaces;
+using LetsTalk;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) => services.AddLetsTalkHttpClient(http => http.BaseAddress = new("https://localhost:7219/letsTalk")))
@@ -90,7 +91,7 @@ await connection.StartAsync();
 var chat = default(Chat);
 while (chat is null)
 {
-    var chats = (await httpClient.ChatGetAsync()).Chats;
+    var chats = (await httpClient.ChatGetAsync(accessToken.Id)).Chats;
     Console.WriteLine("Select a channel to join by typing its number.");
     for (int i = 0; i < chats.Count; ++i)
         Console.WriteLine($"{i + 1}: {chats[i].Id}");

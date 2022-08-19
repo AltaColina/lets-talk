@@ -4,5 +4,5 @@ namespace LetsTalk.Models;
 
 public sealed class Person
 {
-    [NotNull] public string? Username { get; init; }
+    [NotNull] public string? Username { get; set; }
 }

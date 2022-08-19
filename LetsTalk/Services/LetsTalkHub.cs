@@ -18,21 +18,22 @@ public sealed class LetsTalkHub : Hub
 
     public override async Task OnConnectedAsync()
     {
-        await Clients.Others.SendAsync(Methods.ServerMessage, new Message
-        {
-            Username = "Server",
-            Content = $"{Context.User!.Identity!.Name} has connected."
-        });
+        //await Clients.Others.SendAsync(Methods.ServerMessage, new Message
+        //{
+
+        //    Username = "Server",
+        //    Content = $"{Context.User!.Identity!.Name} has connected."
+        //});
         await base.OnConnectedAsync();
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        await Clients.Others.SendAsync(Methods.ServerMessage, new Message
-        {
-            Username = "Server",
-            Content = $"{Context.User!.Identity!.Name} has disconnected. {(exception is not null ? exception.Message : String.Empty)}"
-        });
+        //await Clients.Others.SendAsync(Methods.ServerMessage, new Message
+        //{
+        //    Username = "Server",
+        //    Content = $"{Context.User!.Identity!.Name} has disconnected. {(exception is not null ? exception.Message : String.Empty)}"
+        //});
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -44,6 +45,7 @@ public sealed class LetsTalkHub : Hub
         await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
         await Clients.Group(chat.Id).SendAsync(Methods.ServerMessage, new Message
         {
+            ChatId = chat.Id,
             Username = "Server",
             Content = $"{Context.User!.Identity!.Name} has joined chat {chat.Id}"
         });
@@ -57,6 +59,7 @@ public sealed class LetsTalkHub : Hub
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
         await Clients.Group(chatId).SendAsync(Methods.ServerMessage, new Message
         {
+            ChatId = chatId,
             Username = "Server",
             Content = $"{Context.User!.Identity!.Name} has left chat {chat.Id}"
         });
@@ -66,7 +69,8 @@ public sealed class LetsTalkHub : Hub
     {
         await Clients.Group(chatId).SendAsync(Methods.UserMessage, new Message
         {
-            Username = Context.User!.Identity!.Name,
+            ChatId = chatId,
+            Username = Context.User!.Identity!.Name!,
             Content = content,
         });
     }

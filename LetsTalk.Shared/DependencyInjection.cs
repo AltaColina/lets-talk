@@ -3,19 +3,20 @@ using LetsTalk.Behaviors;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
 using LetsTalk.Services;
-using LiteDB;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace LetsTalk;
 
-public static class LetsTalkDependencyInjection
+public static class DependencyInjection
 {
     public static IServiceCollection AddLetsTalkAuthentication(this IServiceCollection services, string hashName, string securityKey)
     {
@@ -51,19 +52,18 @@ public static class LetsTalkDependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddLiteDb(this IServiceCollection services, Action<LiteDbOptions>? configure = null)
+    public static IServiceCollection AddMongoDb(this IServiceCollection services, string connectionString)
     {
-        var options = new LiteDbOptions();
-        configure?.Invoke(options);
-
-        services.TryAddSingleton(provider =>
+        services.TryAddSingleton<IMongoClient>(new MongoClient(connectionString));
+        services.TryAddSingleton<IMongoDatabase>(provider =>
         {
-            var passwordHandler = provider.GetRequiredService<IPasswordHandler>();
-            var database = new LiteDatabase(options.ConnectionString, options.BsonMapper);
-            if (!database.CollectionExists(nameof(Role)))
+            var database = provider.GetRequiredService<IMongoClient>().GetDatabase("letstalk");
+            var collectionNames = database.ListCollectionNames().ToList();
+            if (!collectionNames.Contains(nameof(Role)))
             {
                 var allPermissions = GetStaticFieldNames(typeof(Permissions));
-                database.GetCollection<Role>().InsertBulk(new List<Role>
+                database.CreateCollection(nameof(Role));
+                database.GetCollection<Role>(nameof(Role)).InsertMany(new List<Role>
                 {
                     new Role
                     {
@@ -75,49 +75,52 @@ public static class LetsTalkDependencyInjection
                         Id = "Admin",
                         Permissions = new List<string>(allPermissions)
                     },
-                },
-                batchSize: 3);
+                });
+
+                static IEnumerable<string> GetStaticFieldNames(Type type, string prefix = "")
+                {
+                    prefix += $"{type.Name}.";
+
+                    var fields = type
+                        .GetFields(BindingFlags.Public | BindingFlags.Static)
+                        .Select(field => $"{prefix}{field.Name}");
+
+                    foreach (var nestedType in type.GetNestedTypes())
+                        fields = fields.Concat(GetStaticFieldNames(nestedType, prefix));
+
+                    return fields;
+                }
             }
-            if (!database.CollectionExists(nameof(User)))
+
+            if (!collectionNames.Contains(nameof(User)))
             {
                 var creationTime = DateTimeOffset.UtcNow;
-                database.GetCollection<User>().Insert(new User
+                database.CreateCollection(nameof(User));
+                database.GetCollection<User>(nameof(User)).InsertOne(new User
                 {
                     Id = "admin",
-                    Secret = passwordHandler.Encrypt("super", "admin"),
+                    Secret = provider.GetRequiredService<IPasswordHandler>().Encrypt("super", "admin"),
                     CreationTime = creationTime,
                     LastLoginTime = creationTime,
                     Roles = { "Admin" }
                 });
             }
-            if (!database.CollectionExists(nameof(Chat)))
+
+            if (!collectionNames.Contains(nameof(Chat)))
             {
-                database.GetCollection<Chat>().Insert(new Chat
+                database.CreateCollection(nameof(Chat));
+                database.GetCollection<Chat>(nameof(Chat)).InsertOne(new Chat
                 {
                     Id = "General"
                 });
             }
+
+
             return database;
         });
-
-        // Add related repositories.
-        services.TryAddSingleton(typeof(IRepository<>), typeof(LiteDatabaseRepository<>));
+        services.TryAddSingleton(typeof(IRepository<>), typeof(MongoRepository<>));
 
         return services;
-
-        static IEnumerable<string> GetStaticFieldNames(Type type, string prefix = "")
-        {
-            prefix += $"{type.Name}.";
-
-            var fields = type
-                .GetFields(BindingFlags.Public | BindingFlags.Static)
-                .Select(field => $"{prefix}{field.Name}");
-
-            foreach (var nestedType in type.GetNestedTypes())
-                fields = fields.Concat(GetStaticFieldNames(nestedType, prefix));
-
-            return fields;
-        }
     }
 
     public static IServiceCollection AddLetsTalkHttpClient(this IServiceCollection services, Action<HttpClient> configure)

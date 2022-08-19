@@ -1,3 +1,4 @@
+using LetsTalk;
 using LetsTalk.Filters;
 using LetsTalk.Services;
 using Microsoft.OpenApi.Models;
@@ -12,7 +13,7 @@ builder.Services.AddLetsTalkAuthentication(hashName, securityKey);
 builder.Services.AddLetsTalkAuthorization();
 
 // Repositories.
-builder.Services.AddLiteDb(opts => opts.ConnectionString.Filename = builder.Configuration.GetConnectionString("LiteDB"));
+builder.Services.AddMongoDb(builder.Configuration.GetConnectionString("MongoDB"));
 
 // Infrastructure.
 builder.Services.AddMediator(typeof(Program), typeof(LetsTalk.IAssemblyMarker));
