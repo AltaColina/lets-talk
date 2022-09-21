@@ -7,7 +7,7 @@ public interface ILetsTalkHubClient
 {
     bool IsConnected { get; }
 
-    Task ConnectAsync(Func<Task<string?>> provideToken);
+    Task ConnectAsync();
 
     Task DisconnectAsync();
 

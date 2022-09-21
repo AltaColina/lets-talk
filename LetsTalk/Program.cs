@@ -50,6 +50,7 @@ builder.Services.AddControllers(opts => opts.Filters.Add<HttpExceptionFilter>())
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts =>
 {
+    opts.SupportNonNullableReferenceTypes();
     var securitySchema = new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme (token only)",
@@ -78,6 +79,6 @@ app.UseCors(opts => opts.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.MapControllers();
 app.MapHub<LetsTalkHub>("/letstalk", opts => opts.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
 
-await app.LoadDatabaseData(overwrite: false);
+await app.LoadDatabaseData(overwrite: true);
 
 app.Run();

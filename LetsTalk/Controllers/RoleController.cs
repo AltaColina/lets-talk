@@ -29,8 +29,8 @@ public class RoleController : ControllerBase
     [HttpGet("{roleId}"), Authorize(Permissions.Role.View)]
     public async Task<IActionResult> Get([FromRoute, Required] string roleId)
     {
-        var response = await _mediator.Send(new GetRolesRequest { Id = roleId });
-        return Ok(response.Roles[0]);
+        var response = await _mediator.Send(new GetRoleByIdRequest { Id = roleId });
+        return Ok(response);
     }
 
     [HttpPost, Authorize(Permissions.Role.Create)]
@@ -40,7 +40,7 @@ public class RoleController : ControllerBase
         return Ok();
     }
 
-    [HttpPut, Authorize(Permissions.Role.Edit)]
+    [HttpPut("{roleId}"), Authorize(Permissions.Role.Edit)]
     public async Task<IActionResult> Put([FromRoute, Required] string roleId, [FromBody, Required] UpdateRoleRequest role)
     {
         role.Id = roleId;

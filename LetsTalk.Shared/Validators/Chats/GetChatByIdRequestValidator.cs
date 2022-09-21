@@ -3,9 +3,9 @@ using LetsTalk.Dtos.Chats;
 
 namespace LetsTalk.Validators.Chats;
 
-public sealed class ChatUserGetRequestValidator : AbstractValidator<GetChatUsersRequest>
+public sealed class GetChatByIdRequestValidator : AbstractValidator<GetChatByIdRequest>
 {
-    public ChatUserGetRequestValidator()
+    public GetChatByIdRequestValidator()
     {
         RuleFor(e => e.Id).NotEmpty();
     }

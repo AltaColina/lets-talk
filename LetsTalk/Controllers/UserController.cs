@@ -28,11 +28,11 @@ public sealed class UserController : ControllerBase
     [HttpGet("{userId}"), Authorize(Permissions.User.View)]
     public async Task<IActionResult> Get([FromRoute, Required] string userId)
     {
-        var response = await _mediator.Send(new GetUsersRequest { Id = userId });
+        var response = await _mediator.Send(new GetUserByIdRequest { Id = userId });
         return Ok(response);
     }
 
-    [HttpPut, Authorize(Permissions.User.Edit)]
+    [HttpPut("{userId}"), Authorize(Permissions.User.Edit)]
     public async Task<IActionResult> Put([FromRoute, Required] string userId, [FromBody, Required] UpdateUserRequest user)
     {
         user.Id = userId;

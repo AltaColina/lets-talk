@@ -54,7 +54,7 @@ public partial class MainViewModel : BaseViewModel
         if (token is not null)
         {
             if (!_letsTalkHub.IsConnected)
-                await _letsTalkHub.ConnectAsync(ProvideToken);
+                await _letsTalkHub.ConnectAsync();
             if (Chats.Count > 0)
                 Chats.Clear();
             var response = await _letsTalkClient.GetChatsAsync(token);

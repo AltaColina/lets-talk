@@ -49,7 +49,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         var user = new User
         {
             Id = request.Username,
-            Name = request.Name ?? request.Username,
             Secret = _passwordHandler.Encrypt(request.Password, request.Username),
             CreationTime = creationDateTime,
             LastLoginTime = creationDateTime,

@@ -11,6 +11,7 @@ using MediatR;
 namespace LetsTalk.Commands;
 
 public sealed class RoleRequestHandler : IRequestHandler<GetRolesRequest, GetRolesResponse>,
+                                         IRequestHandler<GetRoleByIdRequest, RoleDto>,
                                          IRequestHandler<CreateRoleRequest, RoleDto>,
                                          IRequestHandler<UpdateRoleRequest>,
                                          IRequestHandler<DeleteRoleRequest>,
@@ -29,13 +30,15 @@ public sealed class RoleRequestHandler : IRequestHandler<GetRolesRequest, GetRol
 
     public async Task<GetRolesResponse> Handle(GetRolesRequest request, CancellationToken cancellationToken)
     {
-        if (request.Id is null)
-            return new GetRolesResponse { Roles = _mapper.Map<List<RoleDto>>(await _roleRepository.ListAsync(cancellationToken)) };
+        return new GetRolesResponse { Roles = _mapper.Map<List<RoleDto>>(await _roleRepository.ListAsync(cancellationToken)) };
+    }
 
+    public async Task<RoleDto> Handle(GetRoleByIdRequest request, CancellationToken cancellationToken)
+    {
         var role = await _roleRepository.GetByIdAsync(request.Id, cancellationToken);
         if (role is null)
             throw new NotFoundException($"Role {request.Id} does not exist");
-        return new GetRolesResponse { Roles = { _mapper.Map<RoleDto>(role) } };
+        return _mapper.Map<RoleDto>(role);
     }
 
     public async Task<RoleDto> Handle(CreateRoleRequest request, CancellationToken cancellationToken)

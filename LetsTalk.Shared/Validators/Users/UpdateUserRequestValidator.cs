@@ -8,7 +8,6 @@ public sealed class UpdateUserRequestValidator : AbstractValidator<UpdateUserReq
     public UpdateUserRequestValidator()
     {
         RuleFor(e => e.Id).NotEmpty();
-        RuleFor(e => e.Name).NotEmpty();
         RuleFor(e => e.Roles).NotNull();
     }
 }

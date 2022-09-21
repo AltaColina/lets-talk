@@ -12,19 +12,21 @@ namespace LetsTalk.App.Services;
 internal sealed class LetsTalkHubClient : ILetsTalkHubClient
 {
     private readonly ConcurrentDictionary<string, ObservableCollection<ChatMessage>> _messages = new();
-    private readonly IMessenger _messenger;
     private readonly IConfiguration _configuration;
+    private readonly ILetsTalkSettings _settings;
+    private readonly IMessenger _messenger;
     private HubConnection? _connection;
 
     public bool IsConnected { get; private set; }
 
-    public LetsTalkHubClient(IMessenger messenger, IConfiguration configuration)
+    public LetsTalkHubClient(IConfiguration configuration, ILetsTalkSettings settings, IMessenger messenger)
     {
         _messenger = messenger;
         _configuration = configuration;
+        _settings = settings;
     }
 
-    public async Task ConnectAsync(Func<Task<string?>> provideToken)
+    public async Task ConnectAsync()
     {
         if (_connection is not null)
             await _connection.DisposeAsync();
@@ -32,7 +34,7 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
         var address = _configuration["LetsTalkHubAddress"];
 
         _connection = new HubConnectionBuilder()
-            .WithUrl(address, opts => opts.AccessTokenProvider = provideToken)
+            .WithUrl(address, opts => opts.AccessTokenProvider = _settings.ProvideToken)
             .Build();
         _connection.On<ChatMessage>(Handle);
         await _connection.StartAsync();

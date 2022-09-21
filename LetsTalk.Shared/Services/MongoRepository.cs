@@ -141,6 +141,8 @@ internal static class SpecificationExtensions
             throw new ArgumentNullException(nameof(whereExpressions));
         if (!whereExpressions.Any())
             return t => true;
+        if (whereExpressions.Take(2).Count() == 1)
+            return whereExpressions.Single().Filter;
         var expressions = whereExpressions.Select(e => e.Filter);
         var delegateType = typeof(Func<,>).GetGenericTypeDefinition().MakeGenericType(new[] { typeof(T), typeof(bool) });
         var combined = expressions.Cast<Expression>().Aggregate((p, c) => Expression.AndAlso(p, c));

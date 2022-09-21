@@ -27,6 +27,7 @@ var host = Host.CreateDefaultBuilder(args)
     }))
     .ConfigureServices((hostContext, services) => services
         .AddSingleton<IMessenger>(WeakReferenceMessenger.Default)
+        .AddLetsTalkSettings(hostContext.Configuration)
         .AddLetsTalkHttpClient(hostContext.Configuration)
         .AddLetsTalkHubClient(hostContext.Configuration))
     .UseConsoleLifetime()
@@ -51,13 +52,11 @@ if (startChoice == 0)
 
 var httpClient = host.Services.GetRequiredService<ILetsTalkHttpClient>();
 
-var user = default(UserDto)!;
-var accessToken = default(Token)!;
-var refreshToken = default(Token)!;
+var settings = host.Services.GetRequiredService<ILetsTalkSettings>();
 // Register or login.
 if (startChoice == 1)
 {
-    while (user is null)
+    while (!settings.IsAuthenticated)
     {
         Console.Write("Username: ");
         var username = Console.ReadLine()!;
@@ -65,10 +64,7 @@ if (startChoice == 1)
         var password = Console.ReadLine()!;
         try
         {
-            var authentication = await httpClient.RegisterAsync(new RegisterRequest { Username = username, Password = password });
-            user = authentication.User;
-            accessToken = authentication.AccessToken;
-            refreshToken = authentication.RefreshToken;
+            settings.Authentication = await httpClient.RegisterAsync(new RegisterRequest { Username = username, Password = password });
         }
         catch (HttpRequestException ex)
         {
@@ -79,7 +75,7 @@ if (startChoice == 1)
 else
 {
     // Login.
-    while (accessToken is null)
+    while (!settings.IsAuthenticated)
     {
         Console.Write("Username: ");
         var username = Console.ReadLine()!;
@@ -87,10 +83,7 @@ else
         var password = Console.ReadLine()!;
         try
         {
-            var authentication = await httpClient.LoginAsync(new LoginRequest { Username = username, Password = password });
-            user = authentication.User;
-            accessToken = authentication.AccessToken;
-            refreshToken = authentication.RefreshToken;
+            settings.Authentication = await httpClient.LoginAsync(new LoginRequest { Username = username, Password = password });
         }
         catch (HttpRequestException ex)
         {
@@ -99,15 +92,15 @@ else
     }
 }
 var hubClient = host.Services.GetRequiredService<ILetsTalkHubClient>();
-await hubClient.ConnectAsync(() => Task.FromResult<string?>(accessToken.Id));
+await hubClient.ConnectAsync();
 
 var chat = default(ChatDto);
 while (chat is null)
 {
-    var chats = (await httpClient.GetChatsAsync(accessToken.Id)).Chats;
+    var chats = (await httpClient.GetChatsAsync(settings.Authentication.AccessToken.Id)).Chats;
     Console.WriteLine("Select a channel to join by typing its number.");
     for (int i = 0; i < chats.Count; ++i)
-        Console.WriteLine($"{i + 1}: {chats[i].Id}");
+        Console.WriteLine($"{i + 1}: {chats[i].Name}");
     Console.WriteLine("0: Exit LetsTalk");
     var input = Console.ReadLine();
     if (!Int32.TryParse(input, out int number))

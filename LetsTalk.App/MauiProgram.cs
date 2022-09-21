@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Configuration;
 
 namespace LetsTalk.App;
 
@@ -31,6 +32,8 @@ public static class MauiProgram
     private static void AddServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+        services.AddLetsTalkSettings(configuration);
         services.AddLetsTalkHttpClient(configuration);
         services.AddLetsTalkHubClient(configuration);
     }

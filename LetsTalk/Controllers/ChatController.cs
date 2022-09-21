@@ -25,8 +25,8 @@ public class ChatController : ControllerBase
     [HttpGet("{chatId}"), Authorize(Permissions.Chat.View)]
     public async Task<IActionResult> Get([FromRoute, Required] string chatId)
     {
-        var response = await _mediator.Send(new GetChatsRequest { Id = chatId, });
-        return Ok(response.Chats[0]);
+        var response = await _mediator.Send(new GetChatByIdRequest { Id = chatId, });
+        return Ok(response);
     }
 
     [HttpPost, Authorize(Permissions.Chat.Create)]
@@ -36,7 +36,7 @@ public class ChatController : ControllerBase
         return Ok();
     }
 
-    [HttpPut, Authorize(Permissions.Chat.Edit)]
+    [HttpPut("{chatId}"), Authorize(Permissions.Chat.Edit)]
     public async Task<IActionResult> Put([FromRoute, Required] string chatId, [FromBody, Required] UpdateChatRequest chat)
     {
         chat.Id = chatId;

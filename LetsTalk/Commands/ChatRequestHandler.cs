@@ -10,6 +10,7 @@ using MediatR;
 namespace LetsTalk.Commands;
 
 public sealed class ChatRequestHandler : IRequestHandler<GetChatsRequest, GetChatsResponse>,
+                                         IRequestHandler<GetChatByIdRequest, ChatDto>,
                                          IRequestHandler<CreateChatRequest, ChatDto>,
                                          IRequestHandler<UpdateChatRequest>,
                                          IRequestHandler<DeleteChatRequest>,
@@ -28,13 +29,15 @@ public sealed class ChatRequestHandler : IRequestHandler<GetChatsRequest, GetCha
 
     public async Task<GetChatsResponse> Handle(GetChatsRequest request, CancellationToken cancellationToken)
     {
-        if (request.Id is null)
-            return new GetChatsResponse { Chats = _mapper.Map<List<ChatDto>>(await _chatRepository.ListAsync(cancellationToken)) };
+        return new GetChatsResponse { Chats = _mapper.Map<List<ChatDto>>(await _chatRepository.ListAsync(cancellationToken)) };
+    }
 
+    public async Task<ChatDto> Handle(GetChatByIdRequest request, CancellationToken cancellationToken)
+    {
         var chat = await _chatRepository.GetByIdAsync(request.Id, cancellationToken);
         if (chat is null)
             throw new NotFoundException($"Chat {request.Id} does not exist");
-        return new GetChatsResponse { Chats = { _mapper.Map<ChatDto>(chat) } };
+        return _mapper.Map<ChatDto>(chat);
     }
 
     public async Task<ChatDto> Handle(CreateChatRequest request, CancellationToken cancellationToken)

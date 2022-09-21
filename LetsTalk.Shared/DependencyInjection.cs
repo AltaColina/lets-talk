@@ -38,6 +38,12 @@ public static class DependencyInjection
         return services;
     }
 
+    public static IServiceCollection AddLetsTalkSettings(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<ILetsTalkSettings, LetsTalkSettings>();
+        return services;
+    }
+
     public static IServiceCollection AddLetsTalkHttpClient(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHttpClient<ILetsTalkHttpClient, LetsTalkHttpClient>(opts => opts.BaseAddress = new(configuration.GetSection("LetsTalkRestAddress").Value));
@@ -97,7 +103,6 @@ public static class DependencyInjection
             await userRepository.AddAsync(new User
             {
                 Id = "admin",
-                Name = "Administrator",
                 Secret = host.Services.GetRequiredService<IPasswordHandler>().Encrypt("super", "admin"),
                 CreationTime = creationTime,
                 LastLoginTime = creationTime,
