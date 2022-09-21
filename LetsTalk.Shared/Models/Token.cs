@@ -1,10 +1,9 @@
 ﻿using Ardalis.Specification;
-using System.Diagnostics.CodeAnalysis;
 
 namespace LetsTalk.Models;
 
 public sealed class Token : IEntity<string>
 {
-    [NotNull] public string? Id { get; set; }
+    public string Id { get; set; } = null!;
     public DateTimeOffset ExpiresIn { get; set; }
 }

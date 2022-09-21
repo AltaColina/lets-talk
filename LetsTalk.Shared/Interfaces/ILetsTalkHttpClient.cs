@@ -1,37 +1,33 @@
-﻿using LetsTalk.Models;
-using LetsTalk.Models.Auths;
-using LetsTalk.Models.Chats;
-using LetsTalk.Models.Roles;
-using LetsTalk.Models.Users;
+﻿using LetsTalk.Dtos.Auths;
+using LetsTalk.Dtos.Chats;
+using LetsTalk.Dtos.Roles;
+using LetsTalk.Dtos.Users;
+using LetsTalk.Models;
 
 namespace LetsTalk.Interfaces;
 
 public interface ILetsTalkHttpClient
 {
-    Task ChatDeleteAsync(string chatId, string token);
-    Task<ChatGetResponse> ChatGetAsync(string token);
-    Task<ChatGetResponse> ChatGetAsync(string chatId, string token);
-    Task ChatPostAsync(Chat chat, string token);
-    Task ChatPutAsync(Chat chat, string token);
-    Task<ChatUserGetResponse> ChatUserGetAsync(string chatId, string token);
-    Task ChatUserPutAsync(string chatId, string userId, string token);
-    Task<AuthenticationResponse> LoginAsync(LoginRequest request);
-    Task<AuthenticationResponse> RefreshAsync(RefreshRequest request);
-    Task<AuthenticationResponse> RegisterAsync(RegisterRequest request);
-    Task RoleDeleteAsync(string roleId, string token);
-    Task<RoleGetResponse> RoleGetAsync(string token);
-    Task<RoleGetResponse> RoleGetAsync(string roleId, string token);
-    Task RolePostAsync(Role role, string token);
-    Task RolePutAsync(Role role, string token);
-    Task<RoleUserGetResponse> RoleUserGetAsync(string roleId, string token);
-    Task RoleUserPutAsync(string roleId, string userId, string token);
-    Task<UserChatGetResponse> UserChatGetAsync(string userId, string token);
-    Task UserChatPutAsync(string userId, string chatId, string token);
-    Task UserDeleteAsync(string userId, string token);
-    Task<UserGetResponse> UserGetAsync(string token);
-    Task<UserGetResponse> UserGetAsync(string userId, string token);
-    Task UserPostAsync(User user, string token);
-    Task UserPutAsync(User user, string token);
-    Task<UserRoleGetResponse> UserRoleGetAsync(string userId, string token);
-    Task UserRolePutAsync(string userId, string roleId, string token);
+    Task<Authentication> LoginAsync(LoginRequest request);
+    Task<Authentication> RefreshAsync(RefreshRequest request);
+    Task<Authentication> RegisterAsync(RegisterRequest request);
+
+    Task DeleteChatAsync(string chatId, string token);
+    Task<GetChatsResponse> GetChatsAsync(string token);
+    Task<ChatDto> GetChatAsync(string chatId, string token);
+    Task CreateChatAsync(Chat chat, string token);
+    Task UpdateChatAsync(Chat chat, string token);
+    Task<GetChatUsersResponse> GetChatUsersAsync(string chatId, string token);
+
+    Task DeleteRoleAsync(string roleId, string token);
+    Task<GetRolesResponse> GetRolesAsync(string token);
+    Task<RoleDto> GetRoleAsync(string roleId, string token);
+    Task CreateRoleAsync(Role role, string token);
+    Task UpdateRoleAsync(Role role, string token);
+    Task<GetRoleUsersResponse> GetRoleUsersAsync(string roleId, string token);
+
+    Task DeleteUserAsync(string userId, string token);
+    Task<GetUsersResponse> GetUsersAsync(string token);
+    Task<UserDto> GetUserAsync(string userId, string token);
+    Task UpdateUserAsync(User user, string token);
 }

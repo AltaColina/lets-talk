@@ -1,89 +1,87 @@
-﻿using LetsTalk.Exceptions;
+﻿using Ardalis.Specification;
+using AutoMapper;
+using LetsTalk.Dtos.Chats;
+using LetsTalk.Dtos.Users;
+using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
-using LetsTalk.Models.Chats;
 using MediatR;
 
 namespace LetsTalk.Commands;
 
-public sealed class ChatRequestHandler : IRequestHandler<ChatGetRequest, ChatGetResponse>,
-                                         IRequestHandler<ChatPostRequest>,
-                                         IRequestHandler<ChatPutRequest>,
-                                         IRequestHandler<ChatDeleteRequest>,
-                                         IRequestHandler<ChatUserGetRequest, ChatUserGetResponse>,
-                                         IRequestHandler<ChatUserPutRequest>
+public sealed class ChatRequestHandler : IRequestHandler<GetChatsRequest, GetChatsResponse>,
+                                         IRequestHandler<CreateChatRequest, ChatDto>,
+                                         IRequestHandler<UpdateChatRequest>,
+                                         IRequestHandler<DeleteChatRequest>,
+                                         IRequestHandler<GetChatUsersRequest, GetChatUsersResponse>
 {
+    private readonly IMapper _mapper;
     private readonly IRepository<Chat> _chatRepository;
     private readonly IRepository<User> _userRepository;
-    public ChatRequestHandler(IRepository<Chat> chatRepository, IRepository<User> userRepository)
+
+    public ChatRequestHandler(IMapper mapper, IRepository<Chat> chatRepository, IRepository<User> userRepository)
     {
+        _mapper = mapper;
         _chatRepository = chatRepository;
         _userRepository = userRepository;
     }
 
-    public async Task<ChatGetResponse> Handle(ChatGetRequest request, CancellationToken cancellationToken)
+    public async Task<GetChatsResponse> Handle(GetChatsRequest request, CancellationToken cancellationToken)
     {
-        if (request.ChatId is null)
-            return new ChatGetResponse { Chats = new List<Chat>(await _chatRepository.GetAllAsync()) };
+        if (request.Id is null)
+            return new GetChatsResponse { Chats = _mapper.Map<List<ChatDto>>(await _chatRepository.ListAsync(cancellationToken)) };
 
-        var chat = await _chatRepository.GetAsync(request.ChatId);
+        var chat = await _chatRepository.GetByIdAsync(request.Id, cancellationToken);
         if (chat is null)
-            throw new NotFoundException($"Chat {request.ChatId} does not exist");
-        return new ChatGetResponse { Chats = { chat } };
+            throw new NotFoundException($"Chat {request.Id} does not exist");
+        return new GetChatsResponse { Chats = { _mapper.Map<ChatDto>(chat) } };
     }
 
-    public async Task<Unit> Handle(ChatPostRequest request, CancellationToken cancellationToken)
+    public async Task<ChatDto> Handle(CreateChatRequest request, CancellationToken cancellationToken)
     {
-        var role = await _chatRepository.GetAsync(request.Chat.Id);
-        if (role is not null)
-            throw new ConflictException($"Role {request.Chat.Id} already exists");
-        await _chatRepository.InsertAsync(request.Chat);
+        if ((await _chatRepository.GetByIdAsync(request.Id, cancellationToken)) is not null)
+            throw new ConflictException($"Chat {request.Id} already exists");
+        var chat = _mapper.Map<Chat>(request);
+        chat.Name ??= chat.Id;
+        await _chatRepository.AddAsync(chat, cancellationToken);
+        return _mapper.Map<ChatDto>(chat);
+    }
+
+    public async Task<Unit> Handle(UpdateChatRequest request, CancellationToken cancellationToken)
+    {
+        var chat = await _chatRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (chat is null)
+            throw new NotFoundException($"Chat {request.Id} does not exist");
+        chat = _mapper.Map(request, chat);
+        await _chatRepository.UpdateAsync(chat, cancellationToken);
         return Unit.Value;
     }
 
-    public async Task<Unit> Handle(ChatPutRequest request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(DeleteChatRequest request, CancellationToken cancellationToken)
     {
-        var chat = await _chatRepository.GetAsync(request.Chat.Id);
+        var chat = await _chatRepository.GetByIdAsync(request.Id, cancellationToken);
         if (chat is null)
-            throw new NotFoundException($"Chat {request.Chat.Id} does not exist");
-        await _chatRepository.UpdateAsync(chat);
+            throw new NotFoundException($"Chat {request.Id} does not exist");
+        await _chatRepository.DeleteAsync(chat, cancellationToken);
+
         return Unit.Value;
     }
 
-    public async Task<Unit> Handle(ChatDeleteRequest request, CancellationToken cancellationToken)
+    private sealed class GetChatUsersRequestSpecification : Specification<User>
     {
-        try
+        public GetChatUsersRequestSpecification(string chatId)
         {
-            await _chatRepository.DeleteAsync(request.ChatId);
+            Query.Where(user => user.Chats.Contains(chatId));
         }
-        catch (Exception ex)
-        {
-            throw new NotFoundException(ex.Message);
-        }
-
-        return Unit.Value;
     }
 
-    public async Task<ChatUserGetResponse> Handle(ChatUserGetRequest request, CancellationToken cancellationToken)
+    public async Task<GetChatUsersResponse> Handle(GetChatUsersRequest request, CancellationToken cancellationToken)
     {
-        var chat = _chatRepository.GetAsync(request.ChatId);
+        var chat = await _chatRepository.GetByIdAsync(request.Id, cancellationToken);
         if (chat is null)
-            throw new NotFoundException($"Chat {request.ChatId} does not exist");
-        var users = (await _userRepository.GetAllAsync()).Where(user => user.Chats.Contains(request.ChatId));
-        return new ChatUserGetResponse { Users = new(users) };
-    }
+            throw new NotFoundException($"Chat {request.Id} does not exist");
 
-    public async Task<Unit> Handle(ChatUserPutRequest request, CancellationToken cancellationToken)
-    {
-        var chat = await _chatRepository.GetAsync(request.ChatId);
-        if (chat is null)
-            throw new NotFoundException($"Chat {request.ChatId} does not exist");
-        var user = await _userRepository.GetAsync(request.UserId);
-        if (user is null)
-            throw new NotFoundException($"User {request.UserId} does not exist");
-
-        user.Chats.Add(chat.Id);
-        await _chatRepository.UpdateAsync(chat);
-        return Unit.Value;
+        var users = await _userRepository.ListAsync(new GetChatUsersRequestSpecification(request.Id), cancellationToken);
+        return new GetChatUsersResponse { Users = _mapper.Map<List<UserDto>>(users) };
     }
 }

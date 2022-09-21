@@ -1,9 +1,9 @@
-﻿using LetsTalk.Interfaces;
+﻿using LetsTalk.Dtos.Auths;
+using LetsTalk.Dtos.Chats;
+using LetsTalk.Dtos.Roles;
+using LetsTalk.Dtos.Users;
+using LetsTalk.Interfaces;
 using LetsTalk.Models;
-using LetsTalk.Models.Auths;
-using LetsTalk.Models.Chats;
-using LetsTalk.Models.Roles;
-using LetsTalk.Models.Users;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
@@ -18,95 +18,74 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
         _httpClient = httpClient;
     }
 
-    public async Task<AuthenticationResponse> RegisterAsync(RegisterRequest request)
+    public async Task<Authentication> RegisterAsync(RegisterRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<AuthenticationResponse>())!;
+        return (await response.Content.ReadFromJsonAsync<Authentication>())!;
     }
 
-    public async Task<AuthenticationResponse> LoginAsync(LoginRequest request)
+    public async Task<Authentication> LoginAsync(LoginRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<AuthenticationResponse>())!;
+        return (await response.Content.ReadFromJsonAsync<Authentication>())!;
     }
 
-    public async Task<AuthenticationResponse> RefreshAsync(RefreshRequest request)
+    public async Task<Authentication> RefreshAsync(RefreshRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync("api/auth/refresh", request);
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<AuthenticationResponse>())!;
+        return (await response.Content.ReadFromJsonAsync<Authentication>())!;
     }
 
-    public async Task<ChatGetResponse> ChatGetAsync(string token) =>
-        await GetAsync<ChatGetResponse>("api/chat", token);
+    public async Task<GetChatsResponse> GetChatsAsync(string token) =>
+        await GetAsync<GetChatsResponse>("api/chat", token);
 
-    public async Task<ChatGetResponse> ChatGetAsync(string chatId, string token) =>
-        await GetAsync<ChatGetResponse>($"api/chat/{chatId}", token);
+    public async Task<ChatDto> GetChatAsync(string chatId, string token) =>
+        await GetAsync<ChatDto>($"api/chat/{chatId}", token);
 
-    public async Task ChatPostAsync(Chat chat, string token) =>
+    public async Task CreateChatAsync(Chat chat, string token) =>
         await PostAsync("api/chat", chat, token);
 
-    public async Task ChatPutAsync(Chat chat, string token) =>
+    public async Task UpdateChatAsync(Chat chat, string token) =>
         await PutAsync("api/chat", chat, token);
 
-    public async Task ChatDeleteAsync(string chatId, string token) =>
+    public async Task DeleteChatAsync(string chatId, string token) =>
         await DeleteAsync($"api/chat/{chatId}", token);
 
-    public async Task<ChatUserGetResponse> ChatUserGetAsync(string chatId, string token) =>
-        await GetAsync<ChatUserGetResponse>($"api/chat/{chatId}/user", token);
+    public async Task<GetChatUsersResponse> GetChatUsersAsync(string chatId, string token) =>
+        await GetAsync<GetChatUsersResponse>($"api/chat/{chatId}/user", token);
 
-    public async Task ChatUserPutAsync(string chatId, string userId, string token) =>
-        await PutAsync($"api/chat/{chatId}/user", userId, token);
+    public async Task<GetRolesResponse> GetRolesAsync(string token) =>
+        await GetAsync<GetRolesResponse>("api/role", token);
 
-    public async Task<RoleGetResponse> RoleGetAsync(string token) =>
-        await GetAsync<RoleGetResponse>("api/role", token);
+    public async Task<RoleDto> GetRoleAsync(string roleId, string token) =>
+        await GetAsync<RoleDto>($"api/role/{roleId}", token);
 
-    public async Task<RoleGetResponse> RoleGetAsync(string roleId, string token) =>
-        await GetAsync<RoleGetResponse>($"api/role/{roleId}", token);
-
-    public async Task RolePostAsync(Role role, string token) =>
+    public async Task CreateRoleAsync(Role role, string token) =>
         await PostAsync("api/role", role, token);
 
-    public async Task RolePutAsync(Role role, string token) =>
+    public async Task UpdateRoleAsync(Role role, string token) =>
         await PutAsync("api/role", role, token);
 
-    public async Task RoleDeleteAsync(string roleId, string token) =>
+    public async Task DeleteRoleAsync(string roleId, string token) =>
         await DeleteAsync($"api/role/{roleId}", token);
 
-    public async Task<RoleUserGetResponse> RoleUserGetAsync(string roleId, string token) =>
-        await GetAsync<RoleUserGetResponse>($"api/role/{roleId}/user", token);
+    public async Task<GetRoleUsersResponse> GetRoleUsersAsync(string roleId, string token) =>
+        await GetAsync<GetRoleUsersResponse>($"api/role/{roleId}/user", token);
 
-    public async Task RoleUserPutAsync(string roleId, string userId, string token) =>
-        await PutAsync($"api/role/{roleId}/user", userId, token);
+    public async Task<GetUsersResponse> GetUsersAsync(string token) =>
+        await GetAsync<GetUsersResponse>("api/user", token);
 
-    public async Task<UserGetResponse> UserGetAsync(string token) =>
-        await GetAsync<UserGetResponse>("api/user", token);
+    public async Task<UserDto> GetUserAsync(string userId, string token) =>
+        await GetAsync<UserDto>($"api/user/{userId}", token);
 
-    public async Task<UserGetResponse> UserGetAsync(string userId, string token) =>
-        await GetAsync<UserGetResponse>($"api/user/{userId}", token);
-
-    public async Task UserPostAsync(User user, string token) =>
-        await PostAsync("api/user", user, token);
-
-    public async Task UserPutAsync(User user, string token) =>
+    public async Task UpdateUserAsync(User user, string token) =>
         await PutAsync("api/user", user, token);
 
-    public async Task UserDeleteAsync(string userId, string token) =>
+    public async Task DeleteUserAsync(string userId, string token) =>
         await DeleteAsync($"api/user/{userId}", token);
-
-    public async Task<UserChatGetResponse> UserChatGetAsync(string userId, string token) =>
-        await GetAsync<UserChatGetResponse>($"api/user/{userId}/chat", token);
-
-    public async Task UserChatPutAsync(string userId, string chatId, string token) =>
-        await PutAsync($"api/user/{userId}/chat", chatId, token);
-
-    public async Task<UserRoleGetResponse> UserRoleGetAsync(string userId, string token) =>
-        await GetAsync<UserRoleGetResponse>($"api/user/{userId}/role", token);
-
-    public async Task UserRolePutAsync(string userId, string roleId, string token) =>
-        await PutAsync($"api/user/{userId}/role", token, roleId);
 
     private async Task<T> GetAsync<T>(string uri, string token)
     {

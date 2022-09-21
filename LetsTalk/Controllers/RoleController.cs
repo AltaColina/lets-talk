@@ -1,6 +1,6 @@
-﻿using LetsTalk.Interfaces;
+﻿using LetsTalk.Dtos.Roles;
+using LetsTalk.Interfaces;
 using LetsTalk.Models;
-using LetsTalk.Models.Roles;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,49 +22,43 @@ public class RoleController : ControllerBase
     [HttpGet, Authorize(Permissions.Role.View)]
     public async Task<IActionResult> Get()
     {
-        var response = await _mediator.Send(new RoleGetRequest());
+        var response = await _mediator.Send(new GetRolesRequest());
         return Ok(response);
     }
 
     [HttpGet("{roleId}"), Authorize(Permissions.Role.View)]
     public async Task<IActionResult> Get([FromRoute, Required] string roleId)
     {
-        var response = await _mediator.Send(new RoleGetRequest { RoleId = roleId });
-        return Ok(response);
+        var response = await _mediator.Send(new GetRolesRequest { Id = roleId });
+        return Ok(response.Roles[0]);
     }
 
     [HttpPost, Authorize(Permissions.Role.Create)]
-    public async Task<IActionResult> Post([FromBody, Required] Role role)
+    public async Task<IActionResult> Post([FromBody, Required] CreateRoleRequest role)
     {
-        await _mediator.Send(new RolePostRequest { Role = role });
+        await _mediator.Send(role);
         return Ok();
     }
 
     [HttpPut, Authorize(Permissions.Role.Edit)]
-    public async Task<IActionResult> Put([FromBody, Required] Role role)
+    public async Task<IActionResult> Put([FromRoute, Required] string roleId, [FromBody, Required] UpdateRoleRequest role)
     {
-        await _mediator.Send(new RolePutRequest { Role = role });
+        role.Id = roleId;
+        await _mediator.Send(role);
         return Ok();
     }
 
     [HttpDelete("{roleId}"), Authorize(Permissions.Role.Delete)]
     public async Task<IActionResult> Delete([FromRoute, Required] string roleId)
     {
-        await _mediator.Send(new RoleDeleteRequest { RoleId = roleId });
+        await _mediator.Send(new DeleteRoleRequest { Id = roleId });
         return Ok();
     }
 
     [HttpGet("{roleId}/user"), Authorize(Permissions.Role.User.View)]
     public async Task<IActionResult> GetUsers([FromRoute, Required] string roleId)
     {
-        var response = await _mediator.Send(new RoleUserGetRequest { RoleId = roleId });
+        var response = await _mediator.Send(new GetRoleUsersRequest { Id = roleId });
         return Ok(response);
-    }
-
-    [HttpPut("{roleId}/user"), Authorize(Permissions.Role.User.Edit)]
-    public async Task<IActionResult> PutUsers([FromRoute, Required] string roleId, [FromBody, Required] string userId)
-    {
-        await _mediator.Send(new RoleUserPutRequest { RoleId = roleId, UserId = userId });
-        return Ok();
     }
 }

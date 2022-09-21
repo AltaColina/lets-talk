@@ -1,19 +1,39 @@
 ﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace LetsTalk.App.Services;
 
 public interface INavigationService
 {
-    public Task GoToAsync(string uri);
-    public Task GoToAsync(string uri, NavigationParameters parameters);
+    public Task GoToAsync<T>() where T : BaseViewModel;
+    public Task GoToAsync<T>(NavigationParameters parameters) where T : BaseViewModel;
 }
 
 
 public sealed class NavigationService : INavigationService
 {
-    public async Task GoToAsync(string uri) => await Shell.Current.GoToAsync(new ShellNavigationState(uri));
-    public Task GoToAsync(string uri, NavigationParameters parameters) => Shell.Current.GoToAsync(new ShellNavigationState(uri), parameters);
+    private static readonly IReadOnlyDictionary<Type, string> ViewModelRoutes;
+    private static readonly NavigationParameters EmptyParameters = new();
+
+    static NavigationService()
+    {
+        var routes = new Dictionary<Type, string>();
+        var ns = typeof(BaseViewModel).Namespace;
+        foreach (var type in Assembly.GetExecutingAssembly().ExportedTypes.Where(t => t.IsAssignableTo(typeof(ContentPage))))
+        {
+            var name = type.Name[..^4];
+            routes[Type.GetType($"{ns}.{name}ViewModel", throwOnError: true)!] = name;
+            Routing.RegisterRoute(name, type);
+        }
+        ViewModelRoutes = routes;
+    }
+
+    public Task GoToAsync<T>() where T : BaseViewModel => GoToAsync<T>(EmptyParameters);
+
+    public Task GoToAsync<T>(NavigationParameters parameters) where T : BaseViewModel =>
+        Shell.Current.GoToAsync(new ShellNavigationState(ViewModelRoutes[typeof(T)]), parameters);
 }
 
 public sealed class NavigationParameters : IDictionary<string, object>

@@ -1,4 +1,4 @@
-﻿using LetsTalk.Models.Auths;
+﻿using LetsTalk.Dtos.Auths;
 using System.Diagnostics;
 
 namespace LetsTalk.App.ViewModels;
@@ -32,10 +32,10 @@ public partial class LoginViewModel : BaseViewModel
         {
             var response = await _letsTalkClient.LoginAsync(new LoginRequest
             {
-                Username = LoginUsername,
-                Password = LoginPassword
+                Username = LoginUsername!,
+                Password = LoginPassword!
             });
-            await NavigationService.GoToAsync("..", new NavigationParameters
+            await NavigationService.GoToAsync<MainViewModel>(new NavigationParameters
             {
                 ["Authentication"] = response
             });
@@ -58,10 +58,10 @@ public partial class LoginViewModel : BaseViewModel
         {
             var response = await _letsTalkClient.RegisterAsync(new RegisterRequest
             {
-                Username = LoginUsername,
-                Password = LoginPassword
+                Username = LoginUsername!,
+                Password = LoginPassword!
             });
-            await NavigationService.GoToAsync("..", new NavigationParameters
+            await NavigationService.GoToAsync<MainViewModel>(new NavigationParameters
             {
                 ["Authentication"] = response
             });

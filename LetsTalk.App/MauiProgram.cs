@@ -1,4 +1,6 @@
-﻿namespace LetsTalk.App;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace LetsTalk.App;
 
 public static class MauiProgram
 {
@@ -13,30 +15,35 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
-        ConfigureRoutes();
-        ConfigureServices(builder.Services);
-
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string>
+        {
+            ["LetsTalkRestAddress"] = "https://localhost:62389",
+            ["LetsTalkHubAddress"] = "https://localhost:62389/letstalk"
+        });
+        AddServices(builder.Services, builder.Configuration);
+        AddViewModels(builder.Services);
+        AddPages(builder.Services);
 
 
         return builder.Build();
     }
 
-    private static void ConfigureRoutes()
-    {
-        Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
-        Routing.RegisterRoute(nameof(ChatPage), typeof(ChatPage));
-    }
-
-    private static void ConfigureServices(IServiceCollection services)
+    private static void AddServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<INavigationService, NavigationService>();
-        services.AddSingleton<ILetsTalkHubClient, LetsTalkHubClient>();
-        services.AddLetsTalkHttpClient(opts => opts.BaseAddress = new Uri("https://localhost:7219/letsTalk"));
-        
+        services.AddLetsTalkHttpClient(configuration);
+        services.AddLetsTalkHubClient(configuration);
+    }
+
+    private static void AddViewModels(IServiceCollection services)
+    {
         services.AddSingleton<MainViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<ChatViewModel>();
-        
+    }
+
+    private static void AddPages(IServiceCollection services)
+    {
         services.AddSingleton<MainPage>();
         services.AddTransient<LoginPage>();
         services.AddTransient<ChatPage>();

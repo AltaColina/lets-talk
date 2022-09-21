@@ -1,12 +1,13 @@
-﻿using LetsTalk.Interfaces;
-using LetsTalk.Models.Auths;
+﻿using LetsTalk.Dtos.Auths;
+using LetsTalk.Interfaces;
+using LetsTalk.Models;
 using MediatR;
 
 namespace LetsTalk.Commands;
 
-public sealed class AuthRequestHandler : IRequestHandler<RegisterRequest, AuthenticationResponse>,
-                                         IRequestHandler<LoginRequest, AuthenticationResponse>,
-                                         IRequestHandler<RefreshRequest, AuthenticationResponse>
+public sealed class AuthRequestHandler : IRequestHandler<RegisterRequest, Authentication>,
+                                         IRequestHandler<LoginRequest, Authentication>,
+                                         IRequestHandler<RefreshRequest, Authentication>
 {
     private readonly IAuthenticationManager _authenticationManager;
 
@@ -15,17 +16,17 @@ public sealed class AuthRequestHandler : IRequestHandler<RegisterRequest, Authen
         _authenticationManager = authenticationManager;
     }
 
-    public async Task<AuthenticationResponse> Handle(RegisterRequest request, CancellationToken cancellationToken)
+    public async Task<Authentication> Handle(RegisterRequest request, CancellationToken cancellationToken)
     {
         return await _authenticationManager.AuthenticateAsync(request);
     }
 
-    public async Task<AuthenticationResponse> Handle(LoginRequest request, CancellationToken cancellationToken)
+    public async Task<Authentication> Handle(LoginRequest request, CancellationToken cancellationToken)
     {
         return await _authenticationManager.AuthenticateAsync(request);
     }
 
-    public async Task<AuthenticationResponse> Handle(RefreshRequest request, CancellationToken cancellationToken)
+    public async Task<Authentication> Handle(RefreshRequest request, CancellationToken cancellationToken)
     {
         return await _authenticationManager.AuthenticateAsync(request);
     }

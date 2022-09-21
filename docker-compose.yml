@@ -1,0 +1,21 @@
+version: '3.4'
+
+services:
+  letstalk:
+    image: ${DOCKER_REGISTRY-}letstalk
+    build:
+      context: .
+      dockerfile: LetsTalk/Dockerfile
+  cache:
+    container_name: cache
+    image: redis
+  database:
+    container_name: database
+    image: mongo
+  database_admin:
+    container_name: database_admin
+    image: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_SERVER: database

@@ -1,10 +1,10 @@
 ﻿using Ardalis.Specification;
-using System.Diagnostics.CodeAnalysis;
 
 namespace LetsTalk.Models;
 
 public sealed class Role : IEntity<string>
 {
-    [NotNull] public string? Id { get; set; }
+    public string Id { get; set; } = null!;
+    public string Name { get; set; } = null!;
     public List<string> Permissions { get; set; } = new();
 }

@@ -6,72 +6,78 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace LetsTalk.Services;
 
-[Authorize()]
+[Authorize]
 public sealed class LetsTalkHub : Hub
 {
+    private const string AdminId = "admin";
+    private readonly IHubConnectionMapper _connectionMapper;
     private readonly IRepository<Chat> _chatRepository;
 
-    public LetsTalkHub(IRepository<Chat> chatRepository)
+    public LetsTalkHub(IHubConnectionMapper connectionMapper, IRepository<Chat> chatRepository)
     {
+        _connectionMapper = connectionMapper;
         _chatRepository = chatRepository;
     }
 
     public override async Task OnConnectedAsync()
     {
-        //await Clients.Others.SendAsync(Methods.ServerMessage, new Message
-        //{
-
-        //    Username = "Server",
-        //    Content = $"{Context.User!.Identity!.Name} has connected."
-        //});
+        var connectionId = Context.ConnectionId;
+        var userId = Context.User!.Identity!.Name!;
+        _connectionMapper.AddMapping(connectionId, userId);
         await base.OnConnectedAsync();
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        //await Clients.Others.SendAsync(Methods.ServerMessage, new Message
-        //{
-        //    Username = "Server",
-        //    Content = $"{Context.User!.Identity!.Name} has disconnected. {(exception is not null ? exception.Message : String.Empty)}"
-        //});
+        var connectionId = Context.ConnectionId;
+        _connectionMapper.RemoveMapping(connectionId);
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task Join(string chatId)
+    public async Task JoinChatAsync(string chatId)
     {
-        var chat = await _chatRepository.GetAsync(chatId);
+        var chat = await _chatRepository.GetByIdAsync(chatId);
         if (chat is null)
             throw new NotFoundException($"Chat {chatId} does not exist");
         await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
-        await Clients.Group(chat.Id).SendAsync(Methods.ServerMessage, new Message
+        await Clients.Group(chat.Id).SendAsync(new ChatMessage
         {
             ChatId = chat.Id,
-            Username = "Server",
+            UserId = AdminId,
             Content = $"{Context.User!.Identity!.Name} has joined chat {chat.Id}"
         });
     }
 
-    public async Task Leave(string chatId)
+    public async Task LeaveChatAsync(string chatId)
     {
-        var chat = await _chatRepository.GetAsync(chatId);
+        var chat = await _chatRepository.GetByIdAsync(chatId);
         if (chat is null)
             throw new NotFoundException($"Chat {chatId} does not exist");
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
-        await Clients.Group(chatId).SendAsync(Methods.ServerMessage, new Message
+        await Clients.Group(chatId).SendAsync(new ChatMessage
         {
-            ChatId = chatId,
-            Username = "Server",
+            ChatId = chat.Id,
+            UserId = AdminId,
             Content = $"{Context.User!.Identity!.Name} has left chat {chat.Id}"
         });
     }
 
-    public async Task UserMessage(string chatId, string content)
+    public async Task SendChatMessageAsync(string chatId, string content)
     {
-        await Clients.Group(chatId).SendAsync(Methods.UserMessage, new Message
+        await Clients.Group(chatId).SendAsync(new ChatMessage
         {
             ChatId = chatId,
-            Username = Context.User!.Identity!.Name!,
+            UserId = Context.User!.Identity!.Name!,
             Content = content,
         });
+    }
+}
+
+internal static class ClientProxyExtensions
+{
+    public static Task SendAsync<TMessage>(this IClientProxy clientProxy, TMessage message, CancellationToken cancellationToken = default)
+        where TMessage : class
+    {
+        return clientProxy.SendCoreAsync(typeof(TMessage).Name, new[] { message }, cancellationToken);
     }
 }

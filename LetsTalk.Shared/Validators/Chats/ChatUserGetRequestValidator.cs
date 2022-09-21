@@ -1,12 +1,12 @@
 ﻿using FluentValidation;
-using LetsTalk.Models.Chats;
+using LetsTalk.Dtos.Chats;
 
 namespace LetsTalk.Validators.Chats;
 
-public sealed class ChatUserGetRequestValidator : AbstractValidator<ChatUserGetRequest>
+public sealed class ChatUserGetRequestValidator : AbstractValidator<GetChatUsersRequest>
 {
     public ChatUserGetRequestValidator()
     {
-        RuleFor(e => e.ChatId).NotEmpty();
+        RuleFor(e => e.Id).NotEmpty();
     }
 }

@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using LetsTalk.Models.Auths;
+using LetsTalk.Dtos.Auths;
 using System.Text.RegularExpressions;
 
 namespace LetsTalk.Validators.Auths;

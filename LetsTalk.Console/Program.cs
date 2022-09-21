@@ -1,14 +1,34 @@
 ﻿using LetsTalk.Models;
-using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
-using LetsTalk.Models.Auths;
 using LetsTalk.Interfaces;
 using LetsTalk;
+using Microsoft.Extensions.Configuration;
+using CommunityToolkit.Mvvm.Messaging;
+using LetsTalk.Console;
+using Docker.DotNet;
+using Docker.DotNet.Models;
+using LetsTalk.Dtos.Users;
+using LetsTalk.Dtos.Auths;
+using LetsTalk.Dtos.Chats;
+
+var dockerClient = new DockerClientConfiguration().CreateClient();
+var containers = await dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });
+var container = containers.Single(c => c.Names.Contains("/LetsTalk"));
+var port = container.Ports.First();
+var address = $"https://localhost:{port.PublicPort}";
 
 var host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices((hostContext, services) => services.AddLetsTalkHttpClient(http => http.BaseAddress = new("https://localhost:7219/letsTalk")))
+    .ConfigureAppConfiguration(hostContext => hostContext.AddInMemoryCollection(new Dictionary<string, string>
+    {
+        ["LetsTalkRestAddress"] = address,
+        ["LetsTalkHubAddress"] = $"{address}/letstalk",
+    }))
+    .ConfigureServices((hostContext, services) => services
+        .AddSingleton<IMessenger>(WeakReferenceMessenger.Default)
+        .AddLetsTalkHttpClient(hostContext.Configuration)
+        .AddLetsTalkHubClient(hostContext.Configuration))
     .UseConsoleLifetime()
     .Build();
 
@@ -31,24 +51,24 @@ if (startChoice == 0)
 
 var httpClient = host.Services.GetRequiredService<ILetsTalkHttpClient>();
 
-var person = default(Person)!;
+var user = default(UserDto)!;
 var accessToken = default(Token)!;
 var refreshToken = default(Token)!;
 // Register or login.
 if (startChoice == 1)
 {
-    while (person is null)
+    while (user is null)
     {
         Console.Write("Username: ");
-        var username = Console.ReadLine();
+        var username = Console.ReadLine()!;
         Console.Write("Password: ");
-        var password = Console.ReadLine();
+        var password = Console.ReadLine()!;
         try
         {
-            var response = await httpClient.RegisterAsync(new RegisterRequest { Username = username, Password = password });
-            person = response.Person;
-            accessToken = response.AccessToken;
-            refreshToken = response.RefreshToken;
+            var authentication = await httpClient.RegisterAsync(new RegisterRequest { Username = username, Password = password });
+            user = authentication.User;
+            accessToken = authentication.AccessToken;
+            refreshToken = authentication.RefreshToken;
         }
         catch (HttpRequestException ex)
         {
@@ -62,15 +82,15 @@ else
     while (accessToken is null)
     {
         Console.Write("Username: ");
-        var username = Console.ReadLine();
+        var username = Console.ReadLine()!;
         Console.Write("Password: ");
-        var password = Console.ReadLine();
+        var password = Console.ReadLine()!;
         try
         {
-            var response = await httpClient.LoginAsync(new LoginRequest { Username = username, Password = password });
-            person = response.Person;
-            accessToken = response.AccessToken;
-            refreshToken = response.RefreshToken;
+            var authentication = await httpClient.LoginAsync(new LoginRequest { Username = username, Password = password });
+            user = authentication.User;
+            accessToken = authentication.AccessToken;
+            refreshToken = authentication.RefreshToken;
         }
         catch (HttpRequestException ex)
         {
@@ -78,20 +98,13 @@ else
         }
     }
 }
+var hubClient = host.Services.GetRequiredService<ILetsTalkHubClient>();
+await hubClient.ConnectAsync(() => Task.FromResult<string?>(accessToken.Id));
 
-var connection = new HubConnectionBuilder()
-    .WithUrl("https://localhost:7219/letsTalk", opts => opts.AccessTokenProvider = () => Task.FromResult<string?>(accessToken.Id))
-    .Build();
-
-connection.On<Message>(Methods.ServerMessage, message => Console.WriteLine(message.Content));
-connection.On<Message>(Methods.UserMessage, message => Console.WriteLine($"{message.Username}: {message.Content}"));
-
-await connection.StartAsync();
-
-var chat = default(Chat);
+var chat = default(ChatDto);
 while (chat is null)
 {
-    var chats = (await httpClient.ChatGetAsync(accessToken.Id)).Chats;
+    var chats = (await httpClient.GetChatsAsync(accessToken.Id)).Chats;
     Console.WriteLine("Select a channel to join by typing its number.");
     for (int i = 0; i < chats.Count; ++i)
         Console.WriteLine($"{i + 1}: {chats[i].Id}");
@@ -107,15 +120,25 @@ while (chat is null)
         chat = chats[index];
 }
 
+
 if (chat is not null)
 {
-    await connection.InvokeAsync(Methods.Join, chat.Id);
+    var messenger = host.Services.GetRequiredService<IMessenger>();
+    var recipient = new MessageRecipient();
+    messenger.Register(recipient);
+
+    await hubClient.JoinChatAsync(chat.Id);
 
     // Send messages.
     while (Console.ReadLine() is string message && message != "exit")
-        await connection.InvokeAsync(Methods.UserMessage, chat.Id, message);
+    {
+        var (left, top) = Console.GetCursorPosition();
+        Console.SetCursorPosition(left, top - 1);
+        await hubClient.SendChatMessageAsync(chat.Id, message);
+    }
 
-    await connection.InvokeAsync(Methods.Leave, chat.Id);
+    await hubClient.LeaveChatAsync(chat.Id);
+    await hubClient.DisconnectAsync();
 }
 
 await host.WaitForShutdownAsync();

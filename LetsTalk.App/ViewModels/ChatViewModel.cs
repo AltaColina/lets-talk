@@ -9,7 +9,7 @@ public partial class ChatViewModel : BaseViewModel
     private readonly ILetsTalkHubClient _letsTalkHubClient;
 
     [ObservableProperty]
-    private ObservableCollection<Message> _messages = null!;
+    private ObservableCollection<ChatMessage> _messages = null!;
 
     [ObservableProperty]
     private Chat _chat = null!;
@@ -26,7 +26,7 @@ public partial class ChatViewModel : BaseViewModel
     [RelayCommand]
     private async Task OnAppearingAsync()
     {
-        if (_chat is not null && _letsTalkHubClient.GetChatMessages(_chat.Id) is ObservableCollection<Message> messages)
+        if (_chat is not null && _letsTalkHubClient.GetChatMessages(_chat.Id) is ObservableCollection<ChatMessage> messages)
         {
             await _letsTalkHubClient.JoinChatAsync(_chat.Id);
             Title = _chat.Id;
@@ -34,7 +34,7 @@ public partial class ChatViewModel : BaseViewModel
         }
         else
         {
-            await NavigationService.GoToAsync("..");
+            await NavigationService.GoToAsync<MainViewModel>();
         }
     }
 
@@ -50,7 +50,7 @@ public partial class ChatViewModel : BaseViewModel
     {
         if (!String.IsNullOrWhiteSpace(_messageText))
         {
-            await _letsTalkHubClient.SendMessageAsync(_chat.Id, _messageText);
+            await _letsTalkHubClient.SendChatMessageAsync(_chat.Id, _messageText);
             MessageText = null;
         }
     }
