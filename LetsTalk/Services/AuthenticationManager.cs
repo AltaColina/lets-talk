@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using LetsTalk.Dtos.Auths;
-using LetsTalk.Dtos.Users;
+using LetsTalk.Commands.Auths;
+using LetsTalk.Dtos;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;

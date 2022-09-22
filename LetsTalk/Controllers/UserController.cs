@@ -1,5 +1,6 @@
-﻿using LetsTalk.Dtos.Users;
+﻿using LetsTalk.Commands.Users;
 using LetsTalk.Models;
+using LetsTalk.Queries.Users;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

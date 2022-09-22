@@ -1,5 +1,6 @@
-﻿using LetsTalk.Dtos.Chats;
+﻿using LetsTalk.Commands.Chats;
 using LetsTalk.Models;
+using LetsTalk.Queries.Chats;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

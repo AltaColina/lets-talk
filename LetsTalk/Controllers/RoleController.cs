@@ -1,6 +1,6 @@
-﻿using LetsTalk.Dtos.Roles;
-using LetsTalk.Interfaces;
+﻿using LetsTalk.Commands.Roles;
 using LetsTalk.Models;
+using LetsTalk.Queries.Roles;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

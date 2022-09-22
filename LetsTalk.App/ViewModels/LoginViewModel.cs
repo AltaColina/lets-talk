@@ -1,4 +1,4 @@
-﻿using LetsTalk.Dtos.Auths;
+﻿using LetsTalk.Commands.Auths;
 using System.Diagnostics;
 
 namespace LetsTalk.App.ViewModels;

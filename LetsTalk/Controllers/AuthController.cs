@@ -1,4 +1,4 @@
-﻿using LetsTalk.Dtos.Auths;
+﻿using LetsTalk.Commands.Auths;
 using LetsTalk.Services;
 using MediatR;
 using Microsoft.AspNetCore.Http;

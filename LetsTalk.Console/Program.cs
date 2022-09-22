@@ -1,17 +1,14 @@
-﻿using LetsTalk.Models;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 using LetsTalk.Interfaces;
-using LetsTalk;
 using Microsoft.Extensions.Configuration;
 using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.Console;
 using Docker.DotNet;
 using Docker.DotNet.Models;
-using LetsTalk.Dtos.Users;
-using LetsTalk.Dtos.Auths;
-using LetsTalk.Dtos.Chats;
+using LetsTalk.Dtos;
+using LetsTalk.Commands.Auths;
 
 var dockerClient = new DockerClientConfiguration().CreateClient();
 var containers = await dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });

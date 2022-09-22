@@ -1,5 +1,5 @@
-﻿using LetsTalk.Dtos.Auths;
-using LetsTalk.Dtos.Chats;
+﻿using LetsTalk.Commands.Auths;
+using LetsTalk.Dtos;
 using LetsTalk.Models;
 using System.Collections.ObjectModel;
 using System.Diagnostics;

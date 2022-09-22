@@ -1,9 +1,10 @@
-﻿using LetsTalk.Dtos.Auths;
-using LetsTalk.Dtos.Chats;
-using LetsTalk.Dtos.Roles;
-using LetsTalk.Dtos.Users;
+﻿using LetsTalk.Commands.Auths;
+using LetsTalk.Dtos;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
+using LetsTalk.Queries.Chats;
+using LetsTalk.Queries.Roles;
+using LetsTalk.Queries.Users;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
