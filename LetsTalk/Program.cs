@@ -1,5 +1,6 @@
 using LetsTalk;
 using LetsTalk.Filters;
+using LetsTalk.Hubs;
 using LetsTalk.Interfaces;
 using LetsTalk.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

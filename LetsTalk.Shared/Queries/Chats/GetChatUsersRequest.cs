@@ -28,9 +28,9 @@ public sealed class GetChatUsersRequest : IRequest<GetChatUsersResponse>
 
     public sealed class Specification : Specification<User>
     {
-        public Specification(string chatId)
+        public Specification(ICollection<string> userIds)
         {
-            Query.Where(user => user.Chats.Contains(chatId));
+            Query.Where(user => userIds.Contains(user.Id));
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class GetChatUsersRequest : IRequest<GetChatUsersResponse>
             if (chat is null)
                 throw new NotFoundException($"Chat {request.Id} does not exist");
 
-            var users = await _userRepository.ListAsync(new Specification(request.Id), cancellationToken);
+            var users = await _userRepository.ListAsync(new Specification(chat.Users), cancellationToken);
             return new GetChatUsersResponse { Users = _mapper.Map<List<UserDto>>(users) };
         }
     }

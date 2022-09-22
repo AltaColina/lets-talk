@@ -1,5 +1,6 @@
 ﻿using LetsTalk.Commands.Users;
 using LetsTalk.Models;
+using LetsTalk.Queries.Chats;
 using LetsTalk.Queries.Users;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -46,5 +47,12 @@ public sealed class UserController : ControllerBase
     {
         await _mediator.Send(new DeleteUserRequest { Id = userId });
         return Ok();
+    }
+
+    [HttpGet("{userId}/chat"), Authorize(Permissions.User.Chat.View)]
+    public async Task<IActionResult> GetChats([FromRoute, Required] string userId)
+    {
+        var response = await _mediator.Send(new GetUserChatsRequest { Id = userId });
+        return Ok(response);
     }
 }

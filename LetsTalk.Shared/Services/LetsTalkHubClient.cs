@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
+using LetsTalk.Queries.Hubs;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
 
 namespace LetsTalk.App.Services;
 
@@ -57,10 +57,16 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
     public ObservableCollection<ChatMessage> GetChatMessages(string chatId) => _messages.GetOrAdd(chatId, _ => new ObservableCollection<ChatMessage>());
 
     public async Task JoinChatAsync(string chatId) => await _connection!.InvokeAsync(nameof(JoinChatAsync), chatId);
+
     public async Task LeaveChatAsync(string chatId) => await _connection!.InvokeAsync(nameof(LeaveChatAsync), chatId);
 
     public async Task SendChatMessageAsync(string chatId, string message) => await _connection!.InvokeAsync(nameof(SendChatMessageAsync), chatId, message);
+
+    public async Task<GetLoggedUsersResponse> GetLoggedUsersAsync() => await _connection!.InvokeAsync<GetLoggedUsersResponse>(nameof(GetLoggedUsersAsync));
+
+    public async Task<GetLoggedChatUsersResponse> GetLoggedChatUsersAsync(string chatId) => await _connection!.InvokeAsync<GetLoggedChatUsersResponse>(nameof(GetLoggedChatUsersAsync), chatId);
 }
+
 internal static partial class HubConnectionExtensions
 {
     public static IDisposable On<TMessage>(this HubConnection hubConnection, Action<TMessage> handler)

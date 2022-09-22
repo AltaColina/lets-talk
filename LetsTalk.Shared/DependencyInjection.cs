@@ -30,7 +30,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddStackExchangeRedisCache(opts => opts.Configuration = "cache:6379");
-        services.AddSingleton<IHubConnectionMapper, HubConnectionMapper>();
+        services.AddSingleton<IHubConnectionManager, HubConnectionManager>();
         services.AddSingleton<IMongoClient>(new MongoClient(configuration.GetConnectionString("MongoDB")));
         services.AddSingleton<IMongoDatabase>(provider => provider.GetRequiredService<IMongoClient>().GetDatabase("letstalk"));
         services.AddSingleton(typeof(IRepository<>), typeof(MongoRepository<>));
@@ -119,6 +119,7 @@ public static class DependencyInjection
             {
                 Id = "general",
                 Name = "General",
+                Users = { "admin" }
             });
         }
     }

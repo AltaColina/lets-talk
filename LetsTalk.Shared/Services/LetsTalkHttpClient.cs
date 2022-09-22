@@ -88,6 +88,9 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
     public async Task DeleteUserAsync(string userId, string token) =>
         await DeleteAsync($"api/user/{userId}", token);
 
+    public async Task<GetUserChatsResponse> GetUserChatsAsync(string userId, string token) =>
+        await GetAsync<GetUserChatsResponse>($"api/user/{userId}/chat", token);
+
     private async Task<T> GetAsync<T>(string uri, string token)
     {
         var response = await _httpClient.SendAsync(CreateRequest<T>(HttpMethod.Get, uri, token));

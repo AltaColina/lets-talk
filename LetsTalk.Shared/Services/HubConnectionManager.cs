@@ -1,19 +1,20 @@
 ﻿using LetsTalk.Interfaces;
+using LetsTalk.Models;
 
 namespace LetsTalk.Services;
 
-internal sealed class HubConnectionMapper : IHubConnectionMapper
+internal sealed class HubConnectionManager : IHubConnectionManager
 {
     private readonly object _mutex = new();
     private readonly Dictionary<string, string> _connectionIdToUserId = new();
     private readonly Dictionary<string, string> _userIdToConnectionId = new();
 
-    public void AddMapping(string connectionId, string userId)
+    public void AddMapping(string connectionId, User user)
     {
         lock (_mutex)
         {
-            _connectionIdToUserId[connectionId] = userId;
-            _userIdToConnectionId[userId] = connectionId;
+            _connectionIdToUserId[connectionId] = user.Id;
+            _userIdToConnectionId[user.Id] = connectionId;
         }
     }
 
@@ -26,9 +27,9 @@ internal sealed class HubConnectionMapper : IHubConnectionMapper
         }
     }
 
-    public IEnumerable<string> GetConnectionIds() => _connectionIdToUserId.Keys;
+    public IReadOnlyCollection<string> GetConnectionIds() => _connectionIdToUserId.Keys;
 
-    public IEnumerable<string> GetUserIds() => _userIdToConnectionId.Keys;
+    public IReadOnlyCollection<string> GetUserIds() => _userIdToConnectionId.Keys;
 
     public string GetUserId(string connectionId) => _connectionIdToUserId[connectionId];
 

@@ -31,4 +31,5 @@ public interface ILetsTalkHttpClient
     Task<GetUsersResponse> GetUsersAsync(string token);
     Task<UserDto> GetUserAsync(string userId, string token);
     Task UpdateUserAsync(User user, string token);
+    Task<GetUserChatsResponse> GetUserChatsAsync(string userId, string token);
 }
