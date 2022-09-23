@@ -29,7 +29,7 @@ public static class DependencyInjection
     }
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddStackExchangeRedisCache(opts => opts.Configuration = "cache:6379");
+        services.AddStackExchangeRedisCache(opts => opts.Configuration = configuration.GetConnectionString("RedisCache"));
         services.AddSingleton<IHubConnectionManager, HubConnectionManager>();
         services.AddSingleton<IMongoClient>(new MongoClient(configuration.GetConnectionString("MongoDB")));
         services.AddSingleton<IMongoDatabase>(provider => provider.GetRequiredService<IMongoClient>().GetDatabase("letstalk"));

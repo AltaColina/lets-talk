@@ -145,7 +145,7 @@ if (chat is not null)
 
     var users = (await hubClient.GetLoggedChatUsersAsync(chat.Id)).Users;
     users.RemoveAll(user => user.Id == settings.Authentication.User.Id);
-    Console.WriteLine("Logged users:");
+    Console.WriteLine($"Listening to chat {chat.Name} (id: {chat.Id}). Logged users:");
     foreach (var item in users)
         Console.WriteLine($"- {item.Id} (roles: {String.Join(';', item.Roles)})");
     // Send messages.
