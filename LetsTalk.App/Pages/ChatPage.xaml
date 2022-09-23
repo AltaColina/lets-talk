@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:viewmodels="clr-namespace:LetsTalk.App.ViewModels"
-    xmlns:models="clr-namespace:LetsTalk.Models;assembly=LetsTalk.Shared"
+    xmlns:views="clr-namespace:LetsTalk.App.Views"
+    xmlns:messaging="clr-namespace:LetsTalk.Messaging;assembly=LetsTalk.Shared"
     x:Class="LetsTalk.App.Pages.ChatPage"
     x:DataType="viewmodels:ChatViewModel"
     Title="{Binding Title}">
@@ -13,53 +14,62 @@
     </ContentPage.Resources>
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior
-            EventName="Appearing"
-            Command="{Binding AppearingCommand}" />
+            EventName="NavigatedTo"
+            Command="{Binding NavigatedToCommand}" />
+        <toolkit:EventToCommandBehavior
+            EventName="NavigatedTo"
+            Command="{Binding NavigatedFromCommand}" />
     </ContentPage.Behaviors>
-    <Grid
-        RowDefinitions="*,80">
-        <CollectionView
-            Grid.Row="0"
-            ItemsSource="{Binding Messages}"
-            HorizontalOptions="StartAndExpand"
-            VerticalOptions="StartAndExpand">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:TextMessage">
-                    <Frame
-                        HorizontalOptions="Center"
-                        Margin="2"
-                        Padding="10">
-                        <Grid
-                            RowDefinitions="16,*">
-                            <Label
-                                Grid.Row="0"
-                                FontSize="10"
-                                FontAttributes="Italic"
-                                Text="{Binding Sender.Id}" />
-                            <Label
-                                Grid.Row="1"
-                                VerticalTextAlignment="Center"
-                                Text="{Binding Content}" />
-                        </Grid>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-            </CollectionView>
+    <Grid ColumnDefinitions="120,*">
+        <views:ChatListView
+            Grid.Column="0"
+            BindingContext="{Binding MainViewModel}" />
         <Grid
-            Grid.Row="1"
-            Margin="10"
-            ColumnDefinitions="*,160"
-            ColumnSpacing="10">
-            <Entry
-                Grid.Column="0"
-                BackgroundColor="{StaticResource Tertiary}"
-                Text="{Binding MessageText}" />
-            <Button
-                Grid.Column="1"
-                Background="{StaticResource Tertiary}"
-                TextColor="{StaticResource Secondary}"
-                Text="Send"
-                Command="{Binding SendMessageCommand}" />
+            Grid.Column="1"
+            RowDefinitions="*,80">
+            <CollectionView
+                Grid.Row="0"
+                ItemsSource="{Binding ChatConnection.Messages}"
+                HorizontalOptions="StartAndExpand"
+                VerticalOptions="StartAndExpand">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="messaging:TextMessage">
+                        <Frame
+                            HorizontalOptions="Center"
+                            Margin="2"
+                            Padding="10">
+                            <Grid
+                                RowDefinitions="16,*">
+                                <Label
+                                    Grid.Row="0"
+                                    FontSize="10"
+                                    FontAttributes="Italic"
+                                    Text="{Binding Sender.Id}" />
+                                <Label
+                                    Grid.Row="1"
+                                    VerticalTextAlignment="Center"
+                                    Text="{Binding Content}" />
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Grid
+                Grid.Row="1"
+                Margin="10"
+                ColumnDefinitions="*,80"
+                ColumnSpacing="10">
+                <Entry
+                    Grid.Column="0"
+                    BackgroundColor="{StaticResource Tertiary}"
+                    Text="{Binding MessageText}" />
+                <Button
+                    Grid.Column="1"
+                    Background="{StaticResource Tertiary}"
+                    TextColor="{StaticResource Secondary}"
+                    Text="Send"
+                    Command="{Binding SendMessageCommand}" />
+            </Grid>
         </Grid>
     </Grid>
 </ContentPage>

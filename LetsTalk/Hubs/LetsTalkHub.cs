@@ -1,5 +1,5 @@
 ﻿using LetsTalk.Commands.Hubs;
-using LetsTalk.Models;
+using LetsTalk.Messaging;
 using LetsTalk.Queries.Chats;
 using LetsTalk.Queries.Hubs;
 using LetsTalk.Queries.Users;

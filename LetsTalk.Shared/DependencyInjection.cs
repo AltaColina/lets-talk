@@ -17,20 +17,24 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
-    public static IConfigurationBuilder AddContainersConfiguration(this IConfigurationBuilder configuration, params string[] containerNames)
+    public static IConfigurationBuilder AddContainersConfiguration(this IConfigurationBuilder configuration, string host, params string[] containerNames)
     {
-        var dockerClient = new DockerClientConfiguration().CreateClient();
-        var containers = Task.Run(async () => await dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true })).Result;
-        var connectionStrings = new Dictionary<string, string>();
-        foreach (var container in containers)
+        //var dockerClient = new DockerClientConfiguration().CreateClient();
+        //var containers = Task.Run(async () => await dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true })).Result;
+        //var connectionStrings = new Dictionary<string, string>();
+        //foreach (var container in containers)
+        //{
+        //    if (container.Names.SingleOrDefault(name => containerNames.Contains(name)) is string containerName)
+        //    {
+        //        var port = container.Ports.Single(p => p.PrivatePort == 443); // HTTPS
+        //        connectionStrings[$"ConnectionStrings:{containerName.Replace("/", "")}"] = $"https://{host}:{port.PublicPort}";
+        //    }
+        //}
+        //configuration.AddInMemoryCollection(connectionStrings);
+        configuration.AddInMemoryCollection(new Dictionary<string, string>
         {
-            if (container.Names.SingleOrDefault(name => containerNames.Contains(name)) is string containerName)
-            {
-                var port = container.Ports.Single(p => p.PrivatePort == 443); // HTTPS
-                connectionStrings[$"ConnectionStrings:{containerName.Replace("/", "")}"] = $"https://localhost:{port.PublicPort}";
-            }
-        }
-        configuration.AddInMemoryCollection(connectionStrings);
+            ["ConnectionStrings:LetsTalk"] = $"http://{host}:64411"
+        });
         return configuration;
     }
 
@@ -126,7 +130,7 @@ public static class DependencyInjection
                 CreationTime = creationTime,
                 LastLoginTime = creationTime,
                 Roles = { "admin" },
-                Chats = { "general" },
+                Chats = { "general", "admin_chat" },
             });
         }
 
@@ -134,11 +138,20 @@ public static class DependencyInjection
         if (overwrite || !await chatRepository.AnyAsync())
         {
             database.GetCollection<Chat>(chatRepository.CollectionName).DeleteMany(FilterDefinition<Chat>.Empty);
-            await chatRepository.AddAsync(new Chat
+            await chatRepository.AddRangeAsync(new List<Chat>
             {
-                Id = "general",
-                Name = "General",
-                Users = { "admin" }
+                new Chat
+                {
+                    Id = "general",
+                    Name = "General",
+                    Users = { "admin" }
+                },
+                new Chat
+                {
+                    Id = "admin_chat",
+                    Name = "Admin Chat",
+                    Users = { "admin" }
+                }
             });
         }
     }

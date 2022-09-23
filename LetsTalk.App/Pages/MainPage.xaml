@@ -4,33 +4,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:viewmodels="clr-namespace:LetsTalk.App.ViewModels"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    xmlns:models="clr-namespace:LetsTalk.Models;assembly=LetsTalk.Shared"
+    xmlns:models="clr-namespace:LetsTalk.App.Models"
+    xmlns:views="clr-namespace:LetsTalk.App.Views"
     x:Class="LetsTalk.App.Pages.MainPage"
     x:DataType="viewmodels:MainViewModel"
-    Title="{Binding Title}">
+    Title="Lets Talk">
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior
-            EventName="Appearing"
-            Command="{Binding AppearingCommand}" />
+            EventName="Loaded"
+            Command="{Binding LoadedCommand}" />
     </ContentPage.Behaviors>
-    <VerticalStackLayout>
-        <CollectionView
-            ItemsSource="{Binding Chats}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Chat">
-                    <Grid
-                        Margin="10"
-                        RowDefinitions="50"
-                        RowSpacing="10">
-                        <Button
-                            BackgroundColor="{StaticResource Secondary}"
-                            TextColor="{StaticResource Primary}"
-                            Text="{Binding Id}"
-                            Command="{Binding Path=ChannelTappedCommand, Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}}"
-                            CommandParameter="{Binding}"/>
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-    </VerticalStackLayout>
+    <Grid ColumnDefinitions="120,*">
+        <views:ChatListView
+            Grid.Column="0"
+            BindingContext="{Binding}" />
+        <Label
+            Grid.Column="1"
+            Margin="-10,-10,0,0"
+            VerticalOptions="CenterAndExpand"
+            HorizontalTextAlignment="Center"
+            FontFamily="OpenSansSemibold"
+            FontSize="Header"
+            Text="Let's Talk" />
+    </Grid>
 </ContentPage>

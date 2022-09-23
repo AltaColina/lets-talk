@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using LetsTalk.Messaging;
 using LetsTalk.Models;
 
 namespace LetsTalk.Console;

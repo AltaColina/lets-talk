@@ -1,47 +1,48 @@
-﻿using LetsTalk.Models;
-using System.Collections.ObjectModel;
+﻿using LetsTalk.App.Models;
 
 namespace LetsTalk.App.ViewModels;
 
-[QueryProperty(nameof(Chat), nameof(Chat))]
+[QueryProperty(nameof(ChatConnection), nameof(ChatConnection))]
 public partial class ChatViewModel : BaseViewModel
 {
+    private readonly INavigationService _navigation;
     private readonly ILetsTalkHubClient _letsTalkHubClient;
 
     [ObservableProperty]
-    private ObservableCollection<TextMessage> _messages = null!;
-
-    [ObservableProperty]
-    private Chat _chat = null!;
+    private ChatConnection _chatConnection = null!;
 
     [ObservableProperty]
     private string? _messageText;
 
-    public ChatViewModel(ILetsTalkHubClient letsTalkHubClient)
+    public MainViewModel MainViewModel { get; }
+
+    public ChatViewModel(MainViewModel mainViewModel, INavigationService navigation, ILetsTalkHubClient letsTalkHubClient)
     {
+        MainViewModel = mainViewModel;
+        _navigation = navigation;
         _letsTalkHubClient = letsTalkHubClient;
     }
 
     [RelayCommand]
-    private async Task OnAppearingAsync()
+    private async Task OnNavigatedToAsync()
     {
-        //if (_chat is not null && _letsTalkHubClient.GetChatMessages(_chat.Id) is ObservableCollection<TextMessage> messages)
-        //{
-        //    await _letsTalkHubClient.JoinChatAsync(_chat.Id);
-        //    Title = _chat.Id;
-        //    Messages = messages;
-        //}
-        //else
-        //{
-        //    await Navigation.GoToAsync<MainViewModel>();
-        //}
+        if (_chatConnection is not null)
+        {
+            Title = _chatConnection.Chat.Name;
+            _chatConnection.IsChatVisible = true;
+        }
+        else
+        {
+            await _navigation.GoToAsync<MainViewModel>();
+        }
     }
 
     [RelayCommand]
-    private async Task OnDisappearingAsync()
+    private Task OnNavigatedFromAsync()
     {
-        if (_chat is not null)
-            await _letsTalkHubClient.LeaveChatAsync(_chat.Id);
+        if (_chatConnection is not null)
+            _chatConnection.IsChatVisible = false;
+        return Task.CompletedTask;
     }
 
     [RelayCommand]
@@ -49,7 +50,7 @@ public partial class ChatViewModel : BaseViewModel
     {
         if (!String.IsNullOrWhiteSpace(_messageText))
         {
-            await _letsTalkHubClient.SendChatMessageAsync(_chat.Id, _messageText);
+            await _letsTalkHubClient.SendChatMessageAsync(_chatConnection.Chat.Id, _messageText);
             MessageText = null;
         }
     }

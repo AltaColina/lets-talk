@@ -7,6 +7,12 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+
+#if ANDROID
+        const string host = "10.0.2.2";
+#else
+        const string host = "localhost";
+#endif
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
@@ -16,7 +22,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
-        builder.Configuration.AddContainersConfiguration("/LetsTalk");
+        builder.Configuration.AddContainersConfiguration(host, "/LetsTalk");
         AddServices(builder.Services, builder.Configuration);
         AddViewModels(builder.Services);
         AddPages(builder.Services);
@@ -26,8 +32,9 @@ public static class MauiProgram
 
     private static void AddServices(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+        services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<ChatConnectionFactory>();
         services.AddLetsTalkSettings(configuration);
         services.AddLetsTalkHttpClient(configuration);
         services.AddLetsTalkHubClient(configuration);
@@ -42,6 +49,7 @@ public static class MauiProgram
 
     private static void AddPages(IServiceCollection services)
     {
+        services.AddSingleton<AppShell>();
         services.AddSingleton<MainPage>();
         services.AddTransient<LoginPage>();
         services.AddTransient<ChatPage>();

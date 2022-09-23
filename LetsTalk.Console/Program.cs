@@ -8,7 +8,7 @@ using LetsTalk.Dtos;
 using LetsTalk.Commands.Auths;
 
 var host = Host.CreateDefaultBuilder(args)
-    .ConfigureAppConfiguration(configuration => configuration.AddContainersConfiguration("/LetsTalk"))
+    .ConfigureAppConfiguration(configuration => configuration.AddContainersConfiguration("localhost", "/LetsTalk"))
     .ConfigureServices((hostContext, services) => services
         .AddSingleton<IMessenger>(WeakReferenceMessenger.Default)
         .AddLetsTalkSettings(hostContext.Configuration)

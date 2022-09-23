@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.Interfaces;
+using LetsTalk.Messaging;
 using LetsTalk.Models;
 using LetsTalk.Queries.Chats;
 using LetsTalk.Queries.Hubs;

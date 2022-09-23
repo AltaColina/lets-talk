@@ -4,6 +4,7 @@ using System.Diagnostics;
 namespace LetsTalk.App.ViewModels;
 public partial class LoginViewModel : BaseViewModel
 {
+    private readonly INavigationService _navigation;
     private readonly ILetsTalkHttpClient _letsTalkClient;
 
     [ObservableProperty]
@@ -18,9 +19,10 @@ public partial class LoginViewModel : BaseViewModel
     [ObservableProperty]
     private string? _registerPassword;
 
-    public LoginViewModel(ILetsTalkHttpClient letsTalkClient)
+    public LoginViewModel(INavigationService navigation, ILetsTalkHttpClient letsTalkClient)
 	{
 		Title = "Login";
+        _navigation = navigation;
         _letsTalkClient = letsTalkClient;
     }
 
@@ -34,7 +36,7 @@ public partial class LoginViewModel : BaseViewModel
                 Username = LoginUsername!,
                 Password = LoginPassword!
             });
-            await Navigation.GoToAsync<MainViewModel>(new NavigationParameters
+            await _navigation.GoToAsync<MainViewModel>(new NavigationParameters
             {
                 ["Authentication"] = response
             });
@@ -60,7 +62,7 @@ public partial class LoginViewModel : BaseViewModel
                 Username = LoginUsername!,
                 Password = LoginPassword!
             });
-            await Navigation.GoToAsync<MainViewModel>(new NavigationParameters
+            await _navigation.GoToAsync<MainViewModel>(new NavigationParameters
             {
                 ["Authentication"] = response
             });

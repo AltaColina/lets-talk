@@ -7,8 +7,8 @@ namespace LetsTalk.App.Services;
 
 public interface INavigationService
 {
-    public Task GoToAsync<T>() where T : BaseViewModel;
-    public Task GoToAsync<T>(NavigationParameters parameters) where T : BaseViewModel;
+    public Task GoToAsync<T>(bool animate = true) where T : BaseViewModel;
+    public Task GoToAsync<T>(NavigationParameters parameters, bool animate = true) where T : BaseViewModel;
 }
 
 
@@ -30,10 +30,10 @@ public sealed class NavigationService : INavigationService
         ViewModelRoutes = routes;
     }
 
-    public Task GoToAsync<T>() where T : BaseViewModel => GoToAsync<T>(EmptyParameters);
+    public Task GoToAsync<T>(bool animate = true) where T : BaseViewModel => GoToAsync<T>(EmptyParameters);
 
-    public Task GoToAsync<T>(NavigationParameters parameters) where T : BaseViewModel =>
-        Shell.Current.GoToAsync(new ShellNavigationState(ViewModelRoutes[typeof(T)]), parameters);
+    public Task GoToAsync<T>(NavigationParameters parameters, bool animate = true) where T : BaseViewModel =>
+        Shell.Current.GoToAsync(new ShellNavigationState(ViewModelRoutes[typeof(T)]), animate, parameters);
 }
 
 public sealed class NavigationParameters : IDictionary<string, object>
