@@ -19,22 +19,22 @@ public static class DependencyInjection
 {
     public static IConfigurationBuilder AddContainersConfiguration(this IConfigurationBuilder configuration, string host, params string[] containerNames)
     {
-        //var dockerClient = new DockerClientConfiguration().CreateClient();
-        //var containers = Task.Run(async () => await dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true })).Result;
-        //var connectionStrings = new Dictionary<string, string>();
-        //foreach (var container in containers)
-        //{
-        //    if (container.Names.SingleOrDefault(name => containerNames.Contains(name)) is string containerName)
-        //    {
-        //        var port = container.Ports.Single(p => p.PrivatePort == 443); // HTTPS
-        //        connectionStrings[$"ConnectionStrings:{containerName.Replace("/", "")}"] = $"https://{host}:{port.PublicPort}";
-        //    }
-        //}
-        //configuration.AddInMemoryCollection(connectionStrings);
-        configuration.AddInMemoryCollection(new Dictionary<string, string>
+        var dockerClient = new DockerClientConfiguration().CreateClient();
+        var containers = Task.Run(async () => await dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true })).Result;
+        var connectionStrings = new Dictionary<string, string>();
+        foreach (var container in containers)
         {
-            ["ConnectionStrings:LetsTalk"] = $"http://{host}:64411"
-        });
+            if (container.Names.SingleOrDefault(name => containerNames.Contains(name)) is string containerName)
+            {
+                var port = container.Ports.Single(p => p.PrivatePort == 443); // HTTPS
+                connectionStrings[$"ConnectionStrings:{containerName.Replace("/", "")}"] = $"https://{host}:{port.PublicPort}";
+            }
+        }
+        configuration.AddInMemoryCollection(connectionStrings);
+        //configuration.AddInMemoryCollection(new Dictionary<string, string>
+        //{
+        //    ["ConnectionStrings:LetsTalk"] = $"http://{host}:64411"
+        //});
         return configuration;
     }
 
