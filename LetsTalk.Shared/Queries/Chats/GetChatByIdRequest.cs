@@ -10,13 +10,13 @@ namespace LetsTalk.Queries.Chats;
 
 public sealed class GetChatByIdRequest : IRequest<ChatDto>
 {
-    public string Id { get; init; } = null!;
+    public string ChatId { get; init; } = null!;
 
     public sealed class Validator : AbstractValidator<GetChatByIdRequest>
     {
         public Validator()
         {
-            RuleFor(e => e.Id).NotEmpty();
+            RuleFor(e => e.ChatId).NotEmpty();
         }
     }
 
@@ -33,9 +33,9 @@ public sealed class GetChatByIdRequest : IRequest<ChatDto>
 
         public async Task<ChatDto> Handle(GetChatByIdRequest request, CancellationToken cancellationToken)
         {
-            var chat = await _chatRepository.GetByIdAsync(request.Id, cancellationToken);
+            var chat = await _chatRepository.GetByIdAsync(request.ChatId, cancellationToken);
             if (chat is null)
-                throw new NotFoundException($"Chat {request.Id} does not exist");
+                throw new NotFoundException($"Chat {request.ChatId} does not exist");
             return _mapper.Map<ChatDto>(chat);
         }
     }

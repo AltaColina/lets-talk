@@ -10,13 +10,13 @@ namespace LetsTalk.Queries.Roles;
 
 public sealed class GetRoleByIdRequest : IRequest<RoleDto>
 {
-    public string Id { get; init; } = null!;
+    public string RoleId { get; init; } = null!;
 
     public sealed class Validator : AbstractValidator<GetRoleByIdRequest>
     {
         public Validator()
         {
-            RuleFor(e => e.Id).NotEmpty();
+            RuleFor(e => e.RoleId).NotEmpty();
         }
     }
 
@@ -33,9 +33,9 @@ public sealed class GetRoleByIdRequest : IRequest<RoleDto>
 
         public async Task<RoleDto> Handle(GetRoleByIdRequest request, CancellationToken cancellationToken)
         {
-            var role = await _roleRepository.GetByIdAsync(request.Id, cancellationToken);
+            var role = await _roleRepository.GetByIdAsync(request.RoleId, cancellationToken);
             if (role is null)
-                throw new NotFoundException($"Role {request.Id} does not exist");
+                throw new NotFoundException($"Role {request.RoleId} does not exist");
             return _mapper.Map<RoleDto>(role);
         }
     }

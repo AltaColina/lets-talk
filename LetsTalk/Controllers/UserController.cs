@@ -30,7 +30,7 @@ public sealed class UserController : ControllerBase
     [HttpGet("{userId}"), Authorize(Permissions.User.View)]
     public async Task<IActionResult> Get([FromRoute, Required] string userId)
     {
-        var response = await _mediator.Send(new GetUserByIdRequest { Id = userId });
+        var response = await _mediator.Send(new GetUserByIdRequest { UserId = userId });
         return Ok(response);
     }
 
@@ -52,7 +52,7 @@ public sealed class UserController : ControllerBase
     [HttpGet("{userId}/chat"), Authorize(Permissions.User.Chat.View)]
     public async Task<IActionResult> GetChats([FromRoute, Required] string userId)
     {
-        var response = await _mediator.Send(new GetUserChatsRequest { Id = userId });
+        var response = await _mediator.Send(new GetUserChatsRequest { UserId = userId });
         return Ok(response);
     }
 }

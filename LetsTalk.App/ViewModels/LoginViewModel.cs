@@ -18,8 +18,7 @@ public partial class LoginViewModel : BaseViewModel
     [ObservableProperty]
     private string? _registerPassword;
 
-    public LoginViewModel(INavigationService navigationService, ILetsTalkHttpClient letsTalkClient)
-		: base(navigationService)
+    public LoginViewModel(ILetsTalkHttpClient letsTalkClient)
 	{
 		Title = "Login";
         _letsTalkClient = letsTalkClient;
@@ -35,7 +34,7 @@ public partial class LoginViewModel : BaseViewModel
                 Username = LoginUsername!,
                 Password = LoginPassword!
             });
-            await NavigationService.GoToAsync<MainViewModel>(new NavigationParameters
+            await Navigation.GoToAsync<MainViewModel>(new NavigationParameters
             {
                 ["Authentication"] = response
             });
@@ -61,7 +60,7 @@ public partial class LoginViewModel : BaseViewModel
                 Username = LoginUsername!,
                 Password = LoginPassword!
             });
-            await NavigationService.GoToAsync<MainViewModel>(new NavigationParameters
+            await Navigation.GoToAsync<MainViewModel>(new NavigationParameters
             {
                 ["Authentication"] = response
             });

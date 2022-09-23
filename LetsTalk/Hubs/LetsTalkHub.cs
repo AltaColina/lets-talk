@@ -1,7 +1,8 @@
 ﻿using LetsTalk.Commands.Hubs;
-using LetsTalk.Dtos;
 using LetsTalk.Models;
+using LetsTalk.Queries.Chats;
 using LetsTalk.Queries.Hubs;
+using LetsTalk.Queries.Users;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -11,7 +12,6 @@ namespace LetsTalk.Hubs;
 [Authorize]
 public sealed class LetsTalkHub : Hub
 {
-    private const string AdminId = "admin";
     private readonly ISender _mediator;
 
     public LetsTalkHub(ISender mediator)
@@ -28,6 +28,7 @@ public sealed class LetsTalkHub : Hub
         });
 
         await Task.WhenAll(user.Chats.Select(chatId => Groups.AddToGroupAsync(Context.ConnectionId, chatId)));
+        await Clients.Others.SendAsync(new ConnectMessage { Content = user });
         await base.OnConnectedAsync();
     }
 
@@ -39,6 +40,7 @@ public sealed class LetsTalkHub : Hub
             UserId = Context.User?.Identity?.Name!
         });
         await Task.WhenAll(user.Chats.Select(chatId => Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId)));
+        await Clients.Others.SendAsync(new DisconnectMessage { Content = user });
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -53,11 +55,10 @@ public sealed class LetsTalkHub : Hub
         if (response.HasUserJoined)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
-            await Clients.Group(response.Chat.Id).SendAsync(new ChatMessage
+            await Clients.Group(response.Chat.Id).SendAsync(new JoinChatMessage
             {
-                ChatId = response.Chat.Id,
-                UserId = AdminId,
-                Content = $"{Context.User!.Identity!.Name} has joined chat {response.Chat.Id}"
+                Chat = response.Chat,
+                Content = response.User
             });
         }
     }
@@ -73,21 +74,21 @@ public sealed class LetsTalkHub : Hub
         if (response.HasUserLeft)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
-            await Clients.Group(chatId).SendAsync(new ChatMessage
+            await Clients.Group(chatId).SendAsync(new LeaveChatMessage
             {
-                ChatId = response.Chat.Id,
-                UserId = AdminId,
-                Content = $"{Context.User!.Identity!.Name} has left chat {response.Chat.Id}"
+                Chat = response.Chat,
+                Content = response.User
             });
         }
     }
 
     public async Task SendChatMessageAsync(string chatId, string content)
     {
-        await Clients.Group(chatId).SendAsync(new ChatMessage
+        var user = await _mediator.Send(new GetUserByIdCachedRequest { UserId = Context.User?.Identity?.Name! });
+        await Clients.Group(chatId).SendAsync(new TextMessage
         {
+            Sender = user,
             ChatId = chatId,
-            UserId = Context.User!.Identity!.Name!,
             Content = content,
         });
     }
@@ -101,6 +102,18 @@ public sealed class LetsTalkHub : Hub
     public async Task<GetLoggedChatUsersResponse> GetLoggedChatUsersAsync(string chatId)
     {
         var response = await _mediator.Send(new GetLoggedChatUsersRequest { ChatId = chatId });
+        return response;
+    }
+
+    public async Task<GetUserChatsResponse> GetUserChatsAsync()
+    {
+        var response = await _mediator.Send(new GetUserChatsRequest { UserId = Context.User?.Identity?.Name! });
+        return response;
+    }
+
+    public async Task<GetUserAvailableChatsResponse> GetUserAvailableChatsAsync()
+    {
+        var response = await _mediator.Send(new GetUserAvailableChatsRequest { UserId = Context.User?.Identity?.Name! });
         return response;
     }
 }

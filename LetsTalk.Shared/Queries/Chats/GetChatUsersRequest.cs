@@ -16,13 +16,13 @@ public sealed class GetChatUsersResponse
 
 public sealed class GetChatUsersRequest : IRequest<GetChatUsersResponse>
 {
-    public string Id { get; init; } = null!;
+    public string ChatId { get; init; } = null!;
 
     public sealed class Validator : AbstractValidator<GetChatUsersRequest>
     {
         public Validator()
         {
-            RuleFor(e => e.Id).NotEmpty();
+            RuleFor(e => e.ChatId).NotEmpty();
         }
     }
 
@@ -49,9 +49,9 @@ public sealed class GetChatUsersRequest : IRequest<GetChatUsersResponse>
 
         public async Task<GetChatUsersResponse> Handle(GetChatUsersRequest request, CancellationToken cancellationToken)
         {
-            var chat = await _chatRepository.GetByIdAsync(request.Id, cancellationToken);
+            var chat = await _chatRepository.GetByIdAsync(request.ChatId, cancellationToken);
             if (chat is null)
-                throw new NotFoundException($"Chat {request.Id} does not exist");
+                throw new NotFoundException($"Chat {request.ChatId} does not exist");
 
             var users = await _userRepository.ListAsync(new Specification(chat.Users), cancellationToken);
             return new GetChatUsersResponse { Users = _mapper.Map<List<UserDto>>(users) };

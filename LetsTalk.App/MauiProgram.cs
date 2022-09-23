@@ -16,16 +16,11 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
-        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string>
-        {
-            ["LetsTalkRestAddress"] = "https://localhost:62389",
-            ["LetsTalkHubAddress"] = "https://localhost:62389/letstalk"
-        });
+        builder.Configuration.AddContainersConfiguration("/LetsTalk");
         AddServices(builder.Services, builder.Configuration);
         AddViewModels(builder.Services);
         AddPages(builder.Services);
-
-
+        
         return builder.Build();
     }
 

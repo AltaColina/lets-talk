@@ -2,68 +2,69 @@
 using LetsTalk.Dtos;
 using LetsTalk.Models;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace LetsTalk.App.ViewModels;
 
-[QueryProperty(nameof(Authentication), nameof(Authentication))]
 public partial class MainViewModel : BaseViewModel
 {
-    private readonly ILetsTalkHttpClient _letsTalkClient;
-    private readonly ILetsTalkHubClient _letsTalkHub;
-
-    public Authentication? Authentication { get; set; }
+    private readonly ILetsTalkHttpClient _httpClient;
+    private readonly ILetsTalkHubClient _hubClient;
 
     public ObservableCollection<ChatDto> Chats { get; } = new();
 
-    public MainViewModel(INavigationService navigationService, ILetsTalkHttpClient letsTalkClient, ILetsTalkHubClient letsTalkHub)
-        : base(navigationService)
+    public MainViewModel(ILetsTalkHttpClient httpClient, ILetsTalkHubClient hubClient)
     {
         Title = "Let's Talk";
-        _letsTalkClient = letsTalkClient;
-        _letsTalkHub = letsTalkHub;
+        _httpClient = httpClient;
+        _hubClient = hubClient;
     }
 
-    private async Task<string?> ProvideToken()
-    {
-        if (Authentication is null)
-            return null;
-        if (Authentication.AccessToken.ExpiresIn < DateTimeOffset.UtcNow)
-        {
-            try
-            {
-                Authentication = await _letsTalkClient.RefreshAsync(new RefreshRequest
-                {
-                    Username = Authentication.User.Id,
-                    RefreshToken = Authentication.RefreshToken.Id
-                });
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-                throw;
-            }
-        }
-        return Authentication?.AccessToken.Id;
-    }
+    //private async Task<string?> ProvideToken()
+    //{
+    //    if (Authentication is null)
+    //        return null;
+    //    if (Authentication.AccessToken.ExpiresIn < DateTimeOffset.UtcNow)
+    //    {
+    //        try
+    //        {
+    //            Authentication = await _letsTalkClient.RefreshAsync(new RefreshRequest
+    //            {
+    //                Username = Authentication.User.Id,
+    //                RefreshToken = Authentication.RefreshToken.Id
+    //            });
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            Debug.WriteLine(ex);
+    //            throw;
+    //        }
+    //    }
+    //    return Authentication?.AccessToken.Id;
+    //}
 
     [RelayCommand]
     private async Task OnAppearing()
     {
-        var token = await ProvideToken();
-        if (token is not null)
+        // Lets skip login for now.
+        if (!Settings.IsAuthenticated)
         {
-            if (!_letsTalkHub.IsConnected)
-                await _letsTalkHub.ConnectAsync();
-            if (Chats.Count > 0)
-                Chats.Clear();
-            var response = await _letsTalkClient.GetChatsAsync(token);
-            foreach (var chat in response.Chats)
-                Chats.Add(chat);
+            Settings.Authentication = await _httpClient.LoginAsync(new LoginRequest
+            {
+                Username = "admin",
+                Password = "super"
+            });
+        }
+
+        if (Settings.IsAuthenticated)
+        {
+            if (!_hubClient.IsConnected)
+                await _hubClient.ConnectAsync();
+
+            var chats = await _httpClient.GetUserChatsAsync(Settings.UserId, Settings.AccessToken);
         }
         else
         {
-            await NavigationService.GoToAsync<LoginViewModel>();
+            await Navigation.GoToAsync<LoginViewModel>();
         }
     }
 
@@ -73,7 +74,7 @@ public partial class MainViewModel : BaseViewModel
         if (chat is null)
             return;
 
-        await NavigationService.GoToAsync<ChatViewModel>(new NavigationParameters
+        await Navigation.GoToAsync<ChatViewModel>(new NavigationParameters
         {
             [nameof(Chat)] = chat
         });

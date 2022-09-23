@@ -1,10 +1,11 @@
-﻿using FluentValidation;
+﻿using AutoMapper;
+using FluentValidation;
+using LetsTalk.Dtos;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
 
 namespace LetsTalk.Commands.Hubs;
 
@@ -12,8 +13,8 @@ public sealed class LeaveChatResponse
 {
     [MemberNotNullWhen(true, nameof(Chat))]
     public bool HasUserLeft { get; init; }
-    public User User { get; init; } = null!;
-    public Chat? Chat { get; init; }
+    public UserDto User { get; init; } = null!;
+    public ChatDto? Chat { get; init; }
 }
 
 public sealed class LeaveChatRequest : IRequest<LeaveChatResponse>
@@ -32,11 +33,13 @@ public sealed class LeaveChatRequest : IRequest<LeaveChatResponse>
 
     public sealed class Handler : IRequestHandler<LeaveChatRequest, LeaveChatResponse>
     {
+        private readonly IMapper _mapper;
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<Chat> _chatRepository;
 
-        public Handler(IRepository<User> userRepository, IRepository<Chat> chatRepository)
+        public Handler(IMapper mapper, IRepository<User> userRepository, IRepository<Chat> chatRepository)
         {
+            _mapper = mapper;
             _userRepository = userRepository;
             _chatRepository = chatRepository;
         }
@@ -48,7 +51,7 @@ public sealed class LeaveChatRequest : IRequest<LeaveChatResponse>
                 throw new UnauthorizedException($"Invalid user '{request.UserId}'");
 
             if (!user.Chats.Contains(request.ChatId))
-                return new LeaveChatResponse { User = user };
+                return new LeaveChatResponse { User = _mapper.Map<UserDto>(user) };
 
             var chat = await _chatRepository.GetByIdAsync(request.ChatId, cancellationToken);
             if (chat is null)
@@ -62,8 +65,8 @@ public sealed class LeaveChatRequest : IRequest<LeaveChatResponse>
             return new LeaveChatResponse
             {
                 HasUserLeft = true,
-                User = user,
-                Chat = chat,
+                User = _mapper.Map<UserDto>(user),
+                Chat = _mapper.Map<ChatDto>(chat),
             };
         }
     }

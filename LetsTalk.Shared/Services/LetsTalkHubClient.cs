@@ -1,18 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
+using LetsTalk.Queries.Chats;
 using LetsTalk.Queries.Hubs;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
+using System.Runtime.Serialization;
 
 namespace LetsTalk.App.Services;
 
 internal sealed class LetsTalkHubClient : ILetsTalkHubClient
 {
-    private readonly ConcurrentDictionary<string, ObservableCollection<ChatMessage>> _messages = new();
-    private readonly IConfiguration _configuration;
+    private readonly Listener _listener;
+    private readonly string _hubEndpoint;
     private readonly ILetsTalkSettings _settings;
     private readonly IMessenger _messenger;
     private HubConnection? _connection;
@@ -21,22 +21,21 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
 
     public LetsTalkHubClient(IConfiguration configuration, ILetsTalkSettings settings, IMessenger messenger)
     {
+        _listener = new Listener(messenger);
+        _hubEndpoint = $"{configuration.GetConnectionString("LetsTalk")}/letstalk";
         _messenger = messenger;
-        _configuration = configuration;
         _settings = settings;
     }
 
     public async Task ConnectAsync()
     {
         if (_connection is not null)
-            await _connection.DisposeAsync();
-
-        var address = _configuration["LetsTalkHubAddress"];
+            await DisconnectAsync();
 
         _connection = new HubConnectionBuilder()
-            .WithUrl(address, opts => opts.AccessTokenProvider = _settings.ProvideToken)
+            .WithUrl(_hubEndpoint, opts => opts.AccessTokenProvider = _settings.ProvideToken)
             .Build();
-        _connection.On<ChatMessage>(Handle);
+        _listener.Attach(_connection);
         await _connection.StartAsync();
         IsConnected = true;
     }
@@ -44,27 +43,105 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
     public async Task DisconnectAsync()
     {
         if (_connection is not null)
+        {
+            _listener.Detach();
             await _connection.StopAsync();
-        IsConnected = false;
+            IsConnected = false;
+        }
     }
 
-    private void Handle(ChatMessage message)
+    public async Task JoinChatAsync(string chatId) =>
+        await _connection!.InvokeAsync(nameof(JoinChatAsync), chatId);
+
+    public async Task LeaveChatAsync(string chatId) =>
+        await _connection!.InvokeAsync(nameof(LeaveChatAsync), chatId);
+
+    public async Task SendChatMessageAsync(string chatId, string message) =>
+        await _connection!.InvokeAsync(nameof(SendChatMessageAsync), chatId, message);
+
+    public async Task<GetLoggedUsersResponse> GetLoggedUsersAsync() =>
+        await _connection!.InvokeAsync<GetLoggedUsersResponse>(nameof(GetLoggedUsersAsync));
+
+    public async Task<GetLoggedChatUsersResponse> GetLoggedChatUsersAsync(string chatId)
+        => await _connection!.InvokeAsync<GetLoggedChatUsersResponse>(nameof(GetLoggedChatUsersAsync), chatId);
+
+    public async Task<GetUserChatsResponse> GetUserChatsAsync() =>
+        await _connection!.InvokeAsync<GetUserChatsResponse>(nameof(GetUserChatsAsync));
+    public async Task<GetUserAvailableChatsResponse> GetUserAvailableChatsAsync() =>
+        await _connection!.InvokeAsync<GetUserAvailableChatsResponse>(nameof(GetUserAvailableChatsAsync));
+
+    private sealed class Ref<T>
     {
-        _messenger.Send(message);
-        GetChatMessages(message.ChatId).Add(message);
+        public T? Value { get; set; }
     }
 
-    public ObservableCollection<ChatMessage> GetChatMessages(string chatId) => _messages.GetOrAdd(chatId, _ => new ObservableCollection<ChatMessage>());
+    private readonly struct Listener
+    {
+        private readonly IMessenger _messenger;
+        private readonly Ref<HubConnection> _connectionRef;
+        private readonly List<IDisposable> _handlers;
+        public bool IsListening { get => _connectionRef.Value is not null; }
 
-    public async Task JoinChatAsync(string chatId) => await _connection!.InvokeAsync(nameof(JoinChatAsync), chatId);
+        public Listener(IMessenger messenger)
+        {
+            _messenger = messenger;
+            _connectionRef = new Ref<HubConnection>();
+            _handlers = new List<IDisposable>();
+        }
 
-    public async Task LeaveChatAsync(string chatId) => await _connection!.InvokeAsync(nameof(LeaveChatAsync), chatId);
+        public void Attach(HubConnection connection)
+        {
+            if (IsListening)
+                throw new InvalidOperationException("Already listening to a connection");
+            _connectionRef.Value = connection;
+            _handlers.AddRange(new IDisposable[]
+            {
+                connection.On<ConnectMessage>(Handle),
+                connection.On<DisconnectMessage>(Handle),
+                connection.On<JoinChatMessage>(Handle),
+                connection.On<LeaveChatMessage>(Handle),
+                connection.On<TextMessage>(Handle)
+            });
+        }
 
-    public async Task SendChatMessageAsync(string chatId, string message) => await _connection!.InvokeAsync(nameof(SendChatMessageAsync), chatId, message);
+        public void Detach()
+        {
+            if (!IsListening)
+                throw new InvalidOperationException("Not listening to any connection");
+            _handlers.ForEach(h => h.Dispose());
+            _handlers.Clear();
+            _connectionRef.Value = null;
+        }
 
-    public async Task<GetLoggedUsersResponse> GetLoggedUsersAsync() => await _connection!.InvokeAsync<GetLoggedUsersResponse>(nameof(GetLoggedUsersAsync));
+        private void Handle(ConnectMessage message)
+        {
+            _messenger.Send(message);
+        }
 
-    public async Task<GetLoggedChatUsersResponse> GetLoggedChatUsersAsync(string chatId) => await _connection!.InvokeAsync<GetLoggedChatUsersResponse>(nameof(GetLoggedChatUsersAsync), chatId);
+        private void Handle(DisconnectMessage message)
+        {
+            _messenger.Send(message);
+        }
+
+        private void Handle(JoinChatMessage message)
+        {
+            _messenger.Send(message);
+            _messenger.Send(message, message.Chat.Id);
+        }
+
+        private void Handle(LeaveChatMessage message)
+        {
+            _messenger.Send(message);
+            _messenger.Send(message, message.Chat.Id);
+        }
+
+        private void Handle(TextMessage message)
+        {
+            _messenger.Send(message);
+            _messenger.Send(message, message.ChatId);
+        }
+    }
+
 }
 
 internal static partial class HubConnectionExtensions

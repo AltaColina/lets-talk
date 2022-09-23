@@ -9,7 +9,7 @@ public partial class ChatViewModel : BaseViewModel
     private readonly ILetsTalkHubClient _letsTalkHubClient;
 
     [ObservableProperty]
-    private ObservableCollection<ChatMessage> _messages = null!;
+    private ObservableCollection<TextMessage> _messages = null!;
 
     [ObservableProperty]
     private Chat _chat = null!;
@@ -17,8 +17,7 @@ public partial class ChatViewModel : BaseViewModel
     [ObservableProperty]
     private string? _messageText;
 
-    public ChatViewModel(INavigationService navigationService, ILetsTalkHubClient letsTalkHubClient)
-        : base(navigationService)
+    public ChatViewModel(ILetsTalkHubClient letsTalkHubClient)
     {
         _letsTalkHubClient = letsTalkHubClient;
     }
@@ -26,16 +25,16 @@ public partial class ChatViewModel : BaseViewModel
     [RelayCommand]
     private async Task OnAppearingAsync()
     {
-        if (_chat is not null && _letsTalkHubClient.GetChatMessages(_chat.Id) is ObservableCollection<ChatMessage> messages)
-        {
-            await _letsTalkHubClient.JoinChatAsync(_chat.Id);
-            Title = _chat.Id;
-            Messages = messages;
-        }
-        else
-        {
-            await NavigationService.GoToAsync<MainViewModel>();
-        }
+        //if (_chat is not null && _letsTalkHubClient.GetChatMessages(_chat.Id) is ObservableCollection<TextMessage> messages)
+        //{
+        //    await _letsTalkHubClient.JoinChatAsync(_chat.Id);
+        //    Title = _chat.Id;
+        //    Messages = messages;
+        //}
+        //else
+        //{
+        //    await Navigation.GoToAsync<MainViewModel>();
+        //}
     }
 
     [RelayCommand]

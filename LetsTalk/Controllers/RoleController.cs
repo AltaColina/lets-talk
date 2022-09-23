@@ -29,7 +29,7 @@ public class RoleController : ControllerBase
     [HttpGet("{roleId}"), Authorize(Permissions.Role.View)]
     public async Task<IActionResult> Get([FromRoute, Required] string roleId)
     {
-        var response = await _mediator.Send(new GetRoleByIdRequest { Id = roleId });
+        var response = await _mediator.Send(new GetRoleByIdRequest { RoleId = roleId });
         return Ok(response);
     }
 

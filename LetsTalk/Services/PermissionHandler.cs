@@ -38,8 +38,9 @@ internal sealed class PermissionHandler : AuthorizationHandler<PermissionRequire
     {
         if (context.User.Identity?.Name is string username)
         {
+            var cacheKey = $"roles_{username}";
             var roles = default(List<Role>);
-            var rolesJson = await _distributedCache.GetStringAsync(username);
+            var rolesJson = await _distributedCache.GetStringAsync(cacheKey);
             if (rolesJson is not null)
             {
                 roles = JsonSerializer.Deserialize<List<Role>>(rolesJson)!;
@@ -48,7 +49,7 @@ internal sealed class PermissionHandler : AuthorizationHandler<PermissionRequire
             {
                 var user = (await _userRepository.GetByIdAsync(username))!;
                 roles = await _roleRepository.ListAsync(new GetUserRolesSpecification(user));
-                await _distributedCache.SetStringAsync(username, JsonSerializer.Serialize(roles));
+                await _distributedCache.SetStringAsync(cacheKey, JsonSerializer.Serialize(roles));
             }
 
             if (roles.Any(role => role.Permissions.Contains(requirement.Permission)))

@@ -7,10 +7,12 @@ public partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     private string? _title;
 
-    protected INavigationService NavigationService { get; }
+    protected INavigationService Navigation { get; } = App.Current.Services.GetRequiredService<INavigationService>();
 
-    protected BaseViewModel(INavigationService navigationService)
+    protected ILetsTalkSettings Settings { get; } = App.Current.Services.GetRequiredService<ILetsTalkSettings>();
+
+    protected BaseViewModel()
     {
-        NavigationService = navigationService;
+        _title = GetType().Name.Replace("ViewModel", "");
     }
 }

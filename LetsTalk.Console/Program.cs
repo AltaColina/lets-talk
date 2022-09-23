@@ -2,32 +2,19 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using LetsTalk.Interfaces;
-using Microsoft.Extensions.Configuration;
 using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.Console;
-using Docker.DotNet;
-using Docker.DotNet.Models;
 using LetsTalk.Dtos;
 using LetsTalk.Commands.Auths;
-using MongoDB.Driver;
-
-var dockerClient = new DockerClientConfiguration().CreateClient();
-var containers = await dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });
-var container = containers.Single(c => c.Names.Contains("/LetsTalk"));
-var port = container.Ports.Single(p => p.PrivatePort == 443); // https port
-var address = $"https://localhost:{port.PublicPort}";
 
 var host = Host.CreateDefaultBuilder(args)
-    .ConfigureAppConfiguration(hostContext => hostContext.AddInMemoryCollection(new Dictionary<string, string>
-    {
-        ["LetsTalkRestAddress"] = address,
-        ["LetsTalkHubAddress"] = $"{address}/letstalk",
-    }))
+    .ConfigureAppConfiguration(configuration => configuration.AddContainersConfiguration("/LetsTalk"))
     .ConfigureServices((hostContext, services) => services
         .AddSingleton<IMessenger>(WeakReferenceMessenger.Default)
         .AddLetsTalkSettings(hostContext.Configuration)
         .AddLetsTalkHttpClient(hostContext.Configuration)
-        .AddLetsTalkHubClient(hostContext.Configuration))
+        .AddLetsTalkHubClient(hostContext.Configuration)
+        .AddTransient<MessageRecipient>())
     .UseConsoleLifetime()
     .Build();
 
@@ -91,7 +78,7 @@ else
 var hubClient = host.Services.GetRequiredService<ILetsTalkHubClient>();
 await hubClient.ConnectAsync();
 
-var chats = (await httpClient.GetUserChatsAsync(settings.Authentication.User.Id, settings.Authentication.AccessToken.Id)).Chats;
+var chats = (await hubClient.GetUserChatsAsync()).Chats;
 var chat = default(ChatDto);
 while (chat is null)
 {
@@ -116,7 +103,7 @@ while (chat is null)
     }
     else if (number == chats.Count + 1)
     {
-        var allChats = (await httpClient.GetChatsAsync(settings.Authentication.AccessToken.Id)).Chats;
+        var allChats = (await hubClient.GetUserAvailableChatsAsync()).Chats;
         allChats.RemoveAll(chat => settings.Authentication.User.Chats.Contains(chat.Id));
         Console.WriteLine("Available chats:");
         foreach (var item in allChats)
@@ -137,11 +124,13 @@ while (chat is null)
     }
 }
 
+static void Recipient_MessageReceived(object? sender, string message) => Console.WriteLine(message);
+
 if (chat is not null)
 {
-    var messenger = host.Services.GetRequiredService<IMessenger>();
-    var recipient = new MessageRecipient(chat.Id);
-    messenger.Register(recipient);
+    var recipient = host.Services.GetRequiredService<MessageRecipient>();
+    recipient.ListenToChat(chat.Id);
+    recipient.MessageReceived += Recipient_MessageReceived;
 
     var users = (await hubClient.GetLoggedChatUsersAsync(chat.Id)).Users;
     users.RemoveAll(user => user.Id == settings.Authentication.User.Id);
@@ -157,6 +146,7 @@ if (chat is not null)
         await hubClient.SendChatMessageAsync(chat.Id, message);
     }
 
+    recipient.MessageReceived -= Recipient_MessageReceived;
     await hubClient.DisconnectAsync();
 }
 

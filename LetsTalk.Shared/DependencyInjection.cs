@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Docker.DotNet;
+using Docker.DotNet.Models;
+using FluentValidation;
 using LetsTalk.App.Services;
 using LetsTalk.Behaviors;
 using LetsTalk.Interfaces;
@@ -15,6 +17,23 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
+    public static IConfigurationBuilder AddContainersConfiguration(this IConfigurationBuilder configuration, params string[] containerNames)
+    {
+        var dockerClient = new DockerClientConfiguration().CreateClient();
+        var containers = Task.Run(async () => await dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true })).Result;
+        var connectionStrings = new Dictionary<string, string>();
+        foreach (var container in containers)
+        {
+            if (container.Names.SingleOrDefault(name => containerNames.Contains(name)) is string containerName)
+            {
+                var port = container.Ports.Single(p => p.PrivatePort == 443); // HTTPS
+                connectionStrings[$"ConnectionStrings:{containerName.Replace("/", "")}"] = $"https://localhost:{port.PublicPort}";
+            }
+        }
+        configuration.AddInMemoryCollection(connectionStrings);
+        return configuration;
+    }
+
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
         var currentAsm = typeof(DependencyInjection).Assembly;
@@ -46,7 +65,7 @@ public static class DependencyInjection
 
     public static IServiceCollection AddLetsTalkHttpClient(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddHttpClient<ILetsTalkHttpClient, LetsTalkHttpClient>(opts => opts.BaseAddress = new(configuration.GetSection("LetsTalkRestAddress").Value));
+        services.AddHttpClient<ILetsTalkHttpClient, LetsTalkHttpClient>(opts => opts.BaseAddress = new(configuration.GetConnectionString("LetsTalk")));
         return services;
     }
 

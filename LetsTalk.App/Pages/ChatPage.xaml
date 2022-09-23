@@ -24,7 +24,7 @@
             HorizontalOptions="StartAndExpand"
             VerticalOptions="StartAndExpand">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:ChatMessage">
+                <DataTemplate x:DataType="models:TextMessage">
                     <Frame
                         HorizontalOptions="Center"
                         Margin="2"
@@ -35,7 +35,7 @@
                                 Grid.Row="0"
                                 FontSize="10"
                                 FontAttributes="Italic"
-                                Text="{Binding UserId}" />
+                                Text="{Binding Sender.Id}" />
                             <Label
                                 Grid.Row="1"
                                 VerticalTextAlignment="Center"

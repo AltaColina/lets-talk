@@ -1,4 +1,9 @@
-﻿namespace LetsTalk.Models;
+﻿namespace LetsTalk.Messaging.Abstract;
+
+public abstract class Message<T> : Message
+{
+    public T Content { get; init; } = default!;
+}
 
 public abstract class Message
 {

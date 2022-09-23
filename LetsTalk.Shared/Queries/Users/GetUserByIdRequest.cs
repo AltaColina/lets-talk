@@ -10,13 +10,13 @@ namespace LetsTalk.Queries.Users;
 
 public sealed class GetUserByIdRequest : IRequest<UserDto>
 {
-    public string Id { get; init; } = null!;
+    public string UserId { get; init; } = null!;
 
     public sealed class Validator : AbstractValidator<GetUserByIdRequest>
     {
         public Validator()
         {
-            RuleFor(e => e.Id).NotEmpty();
+            RuleFor(e => e.UserId).NotEmpty();
         }
     }
 
@@ -33,9 +33,9 @@ public sealed class GetUserByIdRequest : IRequest<UserDto>
 
         public async Task<UserDto> Handle(GetUserByIdRequest request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
+            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
             if (user is null)
-                throw new NotFoundException($"User {request.Id} does not exist");
+                throw new NotFoundException($"User {request.UserId} does not exist");
             return _mapper.Map<UserDto>(user);
         }
     }
