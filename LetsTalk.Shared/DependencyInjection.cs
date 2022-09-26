@@ -93,13 +93,13 @@ public static class DependencyInjection
                     {
                         Id = "user",
                         Name = "User",
-                        Permissions = new List<string>(allPermissions.Where(perm => perm.EndsWith("View", StringComparison.InvariantCultureIgnoreCase)))
+                        Permissions = new HashSet<string>(allPermissions.Where(perm => perm.EndsWith("View", StringComparison.InvariantCultureIgnoreCase)))
                     },
                     new Role
                     {
                         Id = "admin",
                         Name = "Administrator",
-                        Permissions = new List<string>(allPermissions)
+                        Permissions = new HashSet<string>(allPermissions)
                     },
                 });
 
@@ -109,7 +109,7 @@ public static class DependencyInjection
 
                 var fields = type
                     .GetFields(BindingFlags.Public | BindingFlags.Static)
-                    .Select(field => $"{prefix}{field.Name}");
+                    .Select(field => (string)field.GetValue(null)!);
 
                 foreach (var nestedType in type.GetNestedTypes())
                     fields = fields.Concat(GetStaticFieldNames(nestedType, prefix));
@@ -126,6 +126,7 @@ public static class DependencyInjection
             await userRepository.AddAsync(new User
             {
                 Id = "admin",
+                Name = "Administrator",
                 Secret = host.Services.GetRequiredService<IPasswordHandler>().Encrypt("super", "admin"),
                 CreationTime = creationTime,
                 LastLoginTime = creationTime,

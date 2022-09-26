@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using LetsTalk.Dtos;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
@@ -7,7 +8,7 @@ using MediatR;
 
 namespace LetsTalk.Commands.Chats;
 
-public sealed class UpdateChatRequest : IRequest, IMapTo<Chat>
+public sealed class UpdateChatRequest : IRequest<ChatDto>, IMapTo<Chat>
 {
     public string Id { get; set; } = null!;
     public string Name { get; set; } = null!;
@@ -21,7 +22,7 @@ public sealed class UpdateChatRequest : IRequest, IMapTo<Chat>
         }
     }
 
-    public sealed class Handler : IRequestHandler<UpdateChatRequest>
+    public sealed class Handler : IRequestHandler<UpdateChatRequest, ChatDto>
     {
         private readonly IMapper _mapper;
         private readonly IRepository<Chat> _chatRepository;
@@ -32,14 +33,14 @@ public sealed class UpdateChatRequest : IRequest, IMapTo<Chat>
             _chatRepository = chatRepository;
         }
 
-        public async Task<Unit> Handle(UpdateChatRequest request, CancellationToken cancellationToken)
+        public async Task<ChatDto> Handle(UpdateChatRequest request, CancellationToken cancellationToken)
         {
             var chat = await _chatRepository.GetByIdAsync(request.Id, cancellationToken);
             if (chat is null)
                 throw new NotFoundException($"Chat {request.Id} does not exist");
             chat = _mapper.Map(request, chat);
             await _chatRepository.UpdateAsync(chat, cancellationToken);
-            return Unit.Value;
+            return _mapper.Map<ChatDto>(chat);
         }
     }
 }

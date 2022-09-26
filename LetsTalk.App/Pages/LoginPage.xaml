@@ -63,7 +63,7 @@
             Text="Register" />
         <Grid
             Padding="5"
-            RowDefinitions="*,*"
+            RowDefinitions="*,*,*"
             ColumnDefinitions="Auto,*"
             ColumnSpacing="5">
             <Label
@@ -85,11 +85,25 @@
                 Grid.Column="1"
                 IsPassword="True"
                 Text="{Binding RegisterPassword}" />
+            <Label
+                Grid.Row="2"
+                Grid.Column="0"
+                VerticalTextAlignment="Center"
+                Text="Display Name"/>
+            <Entry
+                Grid.Row="2"
+                Grid.Column="1"
+                Text="{Binding RegisterDisplayName}" />
         </Grid>
         <Button
             HorizontalOptions="Center"
             WidthRequest="120"
             Text="Register"
             Command="{Binding RegisterCommand}" />
+        <Label
+            VerticalOptions="EndAndExpand"
+            HorizontalOptions="CenterAndExpand"
+            TextColor="Red"
+            Text="{Binding ErrorMessage}" />
     </VerticalStackLayout>
 </ContentPage>

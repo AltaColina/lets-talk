@@ -16,14 +16,14 @@ public class ChatController : ControllerBase
 
     public ChatController(ISender mediator) => _mediator = mediator;
 
-    [HttpGet, Authorize(Permissions.Chat.View)]
+    [HttpGet, Authorize(Permissions.Chat.Read)]
     public async Task<IActionResult> Get()
     {
         var response = await _mediator.Send(new GetChatsRequest());
         return Ok(response);
     }
 
-    [HttpGet("{chatId}"), Authorize(Permissions.Chat.View)]
+    [HttpGet("{chatId}", Name = "GetChatById"), Authorize(Permissions.Chat.Read)]
     public async Task<IActionResult> Get([FromRoute, Required] string chatId)
     {
         var response = await _mediator.Send(new GetChatByIdRequest { ChatId = chatId, });
@@ -33,16 +33,16 @@ public class ChatController : ControllerBase
     [HttpPost, Authorize(Permissions.Chat.Create)]
     public async Task<IActionResult> Post([FromBody, Required] CreateChatRequest chat)
     {
-        await _mediator.Send(chat);
-        return Ok();
+        var response = await _mediator.Send(chat);
+        return CreatedAtRoute("GetChatById", new { chatId = response.Id }, response);
     }
 
-    [HttpPut("{chatId}"), Authorize(Permissions.Chat.Edit)]
+    [HttpPut("{chatId}"), Authorize(Permissions.Chat.Update)]
     public async Task<IActionResult> Put([FromRoute, Required] string chatId, [FromBody, Required] UpdateChatRequest chat)
     {
         chat.Id = chatId;
-        await _mediator.Send(chat);
-        return Ok();
+        var response = await _mediator.Send(chat);
+        return Ok(response);
     }
 
     [HttpDelete("{chatId}"), Authorize(Permissions.Chat.Delete)]
@@ -50,10 +50,10 @@ public class ChatController : ControllerBase
     {
         var request = new DeleteChatRequest { Id = chatId };
         await _mediator.Send(request);
-        return Ok();
+        return NoContent();
     }
 
-    [HttpGet("{chatId}/user"), Authorize(Permissions.Chat.User.View)]
+    [HttpGet("{chatId}/user"), Authorize(Permissions.Chat.User.Read)]
     public async Task<IActionResult> GetUsers([FromRoute, Required] string chatId)
     {
         var response = await _mediator.Send(new GetChatUsersRequest { ChatId = chatId });

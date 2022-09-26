@@ -4,55 +4,55 @@ public static class Permissions
 {
     public static class Chat
     {
-        public const string View = $"{nameof(Permissions)}.{nameof(Chat)}.{nameof(View)}";
-        public const string Create = $"{nameof(Permissions)}.{nameof(Chat)}.{nameof(Create)}";
-        public const string Edit = $"{nameof(Permissions)}.{nameof(Chat)}.{nameof(Edit)}";
-        public const string Delete = $"{nameof(Permissions)}.{nameof(Chat)}.{nameof(Delete)}";
+        public const string Create = $"{nameof(Chat)}:{nameof(Create)}";
+        public const string Read = $"{nameof(Chat)}:{nameof(Read)}";
+        public const string Update = $"{nameof(Chat)}:{nameof(Update)}";
+        public const string Delete = $"{nameof(Chat)}:{nameof(Delete)}";
         public static class User
         {
-            public const string View = $"{nameof(Permissions)}.{nameof(Chat)}.{nameof(User)}.{nameof(View)}";
-            public const string Create = $"{nameof(Permissions)}.{nameof(Chat)}.{nameof(User)}.{nameof(Create)}";
-            public const string Edit = $"{nameof(Permissions)}.{nameof(Chat)}.{nameof(User)}.{nameof(Edit)}";
-            public const string Delete = $"{nameof(Permissions)}.{nameof(Chat)}.{nameof(User)}.{nameof(Delete)}";
+            public const string Create = $"{nameof(Chat)}:{nameof(User)}:{nameof(Create)}";
+            public const string Read = $"{nameof(Chat)}:{nameof(User)}:{nameof(Read)}";
+            public const string Update = $"{nameof(Chat)}:{nameof(User)}:{nameof(Update)}";
+            public const string Delete = $"{nameof(Chat)}:{nameof(User)}:{nameof(Delete)}";
         }
     }
 
     public static class Role
     {
-        public const string View = $"{nameof(Permissions)}.{nameof(Role)}.{nameof(View)}";
-        public const string Create = $"{nameof(Permissions)}.{nameof(Role)}.{nameof(Create)}";
-        public const string Edit = $"{nameof(Permissions)}.{nameof(Role)}.{nameof(Edit)}";
-        public const string Delete = $"{nameof(Permissions)}.{nameof(Role)}.{nameof(Delete)}";
+        public const string Create = $"{nameof(Role)}:{nameof(Create)}";
+        public const string Read = $"{nameof(Role)}:{nameof(Read)}";
+        public const string Update = $"{nameof(Role)}:{nameof(Update)}";
+        public const string Delete = $"{nameof(Role)}:{nameof(Delete)}";
         public static class User
         {
-            public const string View = $"{nameof(Permissions)}.{nameof(Role)}.{nameof(User)}.{nameof(View)}";
-            public const string Create = $"{nameof(Permissions)}.{nameof(Role)}.{nameof(User)}.{nameof(Create)}";
-            public const string Edit = $"{nameof(Permissions)}.{nameof(Role)}.{nameof(User)}.{nameof(Edit)}";
-            public const string Delete = $"{nameof(Permissions)}.{nameof(Role)}.{nameof(User)}.{nameof(Delete)}";
+            public const string Create = $"{nameof(Role)}:{nameof(User)}:{nameof(Create)}";
+            public const string Read = $"{nameof(Role)}:{nameof(User)}:{nameof(Read)}";
+            public const string Update = $"{nameof(Role)}:{nameof(User)}:{nameof(Update)}";
+            public const string Delete = $"{nameof(Role)}:{nameof(User)}:{nameof(Delete)}";
         }
     }
 
     public static class User
     {
-        public const string View = $"{nameof(Permissions)}.{nameof(User)}.{nameof(View)}";
-        public const string Create = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Create)}";
-        public const string Edit = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Edit)}";
-        public const string Delete = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Delete)}";
+        public const string Create = $"{nameof(User)}:{nameof(Create)}";
+        public const string Read = $"{nameof(User)}:{nameof(Read)}";
+        public const string Update = $"{nameof(User)}:{nameof(Update)}";
+        public const string Delete = $"{nameof(User)}:{nameof(Delete)}";
 
         public static class Chat
         {
-            public const string View = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Chat)}.{nameof(View)}";
-            public const string Create = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Chat)}.{nameof(Create)}";
-            public const string Edit = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Chat)}.{nameof(Edit)}";
-            public const string Delete = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Chat)}.{nameof(Delete)}";
+            public const string Create = $"{nameof(User)}:{nameof(Chat)}:{nameof(Create)}";
+            public const string Read = $"{nameof(User)}:{nameof(Chat)}:{nameof(Read)}";
+            public const string Update = $"{nameof(User)}:{nameof(Chat)}:{nameof(Update)}";
+            public const string Delete = $"{nameof(User)}:{nameof(Chat)}:{nameof(Delete)}";
         }
 
         public static class Role
         {
-            public const string View = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Role)}.{nameof(View)}";
-            public const string Create = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Role)}.{nameof(Create)}";
-            public const string Edit = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Role)}.{nameof(Edit)}";
-            public const string Delete = $"{nameof(Permissions)}.{nameof(User)}.{nameof(Role)}.{nameof(Delete)}";
+            public const string Create = $"{nameof(User)}:{nameof(Role)}:{nameof(Create)}";
+            public const string Read = $"{nameof(User)}:{nameof(Role)}:{nameof(Read)}";
+            public const string Update = $"{nameof(User)}:{nameof(Role)}:{nameof(Update)}";
+            public const string Delete = $"{nameof(User)}:{nameof(Role)}:{nameof(Delete)}";
         }
     }
 }

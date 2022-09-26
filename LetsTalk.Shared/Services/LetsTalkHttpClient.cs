@@ -1,4 +1,7 @@
 ﻿using LetsTalk.Commands.Auths;
+using LetsTalk.Commands.Chats;
+using LetsTalk.Commands.Roles;
+using LetsTalk.Commands.Users;
 using LetsTalk.Dtos;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
@@ -46,11 +49,11 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
     public async Task<ChatDto> GetChatAsync(string chatId, string token) =>
         await GetAsync<ChatDto>($"api/chat/{chatId}", token);
 
-    public async Task CreateChatAsync(Chat chat, string token) =>
-        await PostAsync("api/chat", chat, token);
+    public async Task<ChatDto> CreateChatAsync(CreateChatRequest chat, string token) =>
+        await PostAsync<CreateChatRequest, ChatDto>("api/chat", chat, token);
 
-    public async Task UpdateChatAsync(Chat chat, string token) =>
-        await PutAsync("api/chat", chat, token);
+    public async Task<ChatDto> UpdateChatAsync(UpdateChatRequest chat, string token) =>
+        await PutAsync<UpdateChatRequest, ChatDto>("api/chat", chat, token);
 
     public async Task DeleteChatAsync(string chatId, string token) =>
         await DeleteAsync($"api/chat/{chatId}", token);
@@ -64,11 +67,11 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
     public async Task<RoleDto> GetRoleAsync(string roleId, string token) =>
         await GetAsync<RoleDto>($"api/role/{roleId}", token);
 
-    public async Task CreateRoleAsync(Role role, string token) =>
-        await PostAsync("api/role", role, token);
+    public async Task<RoleDto> CreateRoleAsync(CreateRoleRequest role, string token) =>
+        await PostAsync<CreateRoleRequest, RoleDto>("api/role", role, token);
 
-    public async Task UpdateRoleAsync(Role role, string token) =>
-        await PutAsync("api/role", role, token);
+    public async Task<RoleDto> UpdateRoleAsync(UpdateRoleRequest role, string token) =>
+        await PutAsync<UpdateRoleRequest, RoleDto>("api/role", role, token);
 
     public async Task DeleteRoleAsync(string roleId, string token) =>
         await DeleteAsync($"api/role/{roleId}", token);
@@ -82,8 +85,8 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
     public async Task<UserDto> GetUserAsync(string userId, string token) =>
         await GetAsync<UserDto>($"api/user/{userId}", token);
 
-    public async Task UpdateUserAsync(User user, string token) =>
-        await PutAsync("api/user", user, token);
+    public async Task<UserDto> UpdateUserAsync(UpdateUserRequest user, string token) =>
+        await PutAsync<UpdateUserRequest, UserDto>("api/user", user, token);
 
     public async Task DeleteUserAsync(string userId, string token) =>
         await DeleteAsync($"api/user/{userId}", token);
@@ -98,16 +101,18 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
         return (await response.Content.ReadFromJsonAsync<T>())!;
     }
 
-    private async Task PostAsync<T>(string uri, T? value, string token)
+    private async Task<T2> PostAsync<T1, T2>(string uri, T1? value, string token)
     {
-        var response = await _httpClient.SendAsync(CreateRequest<T>(HttpMethod.Post, uri, token, value));
+        var response = await _httpClient.SendAsync(CreateRequest<T1>(HttpMethod.Post, uri, token, value));
         response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<T2>())!;
     }
 
-    private async Task PutAsync<T>(string uri, T? value, string token)
+    private async Task<T2> PutAsync<T1, T2>(string uri, T1? value, string token)
     {
-        var response = await _httpClient.SendAsync(CreateRequest<T>(HttpMethod.Put, uri, token, value));
+        var response = await _httpClient.SendAsync(CreateRequest<T1>(HttpMethod.Put, uri, token, value));
         response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<T2>())!;
     }
 
     private async Task DeleteAsync(string uri, string token)

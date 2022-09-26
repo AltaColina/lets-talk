@@ -1,60 +1,95 @@
-﻿using LetsTalk.App.Models;
-using LetsTalk.Commands.Auths;
+﻿using CommunityToolkit.Maui.Views;
+using LetsTalk.App.Models;
+using LetsTalk.Models;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
 
 namespace LetsTalk.App.ViewModels;
 
+[QueryProperty(nameof(Authentication), nameof(Authentication))]
 public partial class MainViewModel : BaseViewModel
 {
+    private readonly AppShell _appShell;
     private readonly ILetsTalkSettings _settings;
     private readonly INavigationService _navigation;
     private readonly ILetsTalkHttpClient _httpClient;
     private readonly ILetsTalkHubClient _hubClient;
-    private readonly ChatConnectionFactory _chatConnectionFactory;
+    private readonly ChatConnectionManager _chatConnectionManager;
+    private Page? _view;
+
+    public ObservableCollection<ChatConnection> ChatConnections { get => _chatConnectionManager.Connections; }
 
     [ObservableProperty]
-    private ObservableCollection<ChatConnection> _chatConnections = new();
+    private bool _isChatListVisible;
 
-    public MainViewModel(ILetsTalkSettings settings, INavigationService navigation, ILetsTalkHttpClient httpClient, ILetsTalkHubClient hubClient, ChatConnectionFactory chatConnectionFactory)
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsAuthenticated))]
+    private Authentication? _authentication;
+
+    public bool IsAuthenticated { get => _settings.IsAuthenticated; }
+
+    public MainViewModel(AppShell appShell, ILetsTalkSettings settings, INavigationService navigation, ILetsTalkHttpClient httpClient, ILetsTalkHubClient hubClient, ChatConnectionManager chatConnectionManager)
     {
         Title = "Let's Talk";
+        _appShell = appShell;
+        _appShell.Window.BindingContext = this;
+        _appShell.Window.SetBinding(Window.TitleProperty, new Binding(nameof(Title), BindingMode.TwoWay));
         _settings = settings;
         _navigation = navigation;
         _httpClient = httpClient;
         _hubClient = hubClient;
-        _chatConnectionFactory = chatConnectionFactory;
+        _chatConnectionManager = chatConnectionManager;
     }
 
     [RelayCommand]
-    private async Task OnLoadedAsync()
+    private void OnNavigatedTo(Page page)
     {
-        // Lets skip login for now.
-        if (!_settings.IsAuthenticated)
-        {
-            _settings.Authentication = await _httpClient.LoginAsync(new LoginRequest
-            {
-                Username = "admin",
-                Password = "super"
-            });
-        }
+        _view = page;
+    }
 
-        if (_settings.IsAuthenticated)
+    partial void OnAuthenticationChanged(Authentication? value)
+    {
+        _settings.Authentication = value;
+        if (IsAuthenticated)
         {
-            if (!_hubClient.IsConnected)
-                await _hubClient.ConnectAsync();
-
-            var response = await _hubClient.GetUserChatsAsync();
-            ChatConnections = new ObservableCollection<ChatConnection>(response.Chats.Select(c => _chatConnectionFactory.Create(c)));
+            ConnectAsync().GetAwaiter();
         }
         else
         {
-            await _navigation.GoToAsync<LoginViewModel>();
+            ChatConnections.Clear();
+        }
+
+        async Task ConnectAsync()
+        {
+            try
+            {
+                if (_hubClient.IsConnected)
+                    await _hubClient.DisconnectAsync();
+                await _hubClient.ConnectAsync();
+                var response = await _hubClient.GetUserChatsAsync();
+                _chatConnectionManager.Reset(response.Chats);
+                OnPropertyChanged(nameof(ChatConnections));
+                Title = $"Let's Talk - {_settings.Authentication!.User.Name}";
+                _view?.ShowPopup(new Popup { Content = new Label { Text = $"Connected as '{_settings.UserId}'" } });
+                
+            }
+            catch (HubException ex)
+            {
+                _view?.ShowPopup(new Popup { Content = new Label { Text = ex.Message } });
+            }
         }
     }
 
     [RelayCommand]
-    private async Task OnChannelTappedAsync(ChatConnection connection)
-    {
+    private async Task OnSignInAsync() =>
+        await _navigation.GoToAsync<LoginViewModel>();
+
+    [RelayCommand]
+    private async Task OnOpenChatAsync(ChatConnection connection) =>
         await _navigation.GoToAsync<ChatViewModel>(new NavigationParameters { [nameof(ChatConnection)] = connection }, animate: false);
-    }
+
+    [RelayCommand]
+    private async Task OnAddChatAsync() =>
+        await _navigation.GoToAsync<AddChatViewModel>();
 }

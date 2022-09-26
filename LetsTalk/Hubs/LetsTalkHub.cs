@@ -1,4 +1,5 @@
 ﻿using LetsTalk.Commands.Hubs;
+using LetsTalk.Dtos;
 using LetsTalk.Messaging;
 using LetsTalk.Queries.Chats;
 using LetsTalk.Queries.Hubs;
@@ -44,7 +45,7 @@ public sealed class LetsTalkHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task JoinChatAsync(string chatId)
+    public async Task<JoinChatResponse> JoinChatAsync(string chatId)
     {
         var response = await _mediator.Send(new JoinChatRequest
         {
@@ -61,9 +62,11 @@ public sealed class LetsTalkHub : Hub
                 Content = response.User
             });
         }
+
+        return response;
     }
 
-    public async Task LeaveChatAsync(string chatId)
+    public async Task<LeaveChatResponse> LeaveChatAsync(string chatId)
     {
         var response = await _mediator.Send(new LeaveChatRequest
         {
@@ -80,6 +83,8 @@ public sealed class LetsTalkHub : Hub
                 Content = response.User
             });
         }
+
+        return response;
     }
 
     public async Task SendChatMessageAsync(string chatId, string content)

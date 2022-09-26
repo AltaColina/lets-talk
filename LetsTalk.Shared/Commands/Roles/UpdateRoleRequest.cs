@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using LetsTalk.Dtos;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
 using LetsTalk.Models;
@@ -7,7 +8,7 @@ using MediatR;
 
 namespace LetsTalk.Commands.Roles;
 
-public sealed class UpdateRoleRequest : IRequest, IMapTo<Role>
+public sealed class UpdateRoleRequest : IRequest<RoleDto>, IMapTo<Role>
 {
     public string Id { get; set; } = null!;
     public string Name { get; init; } = null!;
@@ -23,7 +24,7 @@ public sealed class UpdateRoleRequest : IRequest, IMapTo<Role>
         }
     }
 
-    public sealed class Handler : IRequestHandler<UpdateRoleRequest>
+    public sealed class Handler : IRequestHandler<UpdateRoleRequest, RoleDto>
     {
         private readonly IMapper _mapper;
         private readonly IRepository<Role> _roleRepository;
@@ -34,14 +35,14 @@ public sealed class UpdateRoleRequest : IRequest, IMapTo<Role>
             _roleRepository = roleRepository;
         }
 
-        public async Task<Unit> Handle(UpdateRoleRequest request, CancellationToken cancellationToken)
+        public async Task<RoleDto> Handle(UpdateRoleRequest request, CancellationToken cancellationToken)
         {
             var role = await _roleRepository.GetByIdAsync(request.Id, cancellationToken);
             if (role is null)
                 throw new NotFoundException($"Role {request.Id} does not exist");
             role = _mapper.Map(request, role);
             await _roleRepository.UpdateAsync(role, cancellationToken);
-            return Unit.Value;
+            return _mapper.Map<RoleDto>(role);
         }
     }
 }

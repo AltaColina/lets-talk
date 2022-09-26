@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Ardalis.Specification;
+using AutoMapper;
 using LetsTalk.Commands.Auths;
 using LetsTalk.Dtos;
 using LetsTalk.Exceptions;
@@ -15,13 +16,15 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     private readonly ITokenProvider _tokenProvider;
     private readonly IPasswordHandler _passwordHandler;
     private readonly IRepository<User> _userRepository;
+    private readonly IRepository<Role> _roleRepository;
 
-    public AuthenticationManager(IMapper mapper, ITokenProvider tokenProvider, IPasswordHandler passwordHandler, IRepository<User> userRepository)
+    public AuthenticationManager(IMapper mapper, ITokenProvider tokenProvider, IPasswordHandler passwordHandler, IRepository<User> userRepository, IRepository<Role> roleRepository)
     {
         _mapper = mapper;
         _tokenProvider = tokenProvider;
         _passwordHandler = passwordHandler;
         _userRepository = userRepository;
+        _roleRepository = roleRepository;
     }
 
     private static ClaimsIdentity GetIdentity(User user)
@@ -40,6 +43,21 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         return Convert.ToBase64String(buffer);
     }
 
+    private sealed class GetRolesInCollectionSpecification : Specification<Role>
+    {
+        public GetRolesInCollectionSpecification(ICollection<string> roleIds)
+        {
+            Query.Where(role => roleIds.Contains(role.Id));
+        }
+    }
+
+    private async Task<HashSet<string>> GetPermissions(User user)
+    {
+        var roles = await _roleRepository.ListAsync(new GetRolesInCollectionSpecification(user.Roles));
+        var permissions = roles.Select(r => r.Permissions).Aggregate((p, c) => { p.UnionWith(c); return p; });
+        return permissions;
+    }
+
     public async Task<Authentication> AuthenticateAsync(RegisterRequest request)
     {
         if ((await _userRepository.GetByIdAsync(request.Username)) is not null)
@@ -49,6 +67,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         var user = new User
         {
             Id = request.Username,
+            Name = request.Name ?? request.Username,
             Secret = _passwordHandler.Encrypt(request.Password, request.Username),
             CreationTime = creationDateTime,
             LastLoginTime = creationDateTime,
@@ -58,7 +77,8 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         var identity = GetIdentity(user);
         var accessToken = _tokenProvider.GenerateAccessToken(identity);
         var refreshToken = _tokenProvider.GenerateRefreshToken(identity);
-        
+        var permissions = await GetPermissions(user);
+
         user.RefreshTokens.Add(refreshToken);
         await _userRepository.AddAsync(user);
 
@@ -67,6 +87,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
             User = _mapper.Map<UserDto>(user),
             AccessToken = accessToken,
             RefreshToken = refreshToken,
+            Permissions = permissions
         };
     }
 
@@ -79,6 +100,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         var identity = GetIdentity(user);
         var accessToken = _tokenProvider.GenerateAccessToken(identity);
         var refreshToken = _tokenProvider.GenerateRefreshToken(identity);
+        var permissions = await GetPermissions(user);
 
         user.LastLoginTime = DateTime.UtcNow;
         user.RefreshTokens.RemoveAll(token => token.ExpiresIn < user.LastLoginTime);
@@ -90,6 +112,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
             User = _mapper.Map<UserDto>(user),
             AccessToken = accessToken,
             RefreshToken = refreshToken,
+            Permissions = permissions
         };
     }
 
@@ -102,6 +125,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         var identity = GetIdentity(user);
         var accessToken = _tokenProvider.GenerateAccessToken(identity);
         var refreshToken = _tokenProvider.GenerateRefreshToken(identity);
+        var permissions = await GetPermissions(user);
 
         user.LastLoginTime = DateTime.UtcNow;
         user.RefreshTokens.RemoveAll(token => token.ExpiresIn < user.LastLoginTime);
@@ -113,6 +137,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
             User = _mapper.Map<UserDto>(user),
             AccessToken = accessToken,
             RefreshToken = refreshToken,
+            Permissions = permissions
         };
     }
 }

@@ -31,5 +31,5 @@ internal sealed class MessageRecipient :
     void IRecipient<DisconnectMessage>.Receive(DisconnectMessage message) => NotifyMessage($"User '{message.Content.Id}' has disconnected from the server.");
     void IRecipient<JoinChatMessage>.Receive(JoinChatMessage message) => NotifyMessage($"User '{message.Content.Id}' has joined channel '{message.Chat.Name}'.");
     void IRecipient<LeaveChatMessage>.Receive(LeaveChatMessage message) => NotifyMessage($"User '{message.Content.Id}' has left channel '{message.Chat.Name}'.");
-    void IRecipient<TextMessage>.Receive(TextMessage message) => NotifyMessage($"{message.Sender.Id}: {message.Content}");
+    void IRecipient<TextMessage>.Receive(TextMessage message) => NotifyMessage($"{message.Sender.Name}: {message.Content}");
 }

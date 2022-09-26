@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using LetsTalk.Commands.Hubs;
 using LetsTalk.Interfaces;
 using LetsTalk.Messaging;
 using LetsTalk.Models;
@@ -27,7 +28,6 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
         _messenger = messenger;
         _settings = settings;
     }
-
     public async Task ConnectAsync()
     {
         if (_connection is not null)
@@ -51,11 +51,11 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
         }
     }
 
-    public async Task JoinChatAsync(string chatId) =>
-        await _connection!.InvokeAsync(nameof(JoinChatAsync), chatId);
+    public async Task<JoinChatResponse> JoinChatAsync(string chatId) =>
+        await _connection!.InvokeAsync<JoinChatResponse>(nameof(JoinChatAsync), chatId);
 
-    public async Task LeaveChatAsync(string chatId) =>
-        await _connection!.InvokeAsync(nameof(LeaveChatAsync), chatId);
+    public async Task<LeaveChatResponse> LeaveChatAsync(string chatId) =>
+        await _connection!.InvokeAsync<LeaveChatResponse>(nameof(LeaveChatAsync), chatId);
 
     public async Task SendChatMessageAsync(string chatId, string message) =>
         await _connection!.InvokeAsync(nameof(SendChatMessageAsync), chatId, message);

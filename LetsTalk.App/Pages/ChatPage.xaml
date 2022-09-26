@@ -40,11 +40,22 @@
                             Padding="10">
                             <Grid
                                 RowDefinitions="16,*">
-                                <Label
+                                <Grid
                                     Grid.Row="0"
-                                    FontSize="10"
-                                    FontAttributes="Italic"
-                                    Text="{Binding Sender.Id}" />
+                                    ColumnDefinitions="Auto,*"
+                                    ColumnSpacing="5">
+                                    <Label
+                                        Grid.Column="0"
+                                        FontSize="10"
+                                        FontAttributes="Italic"
+                                        Text="{Binding Sender.Name}" />
+                                    <Label
+                                        Grid.Column="1"
+                                        HorizontalTextAlignment="End"
+                                        FontSize="10"
+                                        FontAttributes="Italic"
+                                        Text="{Binding Timestamp, StringFormat={}{0:dd/MM/yyyy HH:mm}}" />
+                                </Grid>
                                 <Label
                                     Grid.Row="1"
                                     VerticalTextAlignment="Center"

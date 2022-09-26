@@ -21,6 +21,7 @@ public sealed class RegisterRequest : IRequest<Authentication>
         {
             RuleFor(e => e.Username).NotEmpty().Must(e => e is not null && UsernameRegex.IsMatch(e));
             RuleFor(e => e.Password).NotEmpty();
+            When(e => e.Name is not null, () => RuleFor(e => e.Name).NotEmpty());
         }
     }
 

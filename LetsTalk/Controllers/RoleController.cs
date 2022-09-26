@@ -19,14 +19,14 @@ public class RoleController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpGet, Authorize(Permissions.Role.View)]
+    [HttpGet, Authorize(Permissions.Role.Read)]
     public async Task<IActionResult> Get()
     {
         var response = await _mediator.Send(new GetRolesRequest());
         return Ok(response);
     }
 
-    [HttpGet("{roleId}"), Authorize(Permissions.Role.View)]
+    [HttpGet("{roleId}", Name = "GetRoleById"), Authorize(Permissions.Role.Read)]
     public async Task<IActionResult> Get([FromRoute, Required] string roleId)
     {
         var response = await _mediator.Send(new GetRoleByIdRequest { RoleId = roleId });
@@ -36,26 +36,26 @@ public class RoleController : ControllerBase
     [HttpPost, Authorize(Permissions.Role.Create)]
     public async Task<IActionResult> Post([FromBody, Required] CreateRoleRequest role)
     {
-        await _mediator.Send(role);
-        return Ok();
+        var response = await _mediator.Send(role);
+        return CreatedAtRoute("GetRoleById", new { roleId = response.Id }, response);
     }
 
-    [HttpPut("{roleId}"), Authorize(Permissions.Role.Edit)]
+    [HttpPut("{roleId}"), Authorize(Permissions.Role.Update)]
     public async Task<IActionResult> Put([FromRoute, Required] string roleId, [FromBody, Required] UpdateRoleRequest role)
     {
         role.Id = roleId;
-        await _mediator.Send(role);
-        return Ok();
+        var response = await _mediator.Send(role);
+        return Ok(response);
     }
 
     [HttpDelete("{roleId}"), Authorize(Permissions.Role.Delete)]
     public async Task<IActionResult> Delete([FromRoute, Required] string roleId)
     {
         await _mediator.Send(new DeleteRoleRequest { Id = roleId });
-        return Ok();
+        return NoContent();
     }
 
-    [HttpGet("{roleId}/user"), Authorize(Permissions.Role.User.View)]
+    [HttpGet("{roleId}/user"), Authorize(Permissions.Role.User.Read)]
     public async Task<IActionResult> GetUsers([FromRoute, Required] string roleId)
     {
         var response = await _mediator.Send(new GetRoleUsersRequest { Id = roleId });

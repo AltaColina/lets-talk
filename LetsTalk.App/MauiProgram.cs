@@ -34,7 +34,7 @@ public static class MauiProgram
     {
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
         services.AddSingleton<INavigationService, NavigationService>();
-        services.AddSingleton<ChatConnectionFactory>();
+        services.AddSingleton<ChatConnectionManager>();
         services.AddLetsTalkSettings(configuration);
         services.AddLetsTalkHttpClient(configuration);
         services.AddLetsTalkHubClient(configuration);
@@ -45,6 +45,7 @@ public static class MauiProgram
         services.AddSingleton<MainViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<ChatViewModel>();
+        services.AddTransient<AddChatViewModel>();
     }
 
     private static void AddPages(IServiceCollection services)
@@ -53,5 +54,6 @@ public static class MauiProgram
         services.AddSingleton<MainPage>();
         services.AddTransient<LoginPage>();
         services.AddTransient<ChatPage>();
+        services.AddTransient<AddChatPage>();
     }
 }
