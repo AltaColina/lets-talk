@@ -87,13 +87,14 @@ public sealed class LetsTalkHub : Hub
         return response;
     }
 
-    public async Task SendChatMessageAsync(string chatId, string content)
+    public async Task SendChatMessageAsync(string chatId, string contentType, byte[] content)
     {
         var user = await _mediator.Send(new GetUserByIdCachedRequest { UserId = Context.User?.Identity?.Name! });
-        await Clients.Group(chatId).SendAsync(new TextMessage
+        await Clients.Group(chatId).SendAsync(new ContentMessage
         {
             Sender = user,
             ChatId = chatId,
+            ContentType = contentType,
             Content = content,
         });
     }

@@ -1,4 +1,4 @@
-﻿namespace LetsTalk.Messaging.Abstract;
+﻿namespace LetsTalk.Messaging;
 
 public abstract class Message<T> : Message
 {

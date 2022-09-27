@@ -6,6 +6,9 @@ using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.Console;
 using LetsTalk.Dtos;
 using LetsTalk.Commands.Auths;
+using LetsTalk.Messaging;
+using System.Text;
+using System.Net.Mime;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(configuration => configuration.AddContainersConfiguration("localhost", "/LetsTalk"))
@@ -143,7 +146,7 @@ if (chat is not null)
     {
         var (left, top) = Console.GetCursorPosition();
         Console.SetCursorPosition(left, top - 1);
-        await hubClient.SendChatMessageAsync(chat.Id, message);
+        await hubClient.SendChatMessageAsync(chat.Id, MediaTypeNames.Text.Plain, Encoding.UTF8.GetBytes(message));
     }
 
     recipient.MessageReceived -= Recipient_MessageReceived;

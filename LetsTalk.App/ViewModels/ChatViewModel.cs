@@ -1,4 +1,7 @@
 ﻿using LetsTalk.App.Models;
+using LetsTalk.Messaging;
+using System.Net.Mime;
+using System.Text;
 
 namespace LetsTalk.App.ViewModels;
 
@@ -50,7 +53,7 @@ public partial class ChatViewModel : BaseViewModel
     {
         if (!String.IsNullOrWhiteSpace(_messageText))
         {
-            await _letsTalkHubClient.SendChatMessageAsync(_chatConnection.Chat.Id, _messageText);
+            await _letsTalkHubClient.SendChatMessageAsync(_chatConnection.Chat.Id, MediaTypeNames.Text.Plain, Encoding.UTF8.GetBytes(_messageText));
             MessageText = null;
         }
     }
