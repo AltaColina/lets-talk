@@ -86,36 +86,21 @@ public static class DependencyInjection
         if (overwrite || !await roleRepository.AnyAsync())
         {
             database.GetCollection<Role>(roleRepository.CollectionName).DeleteMany(FilterDefinition<Role>.Empty);
-            var allPermissions = GetStaticFieldNames(typeof(Permissions));
             await roleRepository.AddRangeAsync(new List<Role>
                 {
                     new Role
                     {
-                        Id = "user",
-                        Name = "User",
-                        Permissions = new HashSet<string>(allPermissions.Where(perm => perm.EndsWith("View", StringComparison.InvariantCultureIgnoreCase)))
+                        Id = "admin",
+                        Name = "Administrator",
+                        Permissions = new HashSet<string>(Permissions.All())
                     },
                     new Role
                     {
-                        Id = "admin",
-                        Name = "Administrator",
-                        Permissions = new HashSet<string>(allPermissions)
+                        Id = "user",
+                        Name = "User",
+                        Permissions = new HashSet<string>(Permissions.ReadOnly())
                     },
                 });
-
-            static IEnumerable<string> GetStaticFieldNames(Type type, string prefix = "")
-            {
-                prefix += $"{type.Name}.";
-
-                var fields = type
-                    .GetFields(BindingFlags.Public | BindingFlags.Static)
-                    .Select(field => (string)field.GetValue(null)!);
-
-                foreach (var nestedType in type.GetNestedTypes())
-                    fields = fields.Concat(GetStaticFieldNames(nestedType, prefix));
-
-                return fields;
-            }
         }
 
         var userRepository = host.Services.GetRequiredService<IRepository<User>>();
