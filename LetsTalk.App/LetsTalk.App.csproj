@@ -65,11 +65,26 @@
 	  <MauiXaml Update="Views\ChatListView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\ContentMessageHeaderView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\ImageContentView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\TextPlainMessageView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Compile Update="Pages\MainPage.xaml.cs">
 	    <DependentUpon>MainPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\ImageContentView.xaml.cs">
+	    <DependentUpon>ImageContentView.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\TextPlainMessageView.xaml.cs">
+	    <DependentUpon>TextPlainMessageView.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 

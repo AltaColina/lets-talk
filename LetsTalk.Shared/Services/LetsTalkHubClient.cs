@@ -2,12 +2,12 @@
 using LetsTalk.Commands.Hubs;
 using LetsTalk.Interfaces;
 using LetsTalk.Messaging;
-using LetsTalk.Models;
 using LetsTalk.Queries.Chats;
 using LetsTalk.Queries.Hubs;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
-using System.Runtime.Serialization;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net.Mime;
 
 namespace LetsTalk.App.Services;
 
@@ -35,6 +35,7 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
 
         _connection = new HubConnectionBuilder()
             .WithUrl(_hubEndpoint, opts => opts.AccessTokenProvider = _settings.ProvideToken)
+            .AddMessagePackProtocol()
             .Build();
         _listener.Attach(_connection);
         await _connection.StartAsync();
@@ -57,8 +58,8 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
     public async Task<LeaveChatResponse> LeaveChatAsync(string chatId) =>
         await _connection!.InvokeAsync<LeaveChatResponse>(nameof(LeaveChatAsync), chatId);
 
-    public async Task SendChatMessageAsync(string chatId, string message) =>
-        await _connection!.InvokeAsync(nameof(SendChatMessageAsync), chatId, message);
+    public async Task SendChatMessageAsync(string chatId, string contentType, byte[] message) =>
+        await _connection!.InvokeAsync(nameof(SendChatMessageAsync), chatId, contentType, message);
 
     public async Task<GetLoggedUsersResponse> GetLoggedUsersAsync() =>
         await _connection!.InvokeAsync<GetLoggedUsersResponse>(nameof(GetLoggedUsersAsync));
@@ -68,6 +69,7 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
 
     public async Task<GetUserChatsResponse> GetUserChatsAsync() =>
         await _connection!.InvokeAsync<GetUserChatsResponse>(nameof(GetUserChatsAsync));
+
     public async Task<GetUserAvailableChatsResponse> GetUserAvailableChatsAsync() =>
         await _connection!.InvokeAsync<GetUserAvailableChatsResponse>(nameof(GetUserAvailableChatsAsync));
 
@@ -101,7 +103,7 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
                 connection.On<DisconnectMessage>(Handle),
                 connection.On<JoinChatMessage>(Handle),
                 connection.On<LeaveChatMessage>(Handle),
-                connection.On<TextMessage>(Handle)
+                connection.On<ContentMessage>(Handle)
             });
         }
 
@@ -136,7 +138,7 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
             _messenger.Send(message, message.Chat.Id);
         }
 
-        private void Handle(TextMessage message)
+        private void Handle(ContentMessage message)
         {
             _messenger.Send(message);
             _messenger.Send(message, message.ChatId);

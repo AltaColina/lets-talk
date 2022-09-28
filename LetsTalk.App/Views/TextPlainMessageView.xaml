@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:messaging="clr-namespace:LetsTalk.Messaging;assembly=LetsTalk.Shared"
+    xmlns:views="clr-namespace:LetsTalk.App.Views"
+    xmlns:converters="clr-namespace:LetsTalk.App.Converters"
+    xmlns:text="clr-namespace:System.Text;assembly=System.Text.Encoding"
+    x:Class="LetsTalk.App.Views.TextPlainMessageView"
+    x:DataType="messaging:ContentMessage">
+    <ContentView.Resources>
+        <converters:ByteArrayToStringConverter x:Key="ByteArrayToStringConverter" Encoding="{x:Static text:Encoding.UTF8}" />
+    </ContentView.Resources>
+    <Frame
+        HorizontalOptions="Center"
+        Margin="2"
+        Padding="10">
+        <Grid
+            RowDefinitions="16,*">
+            <views:ContentMessageHeaderView
+                Grid.Row="0"/>
+            <Label
+                Grid.Row="1"
+                VerticalTextAlignment="Center"
+                Text="{Binding Content, Converter={StaticResource ByteArrayToStringConverter}}"/>
+        </Grid>
+    </Frame>
+</ContentView>

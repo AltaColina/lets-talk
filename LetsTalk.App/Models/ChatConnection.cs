@@ -4,7 +4,7 @@ using LetsTalk.Messaging;
 using System.Collections.ObjectModel;
 
 namespace LetsTalk.App.Models;
-public sealed partial class ChatConnection : ObservableObject, IRecipient<TextMessage>
+public sealed partial class ChatConnection : ObservableObject, IRecipient<ContentMessage>
 {
     private readonly IMessenger _messenger;
 
@@ -16,7 +16,7 @@ public sealed partial class ChatConnection : ObservableObject, IRecipient<TextMe
 
     public ChatDto Chat { get; }
 
-    public ObservableCollection<TextMessage> Messages { get; } = new();
+    public ObservableCollection<ContentMessage> Messages { get; } = new();
 
     public ChatConnection(IMessenger messenger, ChatDto chat)
     {
@@ -31,7 +31,7 @@ public sealed partial class ChatConnection : ObservableObject, IRecipient<TextMe
             NewMessageCount = 0;
     }
 
-    void IRecipient<TextMessage>.Receive(TextMessage message)
+    void IRecipient<ContentMessage>.Receive(ContentMessage message)
     {
         Messages.Add(message);
         if (!IsChatVisible)

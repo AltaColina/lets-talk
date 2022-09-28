@@ -6,5 +6,5 @@ public partial class ChatPage : ContentPage
 	{
 		InitializeComponent();
 		BindingContext = viewModel;
-	}
+    }
 }

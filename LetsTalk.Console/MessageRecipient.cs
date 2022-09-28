@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.Messaging;
 using LetsTalk.Models;
+using System.Net.Mime;
+using System.Text;
 
 namespace LetsTalk.Console;
 internal sealed class MessageRecipient :
@@ -8,7 +10,7 @@ internal sealed class MessageRecipient :
     IRecipient<DisconnectMessage>,
     IRecipient<JoinChatMessage>,
     IRecipient<LeaveChatMessage>,
-    IRecipient<TextMessage>
+    IRecipient<ContentMessage>
 {
     private readonly IMessenger _messenger;
 
@@ -25,11 +27,23 @@ internal sealed class MessageRecipient :
 
     private void NotifyMessage(string message) => MessageReceived?.Invoke(this, message);
 
-    public void ListenToChat(string chatId) => _messenger.Register<TextMessage, string>(this, chatId);
+    public void ListenToChat(string chatId) => _messenger.Register<ContentMessage, string>(this, chatId);
 
     void IRecipient<ConnectMessage>.Receive(ConnectMessage message) => NotifyMessage($"User '{message.Content.Id}' has connected to the server.");
     void IRecipient<DisconnectMessage>.Receive(DisconnectMessage message) => NotifyMessage($"User '{message.Content.Id}' has disconnected from the server.");
     void IRecipient<JoinChatMessage>.Receive(JoinChatMessage message) => NotifyMessage($"User '{message.Content.Id}' has joined channel '{message.Chat.Name}'.");
     void IRecipient<LeaveChatMessage>.Receive(LeaveChatMessage message) => NotifyMessage($"User '{message.Content.Id}' has left channel '{message.Chat.Name}'.");
-    void IRecipient<TextMessage>.Receive(TextMessage message) => NotifyMessage($"{message.Sender.Name}: {message.Content}");
+    void IRecipient<ContentMessage>.Receive(ContentMessage message)
+    {
+        switch (message.ContentType)
+        {
+            case MediaTypeNames.Text.Plain:
+                NotifyMessage($"{message.Sender.Name}: {Encoding.UTF8.GetString(message.Content)}");
+                return;
+
+            default:
+                NotifyMessage($"{message.Sender.Name}: {message.ContentType} ({message.Content.Length} bytes)");
+                return;
+        }
+    }
 }

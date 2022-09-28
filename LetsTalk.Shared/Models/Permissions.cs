@@ -1,7 +1,31 @@
-﻿namespace LetsTalk.Models;
+﻿using System.Reflection;
+
+namespace LetsTalk.Models;
 
 public static class Permissions
 {
+    private static IReadOnlyCollection<string> Values { get; } = new List<string>(GetStaticFieldValues(typeof(Permissions)));
+
+    private static IEnumerable<string> GetStaticFieldValues(Type type, string prefix = "")
+    {
+        prefix += $"{type.Name}.";
+
+        foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static))
+            yield return (string)field.GetValue(null)!;
+
+        foreach (var nestedType in type.GetNestedTypes())
+            foreach (var value in GetStaticFieldValues(nestedType, prefix))
+                yield return value;
+    }
+
+    public static bool IsPermission(string permission) => Values.Contains(permission, StringComparer.InvariantCultureIgnoreCase);
+
+    public static IEnumerable<string> All() => Values;
+
+    public static IEnumerable<string> ReadOnly() => Values.Where(v => v.EndsWith(nameof(Chat.Read), StringComparison.InvariantCultureIgnoreCase));
+
+    public static IEnumerable<string> WriteOnly() => Values.Where(v => !v.EndsWith(nameof(Chat.Read), StringComparison.InvariantCultureIgnoreCase));
+
     public static class Chat
     {
         public const string Create = $"{nameof(Chat)}:{nameof(Create)}";

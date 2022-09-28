@@ -44,7 +44,8 @@ builder.Services.AddApplication(builder.Configuration);
  
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddMessagePackProtocol();
 builder.Services.AddControllers(opts => opts.Filters.Add<HttpExceptionFilter>())
     .AddJsonOptions(opts => opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 

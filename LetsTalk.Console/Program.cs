@@ -1,11 +1,14 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-
 using LetsTalk.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.Console;
 using LetsTalk.Dtos;
 using LetsTalk.Commands.Auths;
+using LetsTalk.Messaging;
+using System.Text;
+using System.Net.Mime;
+using System.Reflection;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(configuration => configuration.AddContainersConfiguration("localhost", "/LetsTalk"))
@@ -126,6 +129,10 @@ while (chat is null)
 
 static void Recipient_MessageReceived(object? sender, string message) => Console.WriteLine(message);
 
+var commandToContentTypeMap = typeof(MimeType.Image)
+        .GetFields(BindingFlags.Public | BindingFlags.Static)
+        .ToDictionary(f => $"/{f.Name}", f => (string)f.GetValue(null)!, StringComparer.InvariantCultureIgnoreCase);
+
 if (chat is not null)
 {
     var recipient = host.Services.GetRequiredService<MessageRecipient>();
@@ -142,8 +149,28 @@ if (chat is not null)
     while (Console.ReadLine() is string message && message != "/exit")
     {
         var (left, top) = Console.GetCursorPosition();
-        Console.SetCursorPosition(left, top - 1);
-        await hubClient.SendChatMessageAsync(chat.Id, message);
+        if (!message.StartsWith("/"))
+        {
+            Console.SetCursorPosition(left, top - 1);
+            await hubClient.SendChatMessageAsync(chat.Id, MediaTypeNames.Text.Plain, Encoding.UTF8.GetBytes(message));
+        }
+        else if (message.IndexOf(' ') is var index && index >= 0)
+        {
+            var command = message[..index];
+            if (commandToContentTypeMap.TryGetValue(command, out var contentType))
+            {
+                var content = message[(index + 1)..].Trim('"');
+                await hubClient.SendChatMessageAsync(chat.Id, contentType, File.ReadAllBytes(content));
+            }
+            else
+            {
+                Console.WriteLine("invalid command");
+            }
+        }
+        else
+        {
+            Console.WriteLine("invalid message");
+        }
     }
 
     recipient.MessageReceived -= Recipient_MessageReceived;
