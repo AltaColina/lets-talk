@@ -25,5 +25,9 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageReference Include="MongoDB.Driver" Version="2.17.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Messaging\ContentTypes\" />
+  </ItemGroup>
   
 </Project>

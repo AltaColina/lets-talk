@@ -40,8 +40,10 @@ internal sealed class MessageRecipient :
             case MediaTypeNames.Text.Plain:
                 NotifyMessage($"{message.Sender.Name}: {Encoding.UTF8.GetString(message.Content)}");
                 return;
+
             default:
-                throw new InvalidOperationException($"Invalid message content type '{message.ContentType}'");
+                NotifyMessage($"{message.Sender.Name}: {message.ContentType} ({message.Content.Length} bytes)");
+                return;
         }
     }
 }

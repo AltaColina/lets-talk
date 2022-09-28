@@ -1,6 +1,6 @@
 ﻿using LetsTalk.App.Models;
 using LetsTalk.Messaging;
-using System.Net.Mime;
+using System.Reflection;
 using System.Text;
 
 namespace LetsTalk.App.ViewModels;
@@ -15,7 +15,10 @@ public partial class ChatViewModel : BaseViewModel
     private ChatConnection _chatConnection = null!;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SendMessageCommand))]
     private string? _messageText;
+
+    public bool CanSendMessage { get => !String.IsNullOrWhiteSpace(_messageText); }
 
     public MainViewModel MainViewModel { get; }
 
@@ -48,13 +51,32 @@ public partial class ChatViewModel : BaseViewModel
         return Task.CompletedTask;
     }
 
-    [RelayCommand]
+    private static readonly IReadOnlyDictionary<string, string> CommandToContentTypeMap = typeof(MimeType.Image)
+        .GetFields(BindingFlags.Public | BindingFlags.Static)
+        .ToDictionary(f => $"/{f.Name}", f => (string)f.GetValue(null)!, StringComparer.InvariantCultureIgnoreCase);
+
+    [RelayCommand(CanExecute = nameof(CanSendMessage))]
     private async Task OnSendMessageAsync()
     {
-        if (!String.IsNullOrWhiteSpace(_messageText))
+        if (String.IsNullOrWhiteSpace(_messageText))
+            throw new InvalidOperationException("Command configured incorrectly");
+
+        if (_messageText[0] != '/')
         {
-            await _letsTalkHubClient.SendChatMessageAsync(_chatConnection.Chat.Id, MediaTypeNames.Text.Plain, Encoding.UTF8.GetBytes(_messageText));
-            MessageText = null;
+            await _letsTalkHubClient.SendChatMessageAsync(_chatConnection.Chat.Id, MimeType.Text.Plain, Encoding.UTF8.GetBytes(_messageText));
         }
+        else if (_messageText.IndexOf(' ') is var index && index >= 0)
+        {
+            var command = _messageText[..index];
+            var content = _messageText[(index + 1)..].Trim('"');
+            if (!CommandToContentTypeMap.TryGetValue(command, out var contentType))
+                return;
+            await _letsTalkHubClient.SendChatMessageAsync(_chatConnection.Chat.Id, contentType, File.ReadAllBytes(content));
+        }
+        else
+        {
+            return;
+        }
+        MessageText = null;
     }
 }

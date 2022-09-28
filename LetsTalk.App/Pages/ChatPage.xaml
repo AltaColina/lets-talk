@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:models="clr-namespace:LetsTalk.App.Models"
     xmlns:viewmodels="clr-namespace:LetsTalk.App.ViewModels"
     xmlns:views="clr-namespace:LetsTalk.App.Views"
     xmlns:messaging="clr-namespace:LetsTalk.Messaging;assembly=LetsTalk.Shared"
@@ -11,6 +12,16 @@
     Title="{Binding Title}">
     <ContentPage.Resources>
         <toolkit:IsStringNotNullOrWhiteSpaceConverter x:Key="IsStringNotNullOrWhiteSpaceConverter" />
+        <DataTemplate x:Key="ImageMessage">
+            <views:ImageContentView />
+        </DataTemplate>
+        <DataTemplate x:Key="TextPlainMessage">
+            <views:TextPlainMessageView />
+        </DataTemplate>
+        <models:ContentMessageTemplateSelector
+            x:Key="MessageSelector"
+            Image="{StaticResource ImageMessage}"
+            TextPlain="{StaticResource TextPlainMessage}"/>
     </ContentPage.Resources>
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior
@@ -31,12 +42,8 @@
                 Grid.Row="0"
                 ItemsSource="{Binding ChatConnection.Messages}"
                 HorizontalOptions="StartAndExpand"
-                VerticalOptions="StartAndExpand">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <views:ContentMessagewView />
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
+                VerticalOptions="StartAndExpand"
+                ItemTemplate="{StaticResource MessageSelector}">
             </CollectionView>
             <Grid
                 Grid.Row="1"
