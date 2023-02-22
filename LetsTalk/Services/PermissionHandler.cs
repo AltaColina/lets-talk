@@ -1,6 +1,7 @@
 ﻿using Ardalis.Specification;
 using LetsTalk.Interfaces;
-using LetsTalk.Models;
+using LetsTalk.Roles;
+using LetsTalk.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Diagnostics.CodeAnalysis;

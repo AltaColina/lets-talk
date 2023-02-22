@@ -1,4 +1,4 @@
-﻿using LetsTalk.Models;
+﻿using LetsTalk.Security;
 using System.Security.Claims;
 
 namespace LetsTalk.Interfaces;

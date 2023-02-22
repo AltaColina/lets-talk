@@ -1,25 +1,19 @@
-using LetsTalk;
 using LetsTalk.Filters;
 using LetsTalk.Hubs;
 using LetsTalk.Interfaces;
 using LetsTalk.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Security.
-var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("SecurityKey").Value));
-builder.Services.AddSingleton(HashAlgorithm.Create(builder.Configuration.GetSection("HashAlgorithm").Value)!);
-builder.Services.AddSingleton<IPasswordHandler, PasswordHandler>();
+builder.Services.AddCryptography(builder.Configuration);
 builder.Services.AddSingleton<IAuthenticationManager, AuthenticationManager>();
-builder.Services.AddSingleton<SecurityKey>(securityKey);
 builder.Services.AddSingleton<ITokenProvider, JwtTokenProvider>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opts =>
@@ -29,7 +23,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         opts.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = securityKey,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetRequiredSection("SecurityKey").Value!)),
             ValidateIssuer = false,
             ValidateAudience = false,
         };
@@ -40,8 +34,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
-builder.Services.AddApplication(builder.Configuration);
- 
+builder.Services.AddApplication();
+
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddSignalR()
@@ -81,6 +75,6 @@ app.UseCors(opts => opts.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.MapControllers();
 app.MapHub<LetsTalkHub>("/letstalk", opts => opts.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
 
-await app.LoadDatabaseData(overwrite: true);
+await app.LoadDatabaseData(app.Configuration, overwrite: true);
 
 app.Run();

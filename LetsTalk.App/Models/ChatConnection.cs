@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using LetsTalk.Dtos;
+using LetsTalk.Chats;
 using LetsTalk.Messaging;
 using System.Collections.ObjectModel;
 

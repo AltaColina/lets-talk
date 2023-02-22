@@ -1,7 +1,5 @@
-﻿using LetsTalk.Commands.Auths;
-using LetsTalk.Services;
+﻿using LetsTalk.Security.Commands;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -16,21 +14,21 @@ public class AuthController : ControllerBase
     public AuthController(ISender mediator) => _mediator = mediator;
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody, Required] RegisterRequest request)
+    public async Task<IActionResult> Register([FromBody, Required] RegisterCommand request)
     {
         var response = await _mediator.Send(request);
         return Ok(response);
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody, Required] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody, Required] LoginCommand request)
     {
         var response = await _mediator.Send(request);
         return Ok(response);
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody, Required] RefreshRequest request)
+    public async Task<IActionResult> Refresh([FromBody, Required] RefreshCommand request)
     {
         var response = await _mediator.Send(request);
         return Ok(response);

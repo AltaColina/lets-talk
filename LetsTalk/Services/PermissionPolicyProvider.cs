@@ -1,4 +1,4 @@
-﻿using LetsTalk.Models;
+﻿using LetsTalk.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
@@ -24,7 +24,7 @@ internal sealed class PermissionPolicyProvider : IAuthorizationPolicyProvider
     {
         if (_cachedPolicies.TryGetValue(policyName, out var result))
             return result;
-        
+
         if (Permissions.IsPermission(policyName))
         {
             var policy = new AuthorizationPolicyBuilder()

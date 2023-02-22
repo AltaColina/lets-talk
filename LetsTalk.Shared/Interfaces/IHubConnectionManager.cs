@@ -1,4 +1,4 @@
-﻿using LetsTalk.Models;
+﻿using LetsTalk.Users;
 
 namespace LetsTalk.Interfaces;
 

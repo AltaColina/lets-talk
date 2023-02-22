@@ -1,5 +1,5 @@
 ﻿using LetsTalk.Interfaces;
-using LetsTalk.Models;
+using LetsTalk.Security;
 
 namespace LetsTalk.Services;
 internal sealed class LetsTalkSettings : ILetsTalkSettings

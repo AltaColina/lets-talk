@@ -1,4 +1,5 @@
-﻿using LetsTalk.Dtos;
+﻿using LetsTalk.Chats;
+using LetsTalk.Users;
 
 namespace LetsTalk.Messaging;
 

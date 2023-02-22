@@ -1,5 +1,5 @@
 ﻿using LetsTalk.Interfaces;
-using LetsTalk.Models;
+using LetsTalk.Security;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

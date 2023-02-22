@@ -1,8 +1,7 @@
 ﻿using CommunityToolkit.Maui.Views;
 using LetsTalk.App.Models;
-using LetsTalk.Models;
+using LetsTalk.Security;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
 
 namespace LetsTalk.App.ViewModels;
@@ -72,7 +71,7 @@ public partial class MainViewModel : BaseViewModel
                 OnPropertyChanged(nameof(ChatConnections));
                 Title = $"Let's Talk - {_settings.Authentication!.User.Name}";
                 _view?.ShowPopup(new Popup { Content = new Label { Text = $"Connected as '{_settings.UserId}'" } });
-                
+
             }
             catch (HubException ex)
             {

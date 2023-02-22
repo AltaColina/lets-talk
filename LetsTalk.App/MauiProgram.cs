@@ -26,7 +26,7 @@ public static class MauiProgram
         AddServices(builder.Services, builder.Configuration);
         AddViewModels(builder.Services);
         AddPages(builder.Services);
-        
+
         return builder.Build();
     }
 
@@ -35,9 +35,9 @@ public static class MauiProgram
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<ChatConnectionManager>();
-        services.AddLetsTalkSettings(configuration);
+        services.AddLetsTalkSettings();
         services.AddLetsTalkHttpClient(configuration);
-        services.AddLetsTalkHubClient(configuration);
+        services.AddLetsTalkHubClient();
     }
 
     private static void AddViewModels(IServiceCollection services)

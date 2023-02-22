@@ -1,22 +1,21 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using LetsTalk.Interfaces;
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using LetsTalk.Chats;
 using LetsTalk.Console;
-using LetsTalk.Dtos;
-using LetsTalk.Commands.Auths;
-using LetsTalk.Messaging;
-using System.Text;
+using LetsTalk.Interfaces;
+using LetsTalk.Security.Commands;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Net.Mime;
 using System.Reflection;
+using System.Text;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration(configuration => configuration.AddContainersConfiguration("localhost", "/LetsTalk"))
     .ConfigureServices((hostContext, services) => services
         .AddSingleton<IMessenger>(WeakReferenceMessenger.Default)
-        .AddLetsTalkSettings(hostContext.Configuration)
+        .AddLetsTalkSettings()
         .AddLetsTalkHttpClient(hostContext.Configuration)
-        .AddLetsTalkHubClient(hostContext.Configuration)
+        .AddLetsTalkHubClient()
         .AddTransient<MessageRecipient>())
     .UseConsoleLifetime()
     .Build();
@@ -51,7 +50,7 @@ if (startChoice == 1)
         var password = Console.ReadLine()!;
         try
         {
-            settings.Authentication = await httpClient.RegisterAsync(new RegisterRequest { Username = username, Password = password });
+            settings.Authentication = await httpClient.RegisterAsync(new RegisterCommand { Username = username, Password = password });
         }
         catch (HttpRequestException ex)
         {
@@ -70,7 +69,7 @@ else
         var password = Console.ReadLine()!;
         try
         {
-            settings.Authentication = await httpClient.LoginAsync(new LoginRequest { Username = username, Password = password });
+            settings.Authentication = await httpClient.LoginAsync(new LoginCommand { Username = username, Password = password });
         }
         catch (HttpRequestException ex)
         {
@@ -129,7 +128,7 @@ while (chat is null)
 
 static void Recipient_MessageReceived(object? sender, string message) => Console.WriteLine(message);
 
-var commandToContentTypeMap = typeof(MimeType.Image)
+var commandToContentTypeMap = typeof(LetsTalk.Messaging.MimeType.Image)
         .GetFields(BindingFlags.Public | BindingFlags.Static)
         .ToDictionary(f => $"/{f.Name}", f => (string)f.GetValue(null)!, StringComparer.InvariantCultureIgnoreCase);
 

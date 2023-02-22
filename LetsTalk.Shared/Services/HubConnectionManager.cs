@@ -1,5 +1,5 @@
 ﻿using LetsTalk.Interfaces;
-using LetsTalk.Models;
+using LetsTalk.Users;
 
 namespace LetsTalk.Services;
 

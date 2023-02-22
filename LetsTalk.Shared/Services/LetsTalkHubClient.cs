@@ -1,13 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using LetsTalk.Commands.Hubs;
+using LetsTalk.Hubs.Commands;
+using LetsTalk.Hubs.Queries;
 using LetsTalk.Interfaces;
 using LetsTalk.Messaging;
-using LetsTalk.Queries.Chats;
-using LetsTalk.Queries.Hubs;
+using LetsTalk.Users.Queries;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Net.Mime;
 
 namespace LetsTalk.App.Services;
 

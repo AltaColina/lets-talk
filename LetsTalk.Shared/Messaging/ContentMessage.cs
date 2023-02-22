@@ -1,4 +1,4 @@
-﻿using LetsTalk.Dtos;
+﻿using LetsTalk.Users;
 
 namespace LetsTalk.Messaging;
 public sealed class ContentMessage : Message<byte[]>

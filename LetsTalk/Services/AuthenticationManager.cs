@@ -1,10 +1,11 @@
 ﻿using Ardalis.Specification;
 using AutoMapper;
-using LetsTalk.Commands.Auths;
-using LetsTalk.Dtos;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
-using LetsTalk.Models;
+using LetsTalk.Roles;
+using LetsTalk.Security;
+using LetsTalk.Security.Commands;
+using LetsTalk.Users;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
@@ -58,7 +59,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         return permissions;
     }
 
-    public async Task<Authentication> AuthenticateAsync(RegisterRequest request)
+    public async Task<Authentication> AuthenticateAsync(RegisterCommand request)
     {
         if ((await _userRepository.GetByIdAsync(request.Username)) is not null)
             throw new ConflictException($"Username '{request.Username}' already in use");
@@ -91,7 +92,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         };
     }
 
-    public async Task<Authentication> AuthenticateAsync(LoginRequest request)
+    public async Task<Authentication> AuthenticateAsync(LoginCommand request)
     {
         var user = await _userRepository.GetByIdAsync(request.Username);
         if (user is null || !_passwordHandler.IsValid(user.Secret, request.Username, request.Password))
@@ -116,7 +117,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         };
     }
 
-    public async Task<Authentication> AuthenticateAsync(RefreshRequest request)
+    public async Task<Authentication> AuthenticateAsync(RefreshCommand request)
     {
         var user = await _userRepository.GetByIdAsync(request.Username);
         if (user is null || user.RefreshTokens.SingleOrDefault(token => token.Id == request.RefreshToken) is not Token token || token.ExpiresIn < DateTimeOffset.UtcNow)

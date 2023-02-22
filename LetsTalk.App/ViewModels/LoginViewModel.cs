@@ -1,4 +1,4 @@
-﻿using LetsTalk.Commands.Auths;
+﻿using LetsTalk.Security.Commands;
 
 namespace LetsTalk.App.ViewModels;
 public partial class LoginViewModel : BaseViewModel
@@ -48,7 +48,7 @@ public partial class LoginViewModel : BaseViewModel
     {
         try
         {
-            var response = await _letsTalkClient.LoginAsync(new LoginRequest
+            var response = await _letsTalkClient.LoginAsync(new LoginCommand
             {
                 Username = LoginUsername!,
                 Password = LoginPassword!
@@ -69,7 +69,7 @@ public partial class LoginViewModel : BaseViewModel
     {
         try
         {
-            var response = await _letsTalkClient.RegisterAsync(new RegisterRequest
+            var response = await _letsTalkClient.RegisterAsync(new RegisterCommand
             {
                 Username = RegisterUsername!,
                 Password = RegisterPassword!,

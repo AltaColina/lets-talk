@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.Messaging;
-using LetsTalk.Models;
 using System.Net.Mime;
 using System.Text;
 

@@ -1,7 +1,6 @@
-﻿using LetsTalk.Commands.Hubs;
-using LetsTalk.Queries.Chats;
-using LetsTalk.Queries.Hubs;
-using System.Net.Mime;
+﻿using LetsTalk.Hubs.Commands;
+using LetsTalk.Hubs.Queries;
+using LetsTalk.Users.Queries;
 
 namespace LetsTalk.Interfaces;
 

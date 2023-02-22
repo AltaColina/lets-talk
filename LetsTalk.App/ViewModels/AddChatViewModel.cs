@@ -1,4 +1,4 @@
-﻿using LetsTalk.Commands.Chats;
+﻿using LetsTalk.Chats.Commands;
 using Microsoft.AspNetCore.SignalR;
 
 namespace LetsTalk.App.ViewModels;
@@ -45,7 +45,7 @@ public sealed partial class AddChatViewModel : BaseViewModel
     private async Task OnNavigatedTo()
     {
         if (_settings.IsAuthenticated)
-            HasCreateChatPermission = _settings.Authentication.Permissions.Contains(LetsTalk.Models.Permissions.Chat.Create);
+            HasCreateChatPermission = _settings.Authentication.Permissions.Contains(Security.Permissions.Chat.Create);
         else
             await _navigation.ReturnAsync();
     }
@@ -74,7 +74,7 @@ public sealed partial class AddChatViewModel : BaseViewModel
         try
         {
             var chatId = _chatId!;
-            _ = await _httpClient.CreateChatAsync(new CreateChatRequest
+            _ = await _httpClient.CreateChatAsync(new CreateChatCommand
             {
                 Id = chatId,
                 Name = _chatName!,

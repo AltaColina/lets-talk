@@ -1,9 +1,7 @@
-﻿using LetsTalk.Commands.Hubs;
-using LetsTalk.Dtos;
+﻿using LetsTalk.Hubs.Commands;
+using LetsTalk.Hubs.Queries;
 using LetsTalk.Messaging;
-using LetsTalk.Queries.Chats;
-using LetsTalk.Queries.Hubs;
-using LetsTalk.Queries.Users;
+using LetsTalk.Users.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -22,7 +20,7 @@ public sealed class LetsTalkHub : Hub
 
     public override async Task OnConnectedAsync()
     {
-        var user = await _mediator.Send(new ConnectRequest
+        var user = await _mediator.Send(new ConnectCommand
         {
             ConnectionId = Context.ConnectionId,
             UserId = Context.User?.Identity?.Name!
@@ -35,7 +33,7 @@ public sealed class LetsTalkHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var user = await _mediator.Send(new DisconnectRequest
+        var user = await _mediator.Send(new DisconnectCommand
         {
             ConnectionId = Context.ConnectionId,
             UserId = Context.User?.Identity?.Name!
@@ -47,7 +45,7 @@ public sealed class LetsTalkHub : Hub
 
     public async Task<JoinChatResponse> JoinChatAsync(string chatId)
     {
-        var response = await _mediator.Send(new JoinChatRequest
+        var response = await _mediator.Send(new JoinChatCommand
         {
             ChatId = chatId,
             UserId = Context.User?.Identity?.Name!
@@ -68,7 +66,7 @@ public sealed class LetsTalkHub : Hub
 
     public async Task<LeaveChatResponse> LeaveChatAsync(string chatId)
     {
-        var response = await _mediator.Send(new LeaveChatRequest
+        var response = await _mediator.Send(new LeaveChatCommand
         {
             ChatId = chatId,
             UserId = Context.User?.Identity?.Name!
@@ -89,7 +87,7 @@ public sealed class LetsTalkHub : Hub
 
     public async Task SendChatMessageAsync(string chatId, string contentType, byte[] content)
     {
-        var user = await _mediator.Send(new GetUserByIdCachedRequest { UserId = Context.User?.Identity?.Name! });
+        var user = await _mediator.Send(new GetUserByIdCachedQuery { UserId = Context.User?.Identity?.Name! });
         await Clients.Group(chatId).SendAsync(new ContentMessage
         {
             Sender = user,
@@ -101,25 +99,25 @@ public sealed class LetsTalkHub : Hub
 
     public async Task<GetLoggedUsersResponse> GetLoggedUsersAsync()
     {
-        var response = await _mediator.Send(new GetLoggedUsersRequest());
+        var response = await _mediator.Send(new GetLoggedUsersQuery());
         return response;
     }
 
     public async Task<GetLoggedChatUsersResponse> GetLoggedChatUsersAsync(string chatId)
     {
-        var response = await _mediator.Send(new GetLoggedChatUsersRequest { ChatId = chatId });
+        var response = await _mediator.Send(new GetLoggedChatUsersQuery { ChatId = chatId });
         return response;
     }
 
     public async Task<GetUserChatsResponse> GetUserChatsAsync()
     {
-        var response = await _mediator.Send(new GetUserChatsRequest { UserId = Context.User?.Identity?.Name! });
+        var response = await _mediator.Send(new GetUserChatsQuery { UserId = Context.User?.Identity?.Name! });
         return response;
     }
 
     public async Task<GetUserAvailableChatsResponse> GetUserAvailableChatsAsync()
     {
-        var response = await _mediator.Send(new GetUserAvailableChatsRequest { UserId = Context.User?.Identity?.Name! });
+        var response = await _mediator.Send(new GetUserAvailableChatsQuery { UserId = Context.User?.Identity?.Name! });
         return response;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using LetsTalk.App.Models;
-using LetsTalk.Dtos;
+using LetsTalk.Chats;
 using System.Collections.ObjectModel;
 
 namespace LetsTalk.App.Services;
