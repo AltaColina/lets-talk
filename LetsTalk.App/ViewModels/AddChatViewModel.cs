@@ -23,14 +23,14 @@ public sealed partial class AddChatViewModel : BaseViewModel
     [ObservableProperty]
     private bool _hasCreateChatPermission;
 
-    public bool CanJoinChat { get => !String.IsNullOrWhiteSpace(_chatId); }
-    public bool CanCreateChat { get => HasCreateChatPermission && !String.IsNullOrWhiteSpace(_chatId) && !String.IsNullOrWhiteSpace(_chatName); }
+    public bool CanJoinChat { get => !String.IsNullOrWhiteSpace(ChatId); }
+    public bool CanCreateChat { get => HasCreateChatPermission && !String.IsNullOrWhiteSpace(ChatId) && !String.IsNullOrWhiteSpace(ChatName); }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
     private string? _errorMessage;
 
-    public bool HasError { get => !String.IsNullOrWhiteSpace(_errorMessage); }
+    public bool HasError { get => !String.IsNullOrWhiteSpace(ErrorMessage); }
 
     public AddChatViewModel(ILetsTalkSettings settings, INavigationService navigation, ILetsTalkHttpClient httpClient, ILetsTalkHubClient hubClient, ChatConnectionManager chatConnectionManager)
     {
@@ -55,7 +55,7 @@ public sealed partial class AddChatViewModel : BaseViewModel
     {
         try
         {
-            var response = await _hubClient.JoinChatAsync(_chatId!);
+            var response = await _hubClient.JoinChatAsync(ChatId!);
             if (response.HasUserJoined)
             {
                 _chatConnectionManager.Add(response.Chat);
@@ -73,13 +73,13 @@ public sealed partial class AddChatViewModel : BaseViewModel
     {
         try
         {
-            var chatId = _chatId!;
+            var chatId = ChatId!;
             _ = await _httpClient.CreateChatAsync(new CreateChatCommand
             {
                 Id = chatId,
-                Name = _chatName!,
+                Name = ChatName!,
             }, _settings.AccessToken!);
-            var response = await _hubClient.JoinChatAsync(_chatId!);
+            var response = await _hubClient.JoinChatAsync(ChatId!);
             if (response.HasUserJoined)
             {
                 _chatConnectionManager.Add(response.Chat);

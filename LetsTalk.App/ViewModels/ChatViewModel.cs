@@ -18,7 +18,7 @@ public partial class ChatViewModel : BaseViewModel
     [NotifyCanExecuteChangedFor(nameof(SendMessageCommand))]
     private string? _messageText;
 
-    public bool CanSendMessage { get => !String.IsNullOrWhiteSpace(_messageText); }
+    public bool CanSendMessage { get => !String.IsNullOrWhiteSpace(MessageText); }
 
     public MainViewModel MainViewModel { get; }
 
@@ -32,10 +32,10 @@ public partial class ChatViewModel : BaseViewModel
     [RelayCommand]
     private async Task OnNavigatedToAsync()
     {
-        if (_chatConnection is not null)
+        if (ChatConnection is not null)
         {
-            Title = _chatConnection.Chat.Name;
-            _chatConnection.IsChatVisible = true;
+            Title = ChatConnection.Chat.Name;
+            ChatConnection.IsChatVisible = true;
         }
         else
         {
@@ -46,8 +46,8 @@ public partial class ChatViewModel : BaseViewModel
     [RelayCommand]
     private Task OnNavigatedFromAsync()
     {
-        if (_chatConnection is not null)
-            _chatConnection.IsChatVisible = false;
+        if (ChatConnection is not null)
+            ChatConnection.IsChatVisible = false;
         return Task.CompletedTask;
     }
 
@@ -58,20 +58,20 @@ public partial class ChatViewModel : BaseViewModel
     [RelayCommand(CanExecute = nameof(CanSendMessage))]
     private async Task OnSendMessageAsync()
     {
-        if (String.IsNullOrWhiteSpace(_messageText))
+        if (String.IsNullOrWhiteSpace(MessageText))
             throw new InvalidOperationException("Command configured incorrectly");
 
-        if (_messageText[0] != '/')
+        if (MessageText[0] != '/')
         {
-            await _letsTalkHubClient.SendChatMessageAsync(_chatConnection.Chat.Id, MimeType.Text.Plain, Encoding.UTF8.GetBytes(_messageText));
+            await _letsTalkHubClient.SendChatMessageAsync(ChatConnection.Chat.Id, MimeType.Text.Plain, Encoding.UTF8.GetBytes(MessageText));
         }
-        else if (_messageText.IndexOf(' ') is var index && index >= 0)
+        else if (MessageText.IndexOf(' ') is var index && index >= 0)
         {
-            var command = _messageText[..index];
-            var content = _messageText[(index + 1)..].Trim('"');
+            var command = MessageText[..index];
+            var content = MessageText[(index + 1)..].Trim('"');
             if (!CommandToContentTypeMap.TryGetValue(command, out var contentType))
                 return;
-            await _letsTalkHubClient.SendChatMessageAsync(_chatConnection.Chat.Id, contentType, File.ReadAllBytes(content));
+            await _letsTalkHubClient.SendChatMessageAsync(ChatConnection.Chat.Id, contentType, File.ReadAllBytes(content));
         }
         else
         {

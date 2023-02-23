@@ -26,15 +26,15 @@ public partial class LoginViewModel : BaseViewModel
     [NotifyCanExecuteChangedFor(nameof(RegisterCommand))]
     private string? _registerDisplayName;
 
-    public bool CanLogin { get => !String.IsNullOrWhiteSpace(_loginUsername) && !String.IsNullOrWhiteSpace(_loginPassword); }
+    public bool CanLogin { get => !String.IsNullOrWhiteSpace(LoginUsername) && !String.IsNullOrWhiteSpace(LoginPassword); }
 
-    public bool CanRegister { get => !String.IsNullOrWhiteSpace(_registerUsername) && !String.IsNullOrWhiteSpace(_registerPassword) && (_registerDisplayName is null || !String.IsNullOrWhiteSpace(_registerDisplayName)); }
+    public bool CanRegister { get => !String.IsNullOrWhiteSpace(RegisterUsername) && !String.IsNullOrWhiteSpace(RegisterPassword) && (RegisterDisplayName is null || !String.IsNullOrWhiteSpace(RegisterDisplayName)); }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
     private string? _errorMessage;
 
-    private bool HasError { get => !String.IsNullOrWhiteSpace(_errorMessage); }
+    private bool HasError { get => !String.IsNullOrWhiteSpace(ErrorMessage); }
 
     public LoginViewModel(INavigationService navigation, ILetsTalkHttpClient letsTalkClient)
     {
