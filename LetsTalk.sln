@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.App", "LetsTalk.Ap
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{C8CA29B4-AF01-400A-8615-B4D17040D426}"
 EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "LetsTalk.WebApp", "LetsTalk.WebApp\LetsTalk.WebApp.esproj", "{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,12 @@ Global
 		{C8CA29B4-AF01-400A-8615-B4D17040D426}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8CA29B4-AF01-400A-8615-B4D17040D426}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8CA29B4-AF01-400A-8615-B4D17040D426}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
