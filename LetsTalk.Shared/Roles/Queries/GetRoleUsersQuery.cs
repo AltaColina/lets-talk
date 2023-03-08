@@ -1,10 +1,10 @@
 ﻿using Ardalis.Specification;
 using AutoMapper;
-using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
-using MediatR;
 using FluentValidation;
+using LetsTalk.Exceptions;
+using LetsTalk.Repositories;
 using LetsTalk.Users;
+using MediatR;
 
 namespace LetsTalk.Roles.Queries;
 
@@ -36,10 +36,10 @@ public sealed class GetRoleUsersQuery : IRequest<GetRoleUsersResponse>
     public sealed class Handler : IRequestHandler<GetRoleUsersQuery, GetRoleUsersResponse>
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<Role> _roleRepository;
-        private readonly IRepository<User> _userRepository;
+        private readonly IRoleRepository _roleRepository;
+        private readonly IUserRepository _userRepository;
 
-        public Handler(IMapper mapper, IRepository<Role> roleRepository, IRepository<User> userRepository)
+        public Handler(IMapper mapper, IRoleRepository roleRepository, IUserRepository userRepository)
         {
             _mapper = mapper;
             _roleRepository = roleRepository;

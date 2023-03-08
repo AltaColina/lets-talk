@@ -27,6 +27,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = false,
             ValidateAudience = false,
         };
+        opts.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.HttpContext.Request.Path.StartsWithSegments("/hubs/letstalk"))
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    if (!String.IsNullOrEmpty(accessToken))
+                        context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddSingleton<IAuthenticationManager, AuthenticationManager>();
 
@@ -70,10 +83,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors(opts => opts.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
 app.MapControllers();
-app.MapHub<LetsTalkHub>("/letstalk", opts => opts.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
+app.MapHub<LetsTalkHub>("/hubs/letstalk", opts => opts.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
 
 await app.LoadDatabaseData(app.Configuration, overwrite: true);
 

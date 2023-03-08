@@ -1,9 +1,9 @@
 ﻿using Ardalis.Specification;
 using AutoMapper;
 using FluentValidation;
-using LetsTalk.Chats;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using LetsTalk.Users;
 using MediatR;
 
@@ -38,10 +38,10 @@ public sealed class GetLoggedChatUsersQuery : IRequest<GetLoggedChatUsersRespons
     {
         private readonly IMapper _mapper;
         private readonly IHubConnectionManager _connectionManager;
-        private readonly IRepository<User> _userRepository;
-        private readonly IRepository<Chat> _chatRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IChatRepository _chatRepository;
 
-        public Handler(IMapper mapper, IHubConnectionManager connectionManager, IRepository<User> userRepository, IRepository<Chat> chatRepository)
+        public Handler(IMapper mapper, IHubConnectionManager connectionManager, IUserRepository userRepository, IChatRepository chatRepository)
         {
             _mapper = mapper;
             _connectionManager = connectionManager;

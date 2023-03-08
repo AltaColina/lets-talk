@@ -2,6 +2,7 @@
 using AutoMapper;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using LetsTalk.Roles;
 using LetsTalk.Security;
 using LetsTalk.Security.Commands;
@@ -16,10 +17,10 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     private readonly IMapper _mapper;
     private readonly ITokenProvider _tokenProvider;
     private readonly IPasswordHandler _passwordHandler;
-    private readonly IRepository<User> _userRepository;
-    private readonly IRepository<Role> _roleRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
 
-    public AuthenticationManager(IMapper mapper, ITokenProvider tokenProvider, IPasswordHandler passwordHandler, IRepository<User> userRepository, IRepository<Role> roleRepository)
+    public AuthenticationManager(IMapper mapper, ITokenProvider tokenProvider, IPasswordHandler passwordHandler, IUserRepository userRepository, IRoleRepository roleRepository)
     {
         _mapper = mapper;
         _tokenProvider = tokenProvider;

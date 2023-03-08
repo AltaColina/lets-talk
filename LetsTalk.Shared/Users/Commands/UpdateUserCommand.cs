@@ -2,6 +2,7 @@
 using FluentValidation;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Users.Commands;
@@ -25,9 +26,9 @@ public sealed class UpdateUserCommand : IRequest<UserDto>, IMapTo<User>
 
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<User> _userRepository;
+        private readonly IUserRepository _userRepository;
 
-        public Handler(IMapper mapper, IRepository<User> userRepository)
+        public Handler(IMapper mapper, IUserRepository userRepository)
         {
             _mapper = mapper;
             _userRepository = userRepository;

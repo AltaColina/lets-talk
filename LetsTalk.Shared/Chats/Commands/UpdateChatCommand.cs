@@ -2,6 +2,7 @@
 using FluentValidation;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Chats.Commands;
@@ -23,9 +24,9 @@ public sealed class UpdateChatCommand : IRequest<ChatDto>, IMapTo<Chat>
     public sealed class Handler : IRequestHandler<UpdateChatCommand, ChatDto>
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<Chat> _chatRepository;
+        private readonly IChatRepository _chatRepository;
 
-        public Handler(IMapper mapper, IRepository<Chat> chatRepository)
+        public Handler(IMapper mapper, IChatRepository chatRepository)
         {
             _mapper = mapper;
             _chatRepository = chatRepository;

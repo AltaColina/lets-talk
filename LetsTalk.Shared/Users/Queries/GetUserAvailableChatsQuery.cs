@@ -3,8 +3,7 @@ using AutoMapper;
 using FluentValidation;
 using LetsTalk.Chats;
 using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
-using LetsTalk.Users;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Users.Queries;
@@ -37,10 +36,10 @@ public sealed class GetUserAvailableChatsQuery : IRequest<GetUserAvailableChatsR
     public sealed class Handler : IRequestHandler<GetUserAvailableChatsQuery, GetUserAvailableChatsResponse>
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<User> _userRepository;
-        private readonly IRepository<Chat> _chatRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IChatRepository _chatRepository;
 
-        public Handler(IMapper mapper, IRepository<User> userRepository, IRepository<Chat> chatRepository)
+        public Handler(IMapper mapper, IUserRepository userRepository, IChatRepository chatRepository)
         {
             _mapper = mapper;
             _userRepository = userRepository;

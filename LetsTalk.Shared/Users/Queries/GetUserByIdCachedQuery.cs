@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
-using LetsTalk.Users;
+using LetsTalk.Repositories;
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
@@ -24,9 +23,9 @@ public sealed class GetUserByIdCachedQuery : IRequest<UserDto>
     {
         private readonly IDistributedCache _distributedCache;
         private readonly IMapper _mapper;
-        private readonly IRepository<User> _userRepository;
+        private readonly IUserRepository _userRepository;
 
-        public Handler(IDistributedCache distributedCache, IMapper mapper, IRepository<User> userRepository)
+        public Handler(IDistributedCache distributedCache, IMapper mapper, IUserRepository userRepository)
         {
             _distributedCache = distributedCache;
             _mapper = mapper;

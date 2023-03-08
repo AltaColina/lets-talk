@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
-using LetsTalk.Interfaces;
-using LetsTalk.Users;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Users.Queries;
@@ -15,9 +14,9 @@ public sealed class GetUsersQuery : IRequest<GetUsersResponse>
     public sealed class Handler : IRequestHandler<GetUsersQuery, GetUsersResponse>
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<User> _userRepository;
+        private readonly IUserRepository _userRepository;
 
-        public Handler(IMapper mapper, IRepository<User> userRepository)
+        public Handler(IMapper mapper, IUserRepository userRepository)
         {
             _mapper = mapper;
             _userRepository = userRepository;

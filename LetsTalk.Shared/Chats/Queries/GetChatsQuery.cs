@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Chats.Queries;
@@ -14,9 +14,9 @@ public sealed class GetChatsQuery : IRequest<GetChatsResponse>
     public sealed class Handler : IRequestHandler<GetChatsQuery, GetChatsResponse>
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<Chat> _chatRepository;
+        private readonly IChatRepository _chatRepository;
 
-        public Handler(IMapper mapper, IRepository<Chat> chatRepository)
+        public Handler(IMapper mapper, IChatRepository chatRepository)
         {
             _mapper = mapper;
             _chatRepository = chatRepository;

@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Users.Commands;
@@ -19,9 +19,9 @@ public sealed class DeleteUserCommand : IRequest
 
     public sealed class Handler : IRequestHandler<DeleteUserCommand>
     {
-        private readonly IRepository<User> _userRepository;
+        private readonly IUserRepository _userRepository;
 
-        public Handler(IRepository<User> userRepository)
+        public Handler(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }

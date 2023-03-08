@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
-using LetsTalk.Users;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Users.Queries;
@@ -22,9 +21,9 @@ public sealed class GetUserByIdQuery : IRequest<UserDto>
     public sealed class Handler : IRequestHandler<GetUserByIdQuery, UserDto>
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<User> _userRepository;
+        private readonly IUserRepository _userRepository;
 
-        public Handler(IMapper mapper, IRepository<User> userRepository)
+        public Handler(IMapper mapper, IUserRepository userRepository)
         {
             _mapper = mapper;
             _userRepository = userRepository;

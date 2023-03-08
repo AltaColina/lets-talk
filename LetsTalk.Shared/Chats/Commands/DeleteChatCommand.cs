@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Chats.Commands;
@@ -19,9 +19,9 @@ public sealed class DeleteChatCommand : IRequest
 
     public sealed class Handler : IRequestHandler<DeleteChatCommand>
     {
-        private readonly IRepository<Chat> _chatRepository;
+        private readonly IChatRepository _chatRepository;
 
-        public Handler(IRepository<Chat> chatRepository)
+        public Handler(IChatRepository chatRepository)
         {
             _chatRepository = chatRepository;
         }

@@ -1,5 +1,5 @@
 ﻿using Ardalis.Specification;
-using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using LetsTalk.Roles;
 using LetsTalk.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -17,10 +17,10 @@ internal sealed class PermissionRequirement : IAuthorizationRequirement
 internal sealed class PermissionHandler : AuthorizationHandler<PermissionRequirement>
 {
     private readonly IDistributedCache _distributedCache;
-    private readonly IRepository<Role> _roleRepository;
-    private readonly IRepository<User> _userRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IUserRepository _userRepository;
 
-    public PermissionHandler(IDistributedCache distributedCache, IRepository<Role> roleRepository, IRepository<User> userRepository)
+    public PermissionHandler(IDistributedCache distributedCache, IRoleRepository roleRepository, IUserRepository userRepository)
     {
         _distributedCache = distributedCache;
         _roleRepository = roleRepository;

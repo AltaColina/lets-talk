@@ -7,6 +7,7 @@ using LetsTalk.Behaviors;
 using LetsTalk.Chats;
 using LetsTalk.Interfaces;
 using LetsTalk.Profiles;
+using LetsTalk.Repositories;
 using LetsTalk.Roles;
 using LetsTalk.Security;
 using LetsTalk.Services;
@@ -74,7 +75,9 @@ public static class DependencyInjection
         services.AddSingleton<IHubConnectionManager, HubConnectionManager>();
         services.AddSingleton<IMongoClient>(new MongoClient(configuration.GetConnectionString("MongoDB")));
         services.AddSingleton<IMongoDatabase>(provider => provider.GetRequiredService<IMongoClient>().GetDatabase("letstalk"));
-        services.AddSingleton(typeof(IRepository<>), typeof(MongoRepository<>));
+        services.AddSingleton<IChatRepository, ChatRepository>();
+        services.AddSingleton<IRoleRepository, RoleRepository>();
+        services.AddSingleton<IUserRepository, UserRepository>();
 
         return services;
     }
@@ -100,13 +103,11 @@ public static class DependencyInjection
     public static async Task LoadDatabaseData<THost>(this THost host, IConfiguration configuration, bool overwrite = false) where THost : IHost
     {
         var database = host.Services.GetRequiredService<IMongoClient>().GetDatabase("letstalk");
-        var roleRepository = host.Services.GetRequiredService<IRepository<Role>>();
+        var roleRepository = host.Services.GetRequiredService<IRoleRepository>();
         if (overwrite || !await roleRepository.AnyAsync())
         {
             database.GetCollection<Role>(roleRepository.CollectionName).DeleteMany(FilterDefinition<Role>.Empty);
-            var roles = configuration.GetRequiredSection("Roles").Get<List<Role>>();
-            if (roles is null)
-                throw new InvalidOperationException("No default roles configured");
+            var roles = configuration.GetRequiredSection("Roles").Get<List<Role>>() ?? throw new InvalidOperationException("No default roles configured");
             var permissions = Permissions.All().ToList();
             foreach (var role in roles)
                 if (role.Permissions.FirstOrDefault(p => !permissions.Contains(p)) is string permission)
@@ -114,13 +115,11 @@ public static class DependencyInjection
             await roleRepository.AddRangeAsync(roles);
         }
 
-        var userRepository = host.Services.GetRequiredService<IRepository<User>>();
+        var userRepository = host.Services.GetRequiredService<IUserRepository>();
         if (overwrite || !await userRepository.AnyAsync())
         {
             database.GetCollection<User>(userRepository.CollectionName).DeleteMany(FilterDefinition<User>.Empty);
-            var users = configuration.GetRequiredSection("Users").Get<List<User>>();
-            if (users is null)
-                throw new InvalidOperationException("No default users configured");
+            var users = configuration.GetRequiredSection("Users").Get<List<User>>() ?? throw new InvalidOperationException("No default users configured");
             await Task.WhenAll(users.Select(async user =>
             {
                 var roles = await roleRepository.ListAsync(new GenericSpec<Role>(q => q.Where(r => user.Roles.Contains(r.Id))));
@@ -130,13 +129,11 @@ public static class DependencyInjection
             await userRepository.AddRangeAsync(users);
         }
 
-        var chatRepository = host.Services.GetRequiredService<IRepository<Chat>>();
+        var chatRepository = host.Services.GetRequiredService<IChatRepository>();
         if (overwrite || !await chatRepository.AnyAsync())
         {
             database.GetCollection<Chat>(chatRepository.CollectionName).DeleteMany(FilterDefinition<Chat>.Empty);
-            var chats = configuration.GetRequiredSection("Chats").Get<List<Chat>>();
-            if (chats is null)
-                throw new InvalidOperationException("No default chats configured");
+            var chats = configuration.GetRequiredSection("Chats").Get<List<Chat>>() ?? throw new InvalidOperationException("No default chats configured");
             await Task.WhenAll(chats.Select(async chat =>
             {
                 var users = await userRepository.ListAsync(new GenericSpec<User>(q => q.Where(u => chat.Users.Contains(u.Id))));

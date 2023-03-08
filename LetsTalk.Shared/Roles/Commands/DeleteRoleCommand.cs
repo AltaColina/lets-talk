@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Roles.Commands;
@@ -19,9 +19,9 @@ public sealed class DeleteRoleCommand : IRequest
 
     public sealed class Handler : IRequestHandler<DeleteRoleCommand>
     {
-        private readonly IRepository<Role> _roleRepository;
+        private readonly IRoleRepository _roleRepository;
 
-        public Handler(IRepository<Role> roleRepository)
+        public Handler(IRoleRepository roleRepository)
         {
             _roleRepository = roleRepository;
         }

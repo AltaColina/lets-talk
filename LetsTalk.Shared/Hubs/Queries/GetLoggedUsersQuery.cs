@@ -1,6 +1,7 @@
 ﻿using Ardalis.Specification;
 using AutoMapper;
 using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using LetsTalk.Users;
 using MediatR;
 
@@ -25,9 +26,9 @@ public sealed class GetLoggedUsersQuery : IRequest<GetLoggedUsersResponse>
     {
         private readonly IMapper _mapper;
         private readonly IHubConnectionManager _connectionManager;
-        private readonly IRepository<User> _userRepository;
+        private readonly IUserRepository _userRepository;
 
-        public Handler(IMapper mapper, IHubConnectionManager connectionManager, IRepository<User> userRepository)
+        public Handler(IMapper mapper, IHubConnectionManager connectionManager, IUserRepository userRepository)
         {
             _mapper = mapper;
             _connectionManager = connectionManager;

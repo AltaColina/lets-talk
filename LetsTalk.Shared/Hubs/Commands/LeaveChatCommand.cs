@@ -2,7 +2,7 @@
 using FluentValidation;
 using LetsTalk.Chats;
 using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using LetsTalk.Users;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
@@ -34,10 +34,10 @@ public sealed class LeaveChatCommand : IRequest<LeaveChatResponse>
     public sealed class Handler : IRequestHandler<LeaveChatCommand, LeaveChatResponse>
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<User> _userRepository;
-        private readonly IRepository<Chat> _chatRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IChatRepository _chatRepository;
 
-        public Handler(IMapper mapper, IRepository<User> userRepository, IRepository<Chat> chatRepository)
+        public Handler(IMapper mapper, IUserRepository userRepository, IChatRepository chatRepository)
         {
             _mapper = mapper;
             _userRepository = userRepository;

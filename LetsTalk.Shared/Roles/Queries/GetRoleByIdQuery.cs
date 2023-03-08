@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using MediatR;
 
 namespace LetsTalk.Roles.Queries;
@@ -21,9 +21,9 @@ public sealed class GetRoleByIdQuery : IRequest<RoleDto>
     public sealed class Handler : IRequestHandler<GetRoleByIdQuery, RoleDto>
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<Role> _roleRepository;
+        private readonly IRoleRepository _roleRepository;
 
-        public Handler(IMapper mapper, IRepository<Role> roleRepository)
+        public Handler(IMapper mapper, IRoleRepository roleRepository)
         {
             _mapper = mapper;
             _roleRepository = roleRepository;

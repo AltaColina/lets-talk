@@ -2,7 +2,7 @@
 using AutoMapper;
 using FluentValidation;
 using LetsTalk.Exceptions;
-using LetsTalk.Interfaces;
+using LetsTalk.Repositories;
 using LetsTalk.Users;
 using MediatR;
 
@@ -36,10 +36,10 @@ public sealed class GetChatUsersQuery : IRequest<GetChatUsersResponse>
     public sealed class Handler : IRequestHandler<GetChatUsersQuery, GetChatUsersResponse>
     {
         private readonly IMapper _mapper;
-        private readonly IRepository<Chat> _chatRepository;
-        private readonly IRepository<User> _userRepository;
+        private readonly IChatRepository _chatRepository;
+        private readonly IUserRepository _userRepository;
 
-        public Handler(IMapper mapper, IRepository<Chat> chatRepository, IRepository<User> userRepository)
+        public Handler(IMapper mapper, IChatRepository chatRepository, IUserRepository userRepository)
         {
             _mapper = mapper;
             _chatRepository = chatRepository;

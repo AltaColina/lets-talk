@@ -23,7 +23,7 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
     public LetsTalkHubClient(IConfiguration configuration, ILetsTalkSettings settings, IMessenger messenger)
     {
         _listener = new Listener(messenger);
-        _hubEndpoint = $"{configuration.GetConnectionString("LetsTalk")}/letstalk";
+        _hubEndpoint = $"{configuration.GetConnectionString("LetsTalk")}/hubs/letstalk";
         _messenger = messenger;
         _settings = settings;
     }
