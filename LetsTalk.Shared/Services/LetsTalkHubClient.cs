@@ -146,7 +146,7 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
 
 }
 
-internal static partial class HubConnectionExtensions
+file static partial class HubConnectionExtensions
 {
     public static IDisposable On<TMessage>(this HubConnection hubConnection, Action<TMessage> handler)
     {

@@ -122,11 +122,11 @@ public sealed class LetsTalkHub : Hub
     }
 }
 
-internal static class ClientProxyExtensions
+file static class ClientProxyExtensions
 {
     public static Task SendAsync<TMessage>(this IClientProxy clientProxy, TMessage message, CancellationToken cancellationToken = default)
         where TMessage : class
     {
-        return clientProxy.SendCoreAsync(typeof(TMessage).Name, new[] { message }, cancellationToken);
+        return clientProxy.SendAsync(typeof(TMessage).Name, message, cancellationToken);
     }
 }
