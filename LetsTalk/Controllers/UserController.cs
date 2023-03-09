@@ -48,10 +48,10 @@ public sealed class UserController : ControllerBase
         return NoContent();
     }
 
-    [HttpGet("{userId}/chat"), Authorize(Permissions.User.Chat.Read)]
-    public async Task<IActionResult> GetChats([FromRoute, Required] string userId)
+    [HttpGet("{userId}/room"), Authorize(Permissions.User.Room.Read)]
+    public async Task<IActionResult> GetRooms([FromRoute, Required] string userId)
     {
-        var response = await _mediator.Send(new GetUserChatsQuery { UserId = userId });
+        var response = await _mediator.Send(new GetUserRoomsQuery { UserId = userId });
         return Ok(response);
     }
 }

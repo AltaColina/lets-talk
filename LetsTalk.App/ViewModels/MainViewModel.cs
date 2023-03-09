@@ -14,13 +14,13 @@ public partial class MainViewModel : BaseViewModel
     private readonly INavigationService _navigation;
     private readonly ILetsTalkHttpClient _httpClient;
     private readonly ILetsTalkHubClient _hubClient;
-    private readonly ChatConnectionManager _chatConnectionManager;
+    private readonly RoomConnectionManager _roomConnectionManager;
     private Page? _view;
 
-    public ObservableCollection<ChatConnection> ChatConnections { get => _chatConnectionManager.Connections; }
+    public ObservableCollection<RoomConnection> RoomConnections { get => _roomConnectionManager.Connections; }
 
     [ObservableProperty]
-    private bool _isChatListVisible;
+    private bool _isRoomListVisible;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsAuthenticated))]
@@ -28,7 +28,7 @@ public partial class MainViewModel : BaseViewModel
 
     public bool IsAuthenticated { get => _settings.IsAuthenticated; }
 
-    public MainViewModel(AppShell appShell, ILetsTalkSettings settings, INavigationService navigation, ILetsTalkHttpClient httpClient, ILetsTalkHubClient hubClient, ChatConnectionManager chatConnectionManager)
+    public MainViewModel(AppShell appShell, ILetsTalkSettings settings, INavigationService navigation, ILetsTalkHttpClient httpClient, ILetsTalkHubClient hubClient, RoomConnectionManager roomConnectionManager)
     {
         Title = "Let's Talk";
         _appShell = appShell;
@@ -38,7 +38,7 @@ public partial class MainViewModel : BaseViewModel
         _navigation = navigation;
         _httpClient = httpClient;
         _hubClient = hubClient;
-        _chatConnectionManager = chatConnectionManager;
+        _roomConnectionManager = roomConnectionManager;
     }
 
     [RelayCommand]
@@ -56,7 +56,7 @@ public partial class MainViewModel : BaseViewModel
         }
         else
         {
-            ChatConnections.Clear();
+            RoomConnections.Clear();
         }
 
         async Task ConnectAsync()
@@ -66,9 +66,9 @@ public partial class MainViewModel : BaseViewModel
                 if (_hubClient.IsConnected)
                     await _hubClient.DisconnectAsync();
                 await _hubClient.ConnectAsync();
-                var response = await _hubClient.GetUserChatsAsync();
-                _chatConnectionManager.Reset(response.Chats);
-                OnPropertyChanged(nameof(ChatConnections));
+                var response = await _hubClient.GetUserRoomsAsync();
+                _roomConnectionManager.Reset(response.Rooms);
+                OnPropertyChanged(nameof(RoomConnections));
                 Title = $"Let's Talk - {_settings.Authentication!.User.Name}";
                 _view?.ShowPopup(new Popup { Content = new Label { Text = $"Connected as '{_settings.UserId}'" } });
 
@@ -85,10 +85,10 @@ public partial class MainViewModel : BaseViewModel
         await _navigation.GoToAsync<LoginViewModel>();
 
     [RelayCommand]
-    private async Task OnOpenChatAsync(ChatConnection connection) =>
-        await _navigation.GoToAsync<ChatViewModel>(new NavigationParameters { [nameof(ChatConnection)] = connection }, animate: false);
+    private async Task OnOpenRoomAsync(RoomConnection connection) =>
+        await _navigation.GoToAsync<RoomViewModel>(new NavigationParameters { [nameof(RoomConnection)] = connection }, animate: false);
 
     [RelayCommand]
-    private async Task OnAddChatAsync() =>
-        await _navigation.GoToAsync<AddChatViewModel>();
+    private async Task OnAddRoomAsync() =>
+        await _navigation.GoToAsync<AddRoomViewModel>();
 }

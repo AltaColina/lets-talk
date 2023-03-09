@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="LetsTalk.App.Views.RoomListView"
+    xmlns:models="clr-namespace:LetsTalk.App.Models"
+    xmlns:viewmodels="clr-namespace:LetsTalk.App.ViewModels"
+    x:DataType="viewmodels:MainViewModel">
+    <ContentView.Resources>
+        <DataTemplate x:Key="RoomTemplate" x:DataType="models:RoomConnection">
+            <Frame>
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer
+                        NumberOfTapsRequired="1"
+                        Command="{Binding Path=OpenRoomCommand, Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}}"
+                        CommandParameter="{Binding}"/>
+                </Frame.GestureRecognizers>
+                <HorizontalStackLayout>
+                    <Grid
+                        ColumnDefinitions="*,*"
+                        ColumnSpacing="5">
+                        <Label
+                            Grid.Column="0"
+                            Text="{Binding Room.Name}" />
+                        <Label
+                            Grid.Column="1"
+                            IsVisible="true"
+                            Text="{Binding NewMessageCount, StringFormat='({0})'}"/>
+                    </Grid>
+                </HorizontalStackLayout>
+            </Frame>
+        </DataTemplate>
+    </ContentView.Resources>
+    <VerticalStackLayout>
+        <VerticalStackLayout
+            BindableLayout.EmptyViewTemplate="{DataTemplate Grid}"
+            BindableLayout.ItemsSource="{Binding RoomConnections, FallbackValue={x:Null}}"
+            BindableLayout.ItemTemplate="{StaticResource RoomTemplate}">
+        </VerticalStackLayout>
+        <Label
+            VerticalOptions="CenterAndExpand"
+            HorizontalOptions="CenterAndExpand"
+            FontSize="Medium"
+            Text="+">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer
+                    NumberOfTapsRequired="1"
+                    Command="{Binding AddRoomCommand }" />
+            </Label.GestureRecognizers>
+        </Label>
+    </VerticalStackLayout>
+</ContentView>

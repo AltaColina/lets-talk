@@ -26,7 +26,7 @@ public sealed class LetsTalkHub : Hub
             UserId = Context.User?.Identity?.Name!
         });
 
-        await Task.WhenAll(user.Chats.Select(chatId => Groups.AddToGroupAsync(Context.ConnectionId, chatId)));
+        await Task.WhenAll(user.Rooms.Select(roomId => Groups.AddToGroupAsync(Context.ConnectionId, roomId)));
         await Clients.Others.SendAsync(new ConnectMessage { Content = user });
         await base.OnConnectedAsync();
     }
@@ -38,25 +38,25 @@ public sealed class LetsTalkHub : Hub
             ConnectionId = Context.ConnectionId,
             UserId = Context.User?.Identity?.Name!
         });
-        await Task.WhenAll(user.Chats.Select(chatId => Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId)));
+        await Task.WhenAll(user.Rooms.Select(roomId => Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId)));
         await Clients.Others.SendAsync(new DisconnectMessage { Content = user });
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task<JoinChatResponse> JoinChatAsync(string chatId)
+    public async Task<JoinRoomResponse> JoinRoomAsync(string roomId)
     {
-        var response = await _mediator.Send(new JoinChatCommand
+        var response = await _mediator.Send(new JoinRoomCommand
         {
-            ChatId = chatId,
+            RoomId = roomId,
             UserId = Context.User?.Identity?.Name!
         });
 
         if (response.HasUserJoined)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
-            await Clients.Group(response.Chat.Id).SendAsync(new JoinChatMessage
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+            await Clients.Group(response.Room.Id).SendAsync(new JoinRoomMessage
             {
-                Chat = response.Chat,
+                Room = response.Room,
                 Content = response.User
             });
         }
@@ -64,20 +64,20 @@ public sealed class LetsTalkHub : Hub
         return response;
     }
 
-    public async Task<LeaveChatResponse> LeaveChatAsync(string chatId)
+    public async Task<LeaveRoomResponse> LeaveRoomAsync(string roomId)
     {
-        var response = await _mediator.Send(new LeaveChatCommand
+        var response = await _mediator.Send(new LeaveRoomCommand
         {
-            ChatId = chatId,
+            RoomId = roomId,
             UserId = Context.User?.Identity?.Name!
         });
 
         if (response.HasUserLeft)
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
-            await Clients.Group(chatId).SendAsync(new LeaveChatMessage
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
+            await Clients.Group(roomId).SendAsync(new LeaveRoomMessage
             {
-                Chat = response.Chat,
+                Room = response.Room,
                 Content = response.User
             });
         }
@@ -85,13 +85,13 @@ public sealed class LetsTalkHub : Hub
         return response;
     }
 
-    public async Task SendChatMessageAsync(string chatId, string contentType, byte[] content)
+    public async Task SendContentMessageAsync(string roomId, string contentType, byte[] content)
     {
         var user = await _mediator.Send(new GetUserByIdCachedQuery { UserId = Context.User?.Identity?.Name! });
-        await Clients.Group(chatId).SendAsync(new ContentMessage
+        await Clients.Group(roomId).SendAsync(new ContentMessage
         {
             Sender = user,
-            ChatId = chatId,
+            RoomId = roomId,
             ContentType = contentType,
             Content = content,
         });
@@ -103,21 +103,21 @@ public sealed class LetsTalkHub : Hub
         return response;
     }
 
-    public async Task<GetLoggedChatUsersResponse> GetLoggedChatUsersAsync(string chatId)
+    public async Task<GetLoggedRoomUsersResponse> GetLoggedRoomUsersAsync(string roomId)
     {
-        var response = await _mediator.Send(new GetLoggedChatUsersQuery { ChatId = chatId });
+        var response = await _mediator.Send(new GetLoggedRoomUsersQuery { RoomId = roomId });
         return response;
     }
 
-    public async Task<GetUserChatsResponse> GetUserChatsAsync()
+    public async Task<GetUserRoomsResponse> GetUserRoomsAsync()
     {
-        var response = await _mediator.Send(new GetUserChatsQuery { UserId = Context.User?.Identity?.Name! });
+        var response = await _mediator.Send(new GetUserRoomsQuery { UserId = Context.User?.Identity?.Name! });
         return response;
     }
 
-    public async Task<GetUserAvailableChatsResponse> GetUserAvailableChatsAsync()
+    public async Task<GetUserAvailableRoomsResponse> GetUserAvailableRoomsAsync()
     {
-        var response = await _mediator.Send(new GetUserAvailableChatsQuery { UserId = Context.User?.Identity?.Name! });
+        var response = await _mediator.Send(new GetUserAvailableRoomsQuery { UserId = Context.User?.Identity?.Name! });
         return response;
     }
 }

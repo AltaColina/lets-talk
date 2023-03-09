@@ -22,22 +22,22 @@ public static class Permissions
 
     public static IEnumerable<string> All() => Values;
 
-    public static IEnumerable<string> ReadOnly() => Values.Where(v => v.EndsWith(nameof(Chat.Read), StringComparison.InvariantCultureIgnoreCase));
+    public static IEnumerable<string> ReadOnly() => Values.Where(v => v.EndsWith(nameof(Room.Read), StringComparison.InvariantCultureIgnoreCase));
 
-    public static IEnumerable<string> WriteOnly() => Values.Where(v => !v.EndsWith(nameof(Chat.Read), StringComparison.InvariantCultureIgnoreCase));
+    public static IEnumerable<string> WriteOnly() => Values.Where(v => !v.EndsWith(nameof(Room.Read), StringComparison.InvariantCultureIgnoreCase));
 
-    public static class Chat
+    public static class Room
     {
-        public const string Create = $"{nameof(Chat)}:{nameof(Create)}";
-        public const string Read = $"{nameof(Chat)}:{nameof(Read)}";
-        public const string Update = $"{nameof(Chat)}:{nameof(Update)}";
-        public const string Delete = $"{nameof(Chat)}:{nameof(Delete)}";
+        public const string Create = $"{nameof(Room)}:{nameof(Create)}";
+        public const string Read = $"{nameof(Room)}:{nameof(Read)}";
+        public const string Update = $"{nameof(Room)}:{nameof(Update)}";
+        public const string Delete = $"{nameof(Room)}:{nameof(Delete)}";
         public static class User
         {
-            public const string Create = $"{nameof(Chat)}:{nameof(User)}:{nameof(Create)}";
-            public const string Read = $"{nameof(Chat)}:{nameof(User)}:{nameof(Read)}";
-            public const string Update = $"{nameof(Chat)}:{nameof(User)}:{nameof(Update)}";
-            public const string Delete = $"{nameof(Chat)}:{nameof(User)}:{nameof(Delete)}";
+            public const string Create = $"{nameof(Room)}:{nameof(User)}:{nameof(Create)}";
+            public const string Read = $"{nameof(Room)}:{nameof(User)}:{nameof(Read)}";
+            public const string Update = $"{nameof(Room)}:{nameof(User)}:{nameof(Update)}";
+            public const string Delete = $"{nameof(Room)}:{nameof(User)}:{nameof(Delete)}";
         }
     }
 
@@ -63,12 +63,12 @@ public static class Permissions
         public const string Update = $"{nameof(User)}:{nameof(Update)}";
         public const string Delete = $"{nameof(User)}:{nameof(Delete)}";
 
-        public static class Chat
+        public static class Room
         {
-            public const string Create = $"{nameof(User)}:{nameof(Chat)}:{nameof(Create)}";
-            public const string Read = $"{nameof(User)}:{nameof(Chat)}:{nameof(Read)}";
-            public const string Update = $"{nameof(User)}:{nameof(Chat)}:{nameof(Update)}";
-            public const string Delete = $"{nameof(User)}:{nameof(Chat)}:{nameof(Delete)}";
+            public const string Create = $"{nameof(User)}:{nameof(Room)}:{nameof(Create)}";
+            public const string Read = $"{nameof(User)}:{nameof(Room)}:{nameof(Read)}";
+            public const string Update = $"{nameof(User)}:{nameof(Room)}:{nameof(Update)}";
+            public const string Delete = $"{nameof(User)}:{nameof(Room)}:{nameof(Delete)}";
         }
 
         public static class Role

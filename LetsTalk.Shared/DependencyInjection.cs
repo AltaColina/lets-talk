@@ -4,11 +4,11 @@ using Docker.DotNet.Models;
 using FluentValidation;
 using LetsTalk.App.Services;
 using LetsTalk.Behaviors;
-using LetsTalk.Chats;
 using LetsTalk.Interfaces;
 using LetsTalk.Profiles;
 using LetsTalk.Repositories;
 using LetsTalk.Roles;
+using LetsTalk.Rooms;
 using LetsTalk.Security;
 using LetsTalk.Services;
 using LetsTalk.Users;
@@ -75,7 +75,7 @@ public static class DependencyInjection
         services.AddSingleton<IHubConnectionManager, HubConnectionManager>();
         services.AddSingleton<IMongoClient>(new MongoClient(configuration.GetConnectionString("MongoDB")));
         services.AddSingleton<IMongoDatabase>(provider => provider.GetRequiredService<IMongoClient>().GetDatabase("letstalk"));
-        services.AddSingleton<IChatRepository, ChatRepository>();
+        services.AddSingleton<IRoomRepository, RoomRepository>();
         services.AddSingleton<IRoleRepository, RoleRepository>();
         services.AddSingleton<IUserRepository, UserRepository>();
 
@@ -129,18 +129,18 @@ public static class DependencyInjection
             await userRepository.AddRangeAsync(users);
         }
 
-        var chatRepository = host.Services.GetRequiredService<IChatRepository>();
-        if (overwrite || !await chatRepository.AnyAsync())
+        var roomRepository = host.Services.GetRequiredService<IRoomRepository>();
+        if (overwrite || !await roomRepository.AnyAsync())
         {
-            database.GetCollection<Chat>(chatRepository.CollectionName).DeleteMany(FilterDefinition<Chat>.Empty);
-            var chats = configuration.GetRequiredSection("Chats").Get<List<Chat>>() ?? throw new InvalidOperationException("No default chats configured");
-            await Task.WhenAll(chats.Select(async chat =>
+            database.GetCollection<Room>(roomRepository.CollectionName).DeleteMany(FilterDefinition<Room>.Empty);
+            var rooms = configuration.GetRequiredSection("Rooms").Get<List<Room>>() ?? throw new InvalidOperationException("No default rooms configured");
+            await Task.WhenAll(rooms.Select(async room =>
             {
-                var users = await userRepository.ListAsync(new GenericSpec<User>(q => q.Where(u => chat.Users.Contains(u.Id))));
-                if (users.Count != chat.Users.Count)
-                    throw new InvalidOperationException($"Users '{String.Join(", ", chat.Users.Except(users.Select(r => r.Id)))}' are not valid");
+                var users = await userRepository.ListAsync(new GenericSpec<User>(q => q.Where(u => room.Users.Contains(u.Id))));
+                if (users.Count != room.Users.Count)
+                    throw new InvalidOperationException($"Users '{String.Join(", ", room.Users.Except(users.Select(r => r.Id)))}' are not valid");
             }));
-            await chatRepository.AddRangeAsync(chats);
+            await roomRepository.AddRangeAsync(rooms);
         }
     }
 }

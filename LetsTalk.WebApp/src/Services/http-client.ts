@@ -1,4 +1,4 @@
-import Axios, { AxiosProxyConfig } from "axios";
+import Axios from "axios";
 import { Authentication } from "../Security/authentitcation";
 
 export const httpClient = {

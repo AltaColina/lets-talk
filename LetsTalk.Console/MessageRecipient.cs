@@ -7,8 +7,8 @@ namespace LetsTalk.Console;
 internal sealed class MessageRecipient :
     IRecipient<ConnectMessage>,
     IRecipient<DisconnectMessage>,
-    IRecipient<JoinChatMessage>,
-    IRecipient<LeaveChatMessage>,
+    IRecipient<JoinRoomMessage>,
+    IRecipient<LeaveRoomMessage>,
     IRecipient<ContentMessage>
 {
     private readonly IMessenger _messenger;
@@ -20,18 +20,18 @@ internal sealed class MessageRecipient :
         _messenger = messenger;
         _messenger.Register<ConnectMessage>(this);
         _messenger.Register<DisconnectMessage>(this);
-        _messenger.Register<JoinChatMessage>(this);
-        _messenger.Register<LeaveChatMessage>(this);
+        _messenger.Register<JoinRoomMessage>(this);
+        _messenger.Register<LeaveRoomMessage>(this);
     }
 
     private void NotifyMessage(string message) => MessageReceived?.Invoke(this, message);
 
-    public void ListenToChat(string chatId) => _messenger.Register<ContentMessage, string>(this, chatId);
+    public void ListenToRoom(string roomId) => _messenger.Register<ContentMessage, string>(this, roomId);
 
     void IRecipient<ConnectMessage>.Receive(ConnectMessage message) => NotifyMessage($"User '{message.Content.Id}' has connected to the server.");
     void IRecipient<DisconnectMessage>.Receive(DisconnectMessage message) => NotifyMessage($"User '{message.Content.Id}' has disconnected from the server.");
-    void IRecipient<JoinChatMessage>.Receive(JoinChatMessage message) => NotifyMessage($"User '{message.Content.Id}' has joined channel '{message.Chat.Name}'.");
-    void IRecipient<LeaveChatMessage>.Receive(LeaveChatMessage message) => NotifyMessage($"User '{message.Content.Id}' has left channel '{message.Chat.Name}'.");
+    void IRecipient<JoinRoomMessage>.Receive(JoinRoomMessage message) => NotifyMessage($"User '{message.Content.Id}' has joined channel '{message.Room.Name}'.");
+    void IRecipient<LeaveRoomMessage>.Receive(LeaveRoomMessage message) => NotifyMessage($"User '{message.Content.Id}' has left channel '{message.Room.Name}'.");
     void IRecipient<ContentMessage>.Receive(ContentMessage message)
     {
         switch (message.ContentType)

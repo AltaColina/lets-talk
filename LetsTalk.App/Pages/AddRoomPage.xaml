@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="LetsTalk.App.Pages.AddRoomPage"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:viewmodels="clr-namespace:LetsTalk.App.ViewModels"
+    Title="Connect to a new room"
+    x:DataType="viewmodels:AddRoomViewModel">
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="NavigatedTo"
+            Command="{Binding NavigatedToCommand}" />
+    </ContentPage.Behaviors>
+    <VerticalStackLayout>
+        <Label
+            Text="Room id" />
+        <Entry
+            Text="{Binding RoomId}" />
+        <Label
+            IsVisible="{Binding HasCreateRoomPermission}"
+            Text="Room name" />
+        <Entry
+            IsVisible="{Binding HasCreateRoomPermission}"
+            Text="{Binding RoomName}" />
+        <HorizontalStackLayout
+            HorizontalOptions="CenterAndExpand">
+            <HorizontalStackLayout.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="WidthRequest" Value="80" />
+                    <Setter Property="Margin" Value="5" />
+                </Style>
+            </HorizontalStackLayout.Resources>
+            <Button
+                Text="Join"
+                Command="{Binding JoinRoomCommand}"/>
+            <Button
+                IsVisible="{Binding HasCreateRoomPermission}"
+                Text="Create"
+                Command="{Binding CreateRoomCommand}"/>
+        </HorizontalStackLayout>
+        <Label
+            Text="{Binding ErrorMessage}" />
+    </VerticalStackLayout>
+</ContentPage>

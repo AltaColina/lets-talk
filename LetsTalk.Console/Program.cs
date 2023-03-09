@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using LetsTalk.Chats;
 using LetsTalk.Console;
 using LetsTalk.Interfaces;
+using LetsTalk.Rooms;
 using LetsTalk.Security.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -80,14 +80,14 @@ else
 var hubClient = host.Services.GetRequiredService<ILetsTalkHubClient>();
 await hubClient.ConnectAsync();
 
-var chats = (await hubClient.GetUserChatsAsync()).Chats;
-var chat = default(ChatDto);
-while (chat is null)
+var rooms = (await hubClient.GetUserRoomsAsync()).Rooms;
+var room = default(RoomDto);
+while (room is null)
 {
     Console.WriteLine("Select a channel to listen to by typing its number.");
     int i = 0;
-    for (; i < chats.Count; ++i)
-        Console.WriteLine($"{i + 1}: {chats[i].Name}");
+    for (; i < rooms.Count; ++i)
+        Console.WriteLine($"{i + 1}: {rooms[i].Name}");
     Console.WriteLine($"{i + 1}: Join another channel.");
     Console.WriteLine("0: Exit LetsTalk");
     var input = Console.ReadLine();
@@ -95,34 +95,34 @@ while (chat is null)
     {
         Console.WriteLine("Input must be a number.");
     }
-    else if (number < 0 || number > chats.Count + 1)
+    else if (number < 0 || number > rooms.Count + 1)
     {
-        Console.WriteLine($"Must be a number between {0} and {chats.Count + 1}.");
+        Console.WriteLine($"Must be a number between {0} and {rooms.Count + 1}.");
     }
     else if (number == 0)
     {
         break;
     }
-    else if (number == chats.Count + 1)
+    else if (number == rooms.Count + 1)
     {
-        var allChats = (await hubClient.GetUserAvailableChatsAsync()).Chats;
-        allChats.RemoveAll(chat => settings.Authentication.User.Chats.Contains(chat.Id));
-        Console.WriteLine("Available chats:");
-        foreach (var item in allChats)
+        var allRooms = (await hubClient.GetUserAvailableRoomsAsync()).Rooms;
+        allRooms.RemoveAll(room => settings.Authentication.User.Rooms.Contains(room.Id));
+        Console.WriteLine("Available rooms:");
+        foreach (var item in allRooms)
             Console.WriteLine($"- {item.Name} (id: {item.Id})");
-        Console.WriteLine("Select chat to join. Type '/back' to go return to previous menu.");
-        Console.Write("Chat Id: ");
-        var chatId = Console.ReadLine()!;
-        if (chatId != "/back")
+        Console.WriteLine("Select room to join. Type '/back' to go return to previous menu.");
+        Console.Write("Room Id: ");
+        var roomId = Console.ReadLine()!;
+        if (roomId != "/back")
         {
-            var newChat = await httpClient.GetChatAsync(chatId, settings.Authentication.AccessToken.Id);
-            chats.Add(newChat);
-            await hubClient.JoinChatAsync(chatId);
+            var newRoom = await httpClient.GetRoomAsync(roomId, settings.Authentication.AccessToken.Id);
+            rooms.Add(newRoom);
+            await hubClient.JoinRoomAsync(roomId);
         }
     }
     else
     {
-        chat = chats[number - 1];
+        room = rooms[number - 1];
     }
 }
 
@@ -132,15 +132,15 @@ var commandToContentTypeMap = typeof(LetsTalk.Messaging.MimeType.Image)
         .GetFields(BindingFlags.Public | BindingFlags.Static)
         .ToDictionary(f => $"/{f.Name}", f => (string)f.GetValue(null)!, StringComparer.InvariantCultureIgnoreCase);
 
-if (chat is not null)
+if (room is not null)
 {
     var recipient = host.Services.GetRequiredService<MessageRecipient>();
-    recipient.ListenToChat(chat.Id);
+    recipient.ListenToRoom(room.Id);
     recipient.MessageReceived += Recipient_MessageReceived;
 
-    var users = (await hubClient.GetLoggedChatUsersAsync(chat.Id)).Users;
+    var users = (await hubClient.GetLoggedRoomUsersAsync(room.Id)).Users;
     users.RemoveAll(user => user.Id == settings.Authentication.User.Id);
-    Console.WriteLine($"Listening to chat {chat.Name} (id: {chat.Id}). Logged users:");
+    Console.WriteLine($"Listening to room {room.Name} (id: {room.Id}). Logged users:");
     foreach (var item in users)
         Console.WriteLine($"- {item.Id} (roles: {String.Join(';', item.Roles)})");
     // Send messages.
@@ -151,7 +151,7 @@ if (chat is not null)
         if (!message.StartsWith("/"))
         {
             Console.SetCursorPosition(left, top - 1);
-            await hubClient.SendChatMessageAsync(chat.Id, MediaTypeNames.Text.Plain, Encoding.UTF8.GetBytes(message));
+            await hubClient.SendContentMessageAsync(room.Id, MediaTypeNames.Text.Plain, Encoding.UTF8.GetBytes(message));
         }
         else if (message.IndexOf(' ') is var index && index >= 0)
         {
@@ -159,7 +159,7 @@ if (chat is not null)
             if (commandToContentTypeMap.TryGetValue(command, out var contentType))
             {
                 var content = message[(index + 1)..].Trim('"');
-                await hubClient.SendChatMessageAsync(chat.Id, contentType, File.ReadAllBytes(content));
+                await hubClient.SendContentMessageAsync(room.Id, contentType, File.ReadAllBytes(content));
             }
             else
             {

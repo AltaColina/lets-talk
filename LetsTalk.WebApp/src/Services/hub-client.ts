@@ -1,16 +1,19 @@
 import { HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
-import { GetUserChatsResponse } from "../Chats/getUserChatsResponse";
 import { ConnectMessage } from "../Messaging/connect-message";
 import { ContentMessage } from "../Messaging/content-message";
 import { DisconnectMessage } from "../Messaging/disconnect-message";
-import { JoinChatMessage } from "../Messaging/join-chat-message";
-import { LeaveChatMessage } from "../Messaging/leave-chat-message";
+import { JoinRoomMessage } from "../Messaging/join-room-message";
+import { LeaveRoomMessage } from "../Messaging/leave-room-message";
+import { GetUserRoomsResponse } from "../Rooms/get-user-rooms-response";
 import { IMessenger } from "./messenger";
+
+const EMPTY_CONTENT_MESSAGE_ARRAY = new Array<ContentMessage>();
 
 class Listener {
   private _messenger: IMessenger;
   private _connection: HubConnection | null;
   private _handlers: Map<string, (...args: any[]) => any>;
+  private _contentMessages: Map<string, ContentMessage[]> = new Map();
   public get isListening(): boolean { return !!this._connection; }
   public constructor(messenger: IMessenger) {
     this._messenger = messenger;
@@ -18,9 +21,13 @@ class Listener {
     this._handlers = new Map();
     this._handlers.set('ConnectMessage', this.handleConnect.bind(this));
     this._handlers.set('DisconnectMessage', this.handleDisconnect.bind(this));
-    this._handlers.set('JoinChatMessage', this.handleJoinChat.bind(this));
-    this._handlers.set('LeaveChatMessage', this.handleLeaveChat.bind(this));
+    this._handlers.set('JoinRoomMessage', this.handleJoinRoom.bind(this));
+    this._handlers.set('LeaveRoomMessage', this.handleLeaveRoom.bind(this));
     this._handlers.set('ContentMessage', this.handleContent.bind(this));
+  }
+
+  public getRoomMessages(roomId: string): ContentMessage[] {
+    return this._contentMessages.get(roomId) || EMPTY_CONTENT_MESSAGE_ARRAY;
   }
 
   public attach(connection: HubConnection): void {
@@ -49,15 +56,20 @@ class Listener {
     this._messenger.emit('disconnect', message);
   }
 
-  private handleJoinChat(message: JoinChatMessage) {
-    this._messenger.emit('joinchat', message);
+  private handleJoinRoom(message: JoinRoomMessage) {
+    this._messenger.emit('joinroom', message);
   }
 
-  private handleLeaveChat(message: LeaveChatMessage) {
-    this._messenger.emit('leavechat', message);
+  private handleLeaveRoom(message: LeaveRoomMessage) {
+    this._messenger.emit('leaveroom', message);
   }
 
   private handleContent(message: ContentMessage) {
+    let messages = this._contentMessages.get(message.roomId);
+    if (!messages) {
+        this._contentMessages.set(message.roomId, messages = []);
+    }
+    messages.push(message);
     this._messenger.emit('content', message);
   }
 }
@@ -69,6 +81,12 @@ class HubClient {
   private _connection: HubConnection | undefined;
 
   public get isConnected(): boolean { return !!this._connection && this._connection.state === HubConnectionState.Connected; }
+  
+  public getRoomMessages(roomId: string): ContentMessage[] {
+    if (!this.isConnected)
+      throw new Error('Not connected');
+    return this._listener!.getRoomMessages(roomId);
+  }
 
   public async connect(url: string, messenger: IMessenger, provideToken: () => string | Promise<string>): Promise<void> {
     if (this._connection)
@@ -97,10 +115,16 @@ class HubClient {
     }
   }
 
-  public async getUserChats(): Promise<GetUserChatsResponse> {
+  public async sendContentMessage<T>(roomId: string, contentType: string, contentBase64: string): Promise<void> {
     if (!this.isConnected)
       throw new Error('Not connected');
-    return await this._connection!.invoke('GetUserChatsAsync');
+    return await this._connection!.invoke('SendContentMessageAsync', roomId, contentType, contentBase64);
+  }
+
+  public async getUserRooms(): Promise<GetUserRoomsResponse> {
+    if (!this.isConnected)
+      throw new Error('Not connected');
+    return await this._connection!.invoke('GetUserRoomsAsync');
   }
 }
 

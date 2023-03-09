@@ -53,16 +53,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Pages\AddChatPage.xaml">
+	  <MauiXaml Update="Pages\AddRoomPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\ChatPage.xaml">
+	  <MauiXaml Update="Pages\RoomPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\LoginPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\ChatListView.xaml">
+	  <MauiXaml Update="Views\RoomListView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\ContentMessageHeaderView.xaml">
@@ -77,8 +77,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Pages\AddRoomPage.xaml.cs">
+	    <DependentUpon>AddRoomPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Pages\RoomPage.xaml.cs">
+	    <DependentUpon>RoomPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Pages\MainPage.xaml.cs">
 	    <DependentUpon>MainPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\RoomListView.xaml.cs">
+	    <DependentUpon>RoomListView.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Views\ImageContentView.xaml.cs">
 	    <DependentUpon>ImageContentView.xaml</DependentUpon>

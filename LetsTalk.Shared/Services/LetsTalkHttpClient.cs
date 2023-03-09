@@ -1,6 +1,6 @@
-﻿using LetsTalk.Chats;
-using LetsTalk.Chats.Commands;
-using LetsTalk.Chats.Queries;
+﻿using LetsTalk.Rooms;
+using LetsTalk.Rooms.Commands;
+using LetsTalk.Rooms.Queries;
 using LetsTalk.Interfaces;
 using LetsTalk.Roles;
 using LetsTalk.Roles.Commands;
@@ -45,23 +45,23 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
         return (await response.Content.ReadFromJsonAsync<Authentication>())!;
     }
 
-    public async Task<GetChatsResponse> GetChatsAsync(string token) =>
-        await GetAsync<GetChatsResponse>("api/chat", token);
+    public async Task<GetRoomsResponse> GetRoomsAsync(string token) =>
+        await GetAsync<GetRoomsResponse>("api/room", token);
 
-    public async Task<ChatDto> GetChatAsync(string chatId, string token) =>
-        await GetAsync<ChatDto>($"api/chat/{chatId}", token);
+    public async Task<RoomDto> GetRoomAsync(string roomId, string token) =>
+        await GetAsync<RoomDto>($"api/room/{roomId}", token);
 
-    public async Task<ChatDto> CreateChatAsync(CreateChatCommand chat, string token) =>
-        await PostAsync<CreateChatCommand, ChatDto>("api/chat", chat, token);
+    public async Task<RoomDto> CreateRoomAsync(CreateRoomCommand room, string token) =>
+        await PostAsync<CreateRoomCommand, RoomDto>("api/room", room, token);
 
-    public async Task<ChatDto> UpdateChatAsync(UpdateChatCommand chat, string token) =>
-        await PutAsync<UpdateChatCommand, ChatDto>("api/chat", chat, token);
+    public async Task<RoomDto> UpdateRoomAsync(UpdateRoomCommand room, string token) =>
+        await PutAsync<UpdateRoomCommand, RoomDto>("api/room", room, token);
 
-    public async Task DeleteChatAsync(string chatId, string token) =>
-        await DeleteAsync($"api/chat/{chatId}", token);
+    public async Task DeleteRoomAsync(string roomId, string token) =>
+        await DeleteAsync($"api/room/{roomId}", token);
 
-    public async Task<GetChatUsersResponse> GetChatUsersAsync(string chatId, string token) =>
-        await GetAsync<GetChatUsersResponse>($"api/chat/{chatId}/user", token);
+    public async Task<GetRoomUsersResponse> GetRoomUsersAsync(string roomId, string token) =>
+        await GetAsync<GetRoomUsersResponse>($"api/room/{roomId}/user", token);
 
     public async Task<GetRolesResponse> GetRolesAsync(string token) =>
         await GetAsync<GetRolesResponse>("api/role", token);
@@ -93,8 +93,8 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
     public async Task DeleteUserAsync(string userId, string token) =>
         await DeleteAsync($"api/user/{userId}", token);
 
-    public async Task<GetUserChatsResponse> GetUserChatsAsync(string userId, string token) =>
-        await GetAsync<GetUserChatsResponse>($"api/user/{userId}/chat", token);
+    public async Task<GetUserRoomsResponse> GetUserRoomsAsync(string userId, string token) =>
+        await GetAsync<GetUserRoomsResponse>($"api/user/{userId}/room", token);
 
     private async Task<T> GetAsync<T>(string uri, string token)
     {

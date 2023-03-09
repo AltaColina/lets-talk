@@ -51,26 +51,26 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
         }
     }
 
-    public async Task<JoinChatResponse> JoinChatAsync(string chatId) =>
-        await _connection!.InvokeAsync<JoinChatResponse>(nameof(JoinChatAsync), chatId);
+    public async Task<JoinRoomResponse> JoinRoomAsync(string roomId) =>
+        await _connection!.InvokeAsync<JoinRoomResponse>(nameof(JoinRoomAsync), roomId);
 
-    public async Task<LeaveChatResponse> LeaveChatAsync(string chatId) =>
-        await _connection!.InvokeAsync<LeaveChatResponse>(nameof(LeaveChatAsync), chatId);
+    public async Task<LeaveRoomResponse> LeaveRoomAsync(string roomId) =>
+        await _connection!.InvokeAsync<LeaveRoomResponse>(nameof(LeaveRoomAsync), roomId);
 
-    public async Task SendChatMessageAsync(string chatId, string contentType, byte[] message) =>
-        await _connection!.InvokeAsync(nameof(SendChatMessageAsync), chatId, contentType, message);
+    public async Task SendContentMessageAsync(string roomId, string contentType, byte[] message) =>
+        await _connection!.InvokeAsync(nameof(SendContentMessageAsync), roomId, contentType, message);
 
     public async Task<GetLoggedUsersResponse> GetLoggedUsersAsync() =>
         await _connection!.InvokeAsync<GetLoggedUsersResponse>(nameof(GetLoggedUsersAsync));
 
-    public async Task<GetLoggedChatUsersResponse> GetLoggedChatUsersAsync(string chatId)
-        => await _connection!.InvokeAsync<GetLoggedChatUsersResponse>(nameof(GetLoggedChatUsersAsync), chatId);
+    public async Task<GetLoggedRoomUsersResponse> GetLoggedRoomUsersAsync(string roomId)
+        => await _connection!.InvokeAsync<GetLoggedRoomUsersResponse>(nameof(GetLoggedRoomUsersAsync), roomId);
 
-    public async Task<GetUserChatsResponse> GetUserChatsAsync() =>
-        await _connection!.InvokeAsync<GetUserChatsResponse>(nameof(GetUserChatsAsync));
+    public async Task<GetUserRoomsResponse> GetUserRoomsAsync() =>
+        await _connection!.InvokeAsync<GetUserRoomsResponse>(nameof(GetUserRoomsAsync));
 
-    public async Task<GetUserAvailableChatsResponse> GetUserAvailableChatsAsync() =>
-        await _connection!.InvokeAsync<GetUserAvailableChatsResponse>(nameof(GetUserAvailableChatsAsync));
+    public async Task<GetUserAvailableRoomsResponse> GetUserAvailableRoomsAsync() =>
+        await _connection!.InvokeAsync<GetUserAvailableRoomsResponse>(nameof(GetUserAvailableRoomsAsync));
 
     private sealed class Ref<T>
     {
@@ -100,8 +100,8 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
             {
                 connection.On<ConnectMessage>(Handle),
                 connection.On<DisconnectMessage>(Handle),
-                connection.On<JoinChatMessage>(Handle),
-                connection.On<LeaveChatMessage>(Handle),
+                connection.On<JoinRoomMessage>(Handle),
+                connection.On<LeaveRoomMessage>(Handle),
                 connection.On<ContentMessage>(Handle)
             });
         }
@@ -125,22 +125,22 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
             _messenger.Send(message);
         }
 
-        private void Handle(JoinChatMessage message)
+        private void Handle(JoinRoomMessage message)
         {
             _messenger.Send(message);
-            _messenger.Send(message, message.Chat.Id);
+            _messenger.Send(message, message.Room.Id);
         }
 
-        private void Handle(LeaveChatMessage message)
+        private void Handle(LeaveRoomMessage message)
         {
             _messenger.Send(message);
-            _messenger.Send(message, message.Chat.Id);
+            _messenger.Send(message, message.Room.Id);
         }
 
         private void Handle(ContentMessage message)
         {
             _messenger.Send(message);
-            _messenger.Send(message, message.ChatId);
+            _messenger.Send(message, message.RoomId);
         }
     }
 

@@ -1,31 +1,28 @@
-import { CircularProgress } from "@mui/material";
-import { Suspense, useEffect, useState } from "react";
-import { Chat } from "../Chats/chat";
-import { GetUserChatsResponse } from "../Chats/getUserChatsResponse";
-import { Authentication } from "../Security/authentitcation";
-import { hubClient } from "../Services/hub-client";
-import { messenger } from "../Services/messenger";
-import { wrapPromise } from "../Services/wrap-promise";
+import { Grid, List, ListItemButton, ListItemText } from "@mui/material";
+import { useState } from "react";
+import { GetUserRoomsResponse } from "../Rooms/get-user-rooms-response";
+import { Room } from "./Room";
 
-const InnerLobby = ({ resource }: { resource: () => GetUserChatsResponse } ) => {
-  const response = resource();
-  return (
-    <div>{
-      response.chats.map(chat => (
-        <div key={chat.id}>
-          {chat.name}
-        </div>
-      ))
-    }
-    </div>
-  );
-}
-
-export const Lobby = () => {
-  const resource = wrapPromise(hubClient.getUserChats());
-  return (
-    <Suspense fallback={<CircularProgress />}>
-      <InnerLobby resource={resource} />
-    </Suspense>
-  );
-}
+export const Lobby = ({ getUserRooms }: { getUserRooms: () => GetUserRoomsResponse } ) => {
+    const { rooms } = getUserRooms();
+    const [roomId, setRoomId] = useState(rooms[0]?.id);
+    return (
+        <Grid container spacing={2}>
+            <Grid item xs={2}>
+                <List>{
+                    rooms.map(room => (
+                        <ListItemButton
+                            key={room.id}
+                            onClick={() => setRoomId(room.id)}
+                            selected={room.id == roomId}>
+                            <ListItemText primary={room.name} secondary={room.id}/>
+                        </ListItemButton>
+                    ))
+                }</List>
+            </Grid>
+            <Grid item xs={10} style={{height: "100%"}}>
+                <Room roomId={roomId} />
+            </Grid>
+        </Grid>
+    );
+  }

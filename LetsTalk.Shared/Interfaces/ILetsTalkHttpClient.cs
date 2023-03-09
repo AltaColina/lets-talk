@@ -1,6 +1,6 @@
-﻿using LetsTalk.Chats;
-using LetsTalk.Chats.Commands;
-using LetsTalk.Chats.Queries;
+﻿using LetsTalk.Rooms;
+using LetsTalk.Rooms.Commands;
+using LetsTalk.Rooms.Queries;
 using LetsTalk.Roles;
 using LetsTalk.Roles.Commands;
 using LetsTalk.Roles.Queries;
@@ -18,12 +18,12 @@ public interface ILetsTalkHttpClient
     Task<Authentication> LoginAsync(LoginCommand request);
     Task<Authentication> RefreshAsync(RefreshCommand request);
 
-    Task<GetChatsResponse> GetChatsAsync(string token);
-    Task<ChatDto> GetChatAsync(string chatId, string token);
-    Task<ChatDto> CreateChatAsync(CreateChatCommand chat, string token);
-    Task<ChatDto> UpdateChatAsync(UpdateChatCommand chat, string token);
-    Task DeleteChatAsync(string chatId, string token);
-    Task<GetChatUsersResponse> GetChatUsersAsync(string chatId, string token);
+    Task<GetRoomsResponse> GetRoomsAsync(string token);
+    Task<RoomDto> GetRoomAsync(string roomId, string token);
+    Task<RoomDto> CreateRoomAsync(CreateRoomCommand room, string token);
+    Task<RoomDto> UpdateRoomAsync(UpdateRoomCommand room, string token);
+    Task DeleteRoomAsync(string roomId, string token);
+    Task<GetRoomUsersResponse> GetRoomUsersAsync(string roomId, string token);
 
     Task<GetRolesResponse> GetRolesAsync(string token);
     Task<RoleDto> GetRoleAsync(string roleId, string token);
@@ -36,5 +36,5 @@ public interface ILetsTalkHttpClient
     Task<UserDto> GetUserAsync(string userId, string token);
     Task<UserDto> UpdateUserAsync(UpdateUserCommand user, string token);
     Task DeleteUserAsync(string userId, string token);
-    Task<GetUserChatsResponse> GetUserChatsAsync(string userId, string token);
+    Task<GetUserRoomsResponse> GetUserRoomsAsync(string userId, string token);
 }

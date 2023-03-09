@@ -21,7 +21,7 @@
             CommandParameter="{Binding Source={Reference _mainPage}}"/>
     </ContentPage.Behaviors>
     <Grid ColumnDefinitions="Auto,*">
-        <views:ChatListView
+        <views:RoomListView
             IsVisible="{Binding IsAuthenticated}"
             Grid.Column="0"
             BindingContext="{Binding}" />
