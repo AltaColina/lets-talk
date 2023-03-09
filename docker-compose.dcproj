@@ -6,7 +6,7 @@
     <ProjectGuid>c8ca29b4-af01-400a-8615-b4d17040d426</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>letstalk</DockerServiceName>
+    <DockerServiceName>webapi</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">

@@ -1,11 +1,14 @@
 version: '3.4'
 
 services:
-  letstalk:
-    image: ${DOCKER_REGISTRY-}letstalk
+  webapi:
+    image: ${DOCKER_REGISTRY-}letstalk_webapi
     build:
       context: .
-      dockerfile: LetsTalk/Dockerfile
+      dockerfile: LetsTalk.WebApi/Dockerfile
+    depends_on:
+      - cache
+      - database
   cache:
     container_name: cache
     image: redis
@@ -19,3 +22,5 @@ services:
       - 8081:8081
     environment:
       ME_CONFIG_MONGODB_SERVER: database
+    depends_on:
+      - database
