@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Shared", "LetsTalk
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.ConsoleApp", "LetsTalk.ConsoleApp\LetsTalk.ConsoleApp.csproj", "{C7310758-761D-47E6-8C3E-7F6FDFF01983}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.App", "LetsTalk.App\LetsTalk.App.csproj", "{5EA1613C-B685-4247-A320-4CA0321A9473}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.MauiApp", "LetsTalk.MauiApp\LetsTalk.MauiApp.csproj", "{5EA1613C-B685-4247-A320-4CA0321A9473}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{C8CA29B4-AF01-400A-8615-B4D17040D426}"
 EndProject

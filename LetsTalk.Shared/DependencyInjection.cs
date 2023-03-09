@@ -2,7 +2,6 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using FluentValidation;
-using LetsTalk.App.Services;
 using LetsTalk.Behaviors;
 using LetsTalk.Interfaces;
 using LetsTalk.Profiles;

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace LetsTalk.App.Services;
+namespace LetsTalk.Services;
 
 internal sealed class LetsTalkHubClient : ILetsTalkHubClient
 {
