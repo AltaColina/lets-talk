@@ -3,7 +3,8 @@ using LetsTalk.Messaging;
 using System.Net.Mime;
 using System.Text;
 
-namespace LetsTalk.Console;
+namespace LetsTalk;
+
 internal sealed class MessageRecipient :
     IRecipient<ConnectMessage>,
     IRecipient<DisconnectMessage>,

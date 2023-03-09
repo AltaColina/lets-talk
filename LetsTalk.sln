@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.WebApi", "LetsTalk
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Shared", "LetsTalk.Shared\LetsTalk.Shared.csproj", "{FA78CFEB-F341-4FFD-AD57-5FDAE846FD8E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Console", "LetsTalk.Console\LetsTalk.Console.csproj", "{C7310758-761D-47E6-8C3E-7F6FDFF01983}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.ConsoleApp", "LetsTalk.ConsoleApp\LetsTalk.ConsoleApp.csproj", "{C7310758-761D-47E6-8C3E-7F6FDFF01983}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.App", "LetsTalk.App\LetsTalk.App.csproj", "{5EA1613C-B685-4247-A320-4CA0321A9473}"
 EndProject

@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using LetsTalk.Console;
+using LetsTalk;
 using LetsTalk.Interfaces;
 using LetsTalk.Rooms;
 using LetsTalk.Security.Commands;
