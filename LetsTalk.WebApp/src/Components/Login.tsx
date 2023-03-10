@@ -2,8 +2,8 @@ import { TextField } from "@mui/material";
 import Button from "@mui/material/Button";
 import { Box } from "@mui/system";
 import React, { useState } from "react";
-import { httpClient } from "../Services/http-client";
 import { Navigate } from 'react-router-dom';
+import { httpClient } from "../Services/http-client";
 import { hubClient } from "../Services/hub-client";
 import { messenger } from "../Services/messenger";
 
@@ -42,7 +42,7 @@ export const Login = () => {
 
   const onLoginClicked = async (): Promise<void> => {
     const auth = await httpClient.auth.login(values.username!, values.password!);
-    await hubClient.connect('/hubs/letstalk', messenger, () => auth.accessToken.id);
+    await hubClient.connect('/hubs/letstalk', messenger, () => auth.accessToken);
     setValues({
       ...values,
       isLoggedIn: true

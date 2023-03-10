@@ -1,10 +1,11 @@
 import { User } from "../Users/user";
-import { Token } from "./token";
 
 export interface IAuthentication {
     readonly user: User;
-    readonly accessToken: Token;
-    readonly refreshToken: Token;
+    readonly accessToken: string;
+    readonly accessTokenExpiresIn: string;
+    readonly refreshToken: string;
+    readonly refreshTokenExpiresIn: string;
     readonly permissions: ReadonlyArray<string>;
 }
 
@@ -12,8 +13,10 @@ const authKey = 'LetsTalkAuth';
 
 export class Authentication implements IAuthentication {
     public readonly user: User;
-    public readonly accessToken: Token;
-    public readonly refreshToken: Token;
+    readonly accessToken: string;
+    readonly accessTokenExpiresIn: string;
+    readonly refreshToken: string;
+    readonly refreshTokenExpiresIn: string;
     public readonly permissions: ReadonlyArray<string>;
 
     public static get current(): Authentication | null {
@@ -30,7 +33,9 @@ export class Authentication implements IAuthentication {
     public constructor(props: IAuthentication) {
         this.user = props.user;
         this.accessToken = props.accessToken;
+        this.accessTokenExpiresIn = props.accessTokenExpiresIn;
         this.refreshToken = props.accessToken;
+        this.refreshTokenExpiresIn = props.accessTokenExpiresIn;
         this.permissions = props.permissions;
     }
 }
