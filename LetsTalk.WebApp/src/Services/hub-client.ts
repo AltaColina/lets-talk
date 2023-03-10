@@ -115,7 +115,7 @@ class HubClient {
     }
   }
 
-  public async sendContentMessage<T>(roomId: string, contentType: string, contentBase64: string): Promise<void> {
+  public async sendContentMessage(roomId: string, contentType: string, contentBase64: string): Promise<void> {
     if (!this.isConnected)
       throw new Error('Not connected');
     return await this._connection!.invoke('SendContentMessageAsync', roomId, contentType, contentBase64);

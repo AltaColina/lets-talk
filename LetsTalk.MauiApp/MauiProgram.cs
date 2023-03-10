@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 
 namespace LetsTalk;
 
@@ -9,9 +8,9 @@ public static class MauiProgram
     {
 
 #if ANDROID
-        const string host = "10.0.2.2";
+        const string hostname = "10.0.2.2";
 #else
-        const string host = "localhost";
+        const string hostname = "localhost";
 #endif
         var builder = MauiApp.CreateBuilder();
         builder
@@ -22,7 +21,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
-        builder.Configuration.AddContainersConfiguration(host, "/LetsTalk");
+        builder.Configuration.AddContainersConfiguration(hostname);
         AddServices(builder.Services, builder.Configuration);
         AddViewModels(builder.Services);
         AddPages(builder.Services);
@@ -32,12 +31,10 @@ public static class MauiProgram
 
     private static void AddServices(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+        services.AddApplication();
+        services.AddLetsTalk(configuration);
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<RoomConnectionManager>();
-        services.AddLetsTalkSettings();
-        services.AddLetsTalkHttpClient(configuration);
-        services.AddLetsTalkHubClient();
     }
 
     private static void AddViewModels(IServiceCollection services)

@@ -1,4 +1,6 @@
-import { User } from "../Users/user";
+import { UserTag } from "../Users/user-tag";
 import { LTMessage } from "./lt-message";
 
-export interface ConnectMessage extends LTMessage<User> { }
+export interface ConnectMessage extends LTMessage {
+    user: UserTag;
+}

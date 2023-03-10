@@ -2,7 +2,7 @@
 <ContentView
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:messaging="clr-namespace:LetsTalk.Messaging;assembly=LetsTalk.Shared"
+    xmlns:messaging="clr-namespace:LetsTalk.Messaging;assembly=LetsTalk.Domain"
     xmlns:views="clr-namespace:LetsTalk.Views"
     xmlns:converters="clr-namespace:LetsTalk.Converters"
     xmlns:text="clr-namespace:System.Text;assembly=System.Text.Encoding"

@@ -25,7 +25,7 @@ internal sealed class PermissionPolicyProvider : IAuthorizationPolicyProvider
         if (_cachedPolicies.TryGetValue(policyName, out var result))
             return result;
 
-        if (Permissions.IsPermission(policyName))
+        if (Permissions.IsValid(policyName))
         {
             var policy = new AuthorizationPolicyBuilder()
                 .AddRequirements(new PermissionRequirement { Permission = policyName })

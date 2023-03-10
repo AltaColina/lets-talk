@@ -1,5 +1,5 @@
-﻿using LetsTalk.Models;
-using LetsTalk.Messaging;
+﻿using LetsTalk.Messaging;
+using LetsTalk.Models;
 using System.Reflection;
 using System.Text;
 

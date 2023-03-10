@@ -1,6 +1,7 @@
 ﻿using LetsTalk.Hubs.Commands;
 using LetsTalk.Hubs.Queries;
 using LetsTalk.Messaging;
+using LetsTalk.Users;
 using LetsTalk.Users.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -20,35 +21,38 @@ public sealed class LetsTalkHub : Hub
 
     public override async Task OnConnectedAsync()
     {
+        var userTag = new UserTag(Context.User!);
         var user = await _mediator.Send(new ConnectCommand
         {
             ConnectionId = Context.ConnectionId,
-            UserId = Context.User?.Identity?.Name!
+            UserId = userTag.Id
         });
 
         await Task.WhenAll(user.Rooms.Select(roomId => Groups.AddToGroupAsync(Context.ConnectionId, roomId)));
-        await Clients.Others.SendAsync(new ConnectMessage { Content = user });
+        await Clients.Others.SendAsync(new ConnectMessage { User = userTag });
         await base.OnConnectedAsync();
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
+        var userTag = new UserTag(Context.User!);
         var user = await _mediator.Send(new DisconnectCommand
         {
             ConnectionId = Context.ConnectionId,
-            UserId = Context.User?.Identity?.Name!
+            UserId = userTag.Id
         });
         await Task.WhenAll(user.Rooms.Select(roomId => Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId)));
-        await Clients.Others.SendAsync(new DisconnectMessage { Content = user });
+        await Clients.Others.SendAsync(new DisconnectMessage { User = userTag });
         await base.OnDisconnectedAsync(exception);
     }
 
     public async Task<JoinRoomResponse> JoinRoomAsync(string roomId)
     {
+        var userTag = new UserTag(Context.User!);
         var response = await _mediator.Send(new JoinRoomCommand
         {
             RoomId = roomId,
-            UserId = Context.User?.Identity?.Name!
+            UserId = userTag.Id
         });
 
         if (response.HasUserJoined)
@@ -56,8 +60,8 @@ public sealed class LetsTalkHub : Hub
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
             await Clients.Group(response.Room.Id).SendAsync(new JoinRoomMessage
             {
-                Room = response.Room,
-                Content = response.User
+                RoomId = roomId,
+                User = userTag
             });
         }
 
@@ -66,10 +70,11 @@ public sealed class LetsTalkHub : Hub
 
     public async Task<LeaveRoomResponse> LeaveRoomAsync(string roomId)
     {
+        var userTag = new UserTag(Context.User!);
         var response = await _mediator.Send(new LeaveRoomCommand
         {
             RoomId = roomId,
-            UserId = Context.User?.Identity?.Name!
+            UserId = userTag.Id
         });
 
         if (response.HasUserLeft)
@@ -77,8 +82,8 @@ public sealed class LetsTalkHub : Hub
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
             await Clients.Group(roomId).SendAsync(new LeaveRoomMessage
             {
-                Room = response.Room,
-                Content = response.User
+                RoomId = response.Room.Id,
+                User = userTag
             });
         }
 
@@ -87,10 +92,9 @@ public sealed class LetsTalkHub : Hub
 
     public async Task SendContentMessageAsync(string roomId, string contentType, byte[] content)
     {
-        var user = await _mediator.Send(new GetUserByIdCachedQuery { UserId = Context.User?.Identity?.Name! });
         await Clients.Group(roomId).SendAsync(new ContentMessage
         {
-            Sender = user,
+            Sender = new UserTag(Context.User!),
             RoomId = roomId,
             ContentType = contentType,
             Content = content,

@@ -50,7 +50,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\LetsTalk.Shared\LetsTalk.Shared.csproj" />
+	  <ProjectReference Include="..\LetsTalk.Application\LetsTalk.Application.csproj" />
+	  <ProjectReference Include="..\LetsTalk.Infrastructure\LetsTalk.Infrastructure.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

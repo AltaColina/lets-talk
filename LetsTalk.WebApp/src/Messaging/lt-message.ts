@@ -1,5 +1,4 @@
-﻿export interface LTMessage<T> {
+﻿export interface LTMessage {
   id: string;
   timestamp: string;
-  content: T;
 }

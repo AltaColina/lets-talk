@@ -2,6 +2,7 @@ version: '3.4'
 
 services:
   webapi:
+    container_name: LetsTalk.WebApi
     image: ${DOCKER_REGISTRY-}letstalk_webapi
     build:
       context: .
@@ -10,13 +11,13 @@ services:
       - cache
       - database
   cache:
-    container_name: cache
+    container_name: RedisCache
     image: redis
   database:
-    container_name: database
+    container_name: MongoDb
     image: mongo
-  database_admin:
-    container_name: database_admin
+  dbadmin:
+    container_name: MongoExpress
     image: mongo-express
     ports:
       - 8081:8081

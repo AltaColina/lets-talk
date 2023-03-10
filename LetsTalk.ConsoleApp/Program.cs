@@ -1,8 +1,6 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using LetsTalk;
-using LetsTalk.Interfaces;
+﻿using LetsTalk;
 using LetsTalk.Rooms;
-using LetsTalk.Security.Commands;
+using LetsTalk.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Net.Mime;
@@ -10,73 +8,67 @@ using System.Reflection;
 using System.Text;
 
 var host = Host.CreateDefaultBuilder(args)
-    .ConfigureAppConfiguration(configuration => configuration.AddContainersConfiguration("localhost", "/LetsTalk"))
+    .ConfigureAppConfiguration(configuration => configuration.AddContainersConfiguration("localhost"))
     .ConfigureServices((hostContext, services) => services
-        .AddSingleton<IMessenger>(WeakReferenceMessenger.Default)
-        .AddLetsTalkSettings()
-        .AddLetsTalkHttpClient(hostContext.Configuration)
-        .AddLetsTalkHubClient()
+        .AddApplication()
+        .AddLetsTalk(hostContext.Configuration)
         .AddTransient<MessageRecipient>())
     .UseConsoleLifetime()
     .Build();
 
 host.Start();
 
-var startChoice = -2;
-while (startChoice < 0 || startChoice > 2)
+var httpClient = host.Services.GetRequiredService<ILetsTalkHttpClient>();
+
+var settings = host.Services.GetRequiredService<ILetsTalkSettings>();
+
+while (!settings.IsAuthenticated)
 {
+    var startChoice = -1;
+
     Console.WriteLine("1: Register");
     Console.WriteLine("2: Login");
     Console.WriteLine("0: Exit");
     var line = Console.ReadLine();
-    if (!Int32.TryParse(line, out startChoice))
-        Console.WriteLine("Invalid choice.");
-}
 
-if (startChoice == 0)
-    return;
-
-var httpClient = host.Services.GetRequiredService<ILetsTalkHttpClient>();
-
-var settings = host.Services.GetRequiredService<ILetsTalkSettings>();
-// Register or login.
-if (startChoice == 1)
-{
-    while (!settings.IsAuthenticated)
+    // Invalid
+    if (!Int32.TryParse(line, out startChoice) || startChoice is < 0 or > 2)
     {
-        Console.Write("Username: ");
-        var username = Console.ReadLine()!;
-        Console.Write("Password: ");
-        var password = Console.ReadLine()!;
-        try
-        {
-            settings.Authentication = await httpClient.RegisterAsync(new RegisterCommand { Username = username, Password = password });
-        }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
+        Console.WriteLine($"Invalid choice '{line}'");
+        continue;
+    }
+
+    // Exit
+    if (startChoice == 0)
+    {
+        return;
+    }
+
+    Console.Write("Username: ");
+    var username = Console.ReadLine()!;
+    Console.Write("Password: ");
+    var password = Console.ReadLine()!;
+    var displayName = default(string);
+    if (startChoice is 1)
+    {
+        Console.Write("Display name (optional): ");
+        displayName = Console.ReadLine()!;
+        if (String.IsNullOrWhiteSpace(displayName))
+            displayName = null;
+    }
+
+    try
+    {
+        settings.Authentication = startChoice is 1
+            ? await httpClient.RegisterAsync(username, username, displayName)
+            : await httpClient.LoginAsync(username, username);
+    }
+    catch (HttpRequestException ex)
+    {
+        Console.WriteLine(ex);
     }
 }
-else
-{
-    // Login.
-    while (!settings.IsAuthenticated)
-    {
-        Console.Write("Username: ");
-        var username = Console.ReadLine()!;
-        Console.Write("Password: ");
-        var password = Console.ReadLine()!;
-        try
-        {
-            settings.Authentication = await httpClient.LoginAsync(new LoginCommand { Username = username, Password = password });
-        }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-    }
-}
+
 var hubClient = host.Services.GetRequiredService<ILetsTalkHubClient>();
 await hubClient.ConnectAsync();
 

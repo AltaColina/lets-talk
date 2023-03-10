@@ -4,9 +4,9 @@ namespace LetsTalk.Models;
 
 public sealed class ContentMessageTemplateSelector : DataTemplateSelector
 {
-    public DataTemplate TextPlain { get; set; } = null!;
-    public DataTemplate Image { get; set; } = null!;
-    public DataTemplate Default { get; set; } = null!;
+    public required DataTemplate TextPlain { get; set; }
+    public required DataTemplate Image { get; set; }
+    public required DataTemplate Default { get; set; }
 
 
     protected override DataTemplate OnSelectTemplate(object item, BindableObject container)

@@ -1,5 +1,4 @@
-import { Outlet, Navigate } from 'react-router-dom';
-import { Authentication } from '../Security/authentitcation';
+import { Navigate, Outlet } from 'react-router-dom';
 import { hubClient } from '../Services/hub-client';
 
 export const PrivateRoutes = () => {

@@ -48,11 +48,7 @@ public partial class LoginViewModel : BaseViewModel
     {
         try
         {
-            var response = await _letsTalkClient.LoginAsync(new LoginCommand
-            {
-                Username = LoginUsername!,
-                Password = LoginPassword!
-            });
+            var response = await _letsTalkClient.LoginAsync(LoginUsername!, LoginPassword!);
             await _navigation.ReturnAsync(new NavigationParameters
             {
                 ["Authentication"] = response
@@ -69,12 +65,7 @@ public partial class LoginViewModel : BaseViewModel
     {
         try
         {
-            var response = await _letsTalkClient.RegisterAsync(new RegisterCommand
-            {
-                Username = RegisterUsername!,
-                Password = RegisterPassword!,
-                Name = RegisterDisplayName
-            });
+            var response = await _letsTalkClient.RegisterAsync(RegisterUsername!, RegisterPassword!, RegisterDisplayName);
             await _navigation.ReturnAsync(new NavigationParameters
             {
                 ["Authentication"] = response

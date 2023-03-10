@@ -1,8 +1,9 @@
 ﻿import { LTMessage } from "../Messaging/lt-message";
-import { User } from "../Users/user";
+import { UserTag } from "../Users/user-tag";
 
-export interface ContentMessage extends LTMessage<string> {
-  sender: User;
+export interface ContentMessage extends LTMessage {
+  sender: UserTag;
   roomId: string;
   contentType: string;
+  content: string;
 }

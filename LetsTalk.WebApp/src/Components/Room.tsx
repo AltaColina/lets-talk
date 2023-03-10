@@ -6,7 +6,7 @@ import { ContentMessage } from "../Messaging/content-message";
 import { hubClient } from "../Services/hub-client";
 import { messenger } from "../Services/messenger";
 
-const decondeTextPlain = (content: string): string => {
+const decodeTextPlain = (content: string): string => {
     return Buffer.from(content, 'base64').toString();
 }
 
@@ -36,17 +36,17 @@ export const Room = ({ roomId }: { roomId: string }) => {
         setCanSend(!!content);
     };
     const sendMessage = async () => {
-        await hubClient.sendContentMessage(roomId, 'text/plain', Buffer.from(content!, 'utf-8').toString('base64'));
+        await hubClient.sendContentMessage(roomId, 'text/plain', Buffer.from(encode(content)).toString('base64'));
     };
 
     return (
         <Grid container direction="column" spacing={2}>
-            <Grid container xs={10}>
+            <Grid item container xs={10}>
                 <List>
                 {
                     msgs.map(msg => (
                         <ListItem key={msg.id}>
-                            {decondeTextPlain(msg.content)}
+                            {decodeTextPlain(msg.content)}
                         </ListItem>
                     ))
                 }

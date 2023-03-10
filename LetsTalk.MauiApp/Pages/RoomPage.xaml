@@ -6,7 +6,7 @@
     xmlns:models="clr-namespace:LetsTalk.Models"
     xmlns:viewmodels="clr-namespace:LetsTalk.ViewModels"
     xmlns:views="clr-namespace:LetsTalk.Views"
-    xmlns:messaging="clr-namespace:LetsTalk.Messaging;assembly=LetsTalk.Shared"
+    xmlns:messaging="clr-namespace:LetsTalk.Messaging;assembly=LetsTalk.Domain"
     x:Class="LetsTalk.Pages.RoomPage"
     x:DataType="viewmodels:RoomViewModel"
     Title="{Binding Title}">

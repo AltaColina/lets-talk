@@ -14,7 +14,7 @@ export const Lobby = ({ getUserRooms }: { getUserRooms: () => GetUserRoomsRespon
                         <ListItemButton
                             key={room.id}
                             onClick={() => setRoomId(room.id)}
-                            selected={room.id == roomId}>
+                            selected={room.id === roomId}>
                             <ListItemText primary={room.name} secondary={room.id}/>
                         </ListItemButton>
                     ))

@@ -1,6 +1,5 @@
 using LetsTalk.Filters;
 using LetsTalk.Hubs;
-using LetsTalk.Interfaces;
 using LetsTalk.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -13,8 +12,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Security.
 builder.Services.AddCryptography(builder.Configuration);
-builder.Services.AddSingleton<IAuthenticationManager, AuthenticationManager>();
-builder.Services.AddSingleton<ITokenProvider, JwtTokenProvider>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opts =>
     {
@@ -41,7 +38,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-builder.Services.AddSingleton<IAuthenticationManager, AuthenticationManager>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();

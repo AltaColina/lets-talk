@@ -1,8 +1,8 @@
-import { Room } from "../Rooms/room";
-import { User } from "../Users/user";
+import { UserTag } from "../Users/user-tag";
 import { LTMessage } from "./lt-message";
 
-export interface JoinRoomMessage extends LTMessage<User> {
-  room: Room;
+export interface JoinRoomMessage extends LTMessage {
+  roomId: string;
+  user: UserTag;
 }
 

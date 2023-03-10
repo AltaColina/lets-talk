@@ -37,9 +37,9 @@ internal sealed class PermissionHandler : AuthorizationHandler<PermissionRequire
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        if (context.User.Identity?.Name is string username)
+        if (context.User.Identity?.Name is string userId)
         {
-            var cacheKey = $"roles_{username}";
+            var cacheKey = $"roles_{userId}";
             var roles = default(List<Role>);
             var rolesJson = await _distributedCache.GetStringAsync(cacheKey);
             if (rolesJson is not null)
@@ -48,7 +48,7 @@ internal sealed class PermissionHandler : AuthorizationHandler<PermissionRequire
             }
             else
             {
-                var user = (await _userRepository.GetByIdAsync(username))!;
+                var user = (await _userRepository.GetByIdAsync(userId))!;
                 roles = await _roleRepository.ListAsync(new GetUserRolesSpecification(user));
                 await _distributedCache.SetStringAsync(cacheKey, JsonSerializer.Serialize(roles));
             }
