@@ -9,5 +9,5 @@ public sealed class User : Entity
     public DateTimeOffset LastLoginTime { get; set; }
     public HashSet<string> Roles { get; init; } = new();
     public HashSet<string> Rooms { get; init; } = new();
-    public List<Token> RefreshTokens { get; set; } = new();
+    public List<RefreshToken> RefreshTokens { get; set; } = new();
 }

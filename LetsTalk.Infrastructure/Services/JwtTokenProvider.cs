@@ -1,5 +1,4 @@
-﻿using LetsTalk.Security;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -23,7 +22,7 @@ internal sealed class JwtTokenProvider : ITokenProvider
         _refreshTokenExpireTime = TimeSpan.FromDays(1);
     }
 
-    public Token GenerateAccessToken(ClaimsIdentity identity)
+    public string GenerateAccessToken(ClaimsIdentity identity, out DateTimeOffset expiresIn)
     {
         var issuedDateTime = DateTime.UtcNow;
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -33,21 +32,19 @@ internal sealed class JwtTokenProvider : ITokenProvider
             SigningCredentials = _signingCredentials,
         };
         var securityToken = _tokenHandler.CreateToken(tokenDescriptor);
-        return new Token
-        {
-            Id = _tokenHandler.WriteToken(securityToken),
-            ExpiresIn = (DateTimeOffset)tokenDescriptor.Expires,
-        };
+
+        expiresIn = (DateTimeOffset)tokenDescriptor.Expires;
+
+        return _tokenHandler.WriteToken(securityToken);
     }
 
-    public Token GenerateRefreshToken(ClaimsIdentity identity)
+    public string GenerateRefreshToken(ClaimsIdentity identity, out DateTimeOffset expiresIn)
     {
         Span<byte> buffer = stackalloc byte[_refreshTokenLength];
         RandomNumberGenerator.Fill(buffer);
-        return new Token
-        {
-            Id = Convert.ToBase64String(buffer),
-            ExpiresIn = DateTimeOffset.UtcNow.Add(_refreshTokenExpireTime),
-        };
+
+        expiresIn = DateTimeOffset.UtcNow.Add(_refreshTokenExpireTime);
+
+        return Convert.ToBase64String(buffer);
     }
 }

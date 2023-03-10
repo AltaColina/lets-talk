@@ -65,20 +65,22 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     private async Task<Authentication> LoginKnownUserAsync(User user)
     {
         var identity = GetIdentity(user);
-        var accessToken = _tokenProvider.GenerateAccessToken(identity);
-        var refreshToken = _tokenProvider.GenerateRefreshToken(identity);
+        var accessToken = _tokenProvider.GenerateAccessToken(identity, out var accessTokenExpiresIn);
+        var refreshToken = _tokenProvider.GenerateRefreshToken(identity, out var refreshTokenExpiresIn);
         var permissions = await GetPermissions(user);
 
         user.LastLoginTime = DateTime.UtcNow;
         user.RefreshTokens.RemoveAll(token => token.ExpiresIn < user.LastLoginTime);
-        user.RefreshTokens.Add(refreshToken);
+        user.RefreshTokens.Add(new RefreshToken { Value = refreshToken, ExpiresIn = refreshTokenExpiresIn });
         await _userRepository.UpdateAsync(user);
 
         return new Authentication
         {
             User = _mapper.Map<UserDto>(user),
             AccessToken = accessToken,
+            AccessTokenExpiresIn = accessTokenExpiresIn,
             RefreshToken = refreshToken,
+            RefreshTokenExpiresIn = refreshTokenExpiresIn,
             Permissions = permissions
         };
     }
@@ -110,7 +112,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     public async Task<Authentication> AuthenticateAsync(RefreshCommand request)
     {
         var user = await _userRepository.GetByNameAsync(request.Username);
-        if (user is null || user.RefreshTokens.SingleOrDefault(token => token.Id == request.RefreshToken) is not Token token || token.ExpiresIn < DateTimeOffset.UtcNow)
+        if (user is null || user.RefreshTokens.SingleOrDefault(token => token.Value == request.RefreshToken) is not RefreshToken token || token.ExpiresIn < DateTimeOffset.UtcNow)
             throw ExceptionFor<User>.Forbidden();
 
         return await LoginKnownUserAsync(user);

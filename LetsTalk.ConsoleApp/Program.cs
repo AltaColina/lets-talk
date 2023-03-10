@@ -48,19 +48,11 @@ while (!settings.IsAuthenticated)
     var username = Console.ReadLine()!;
     Console.Write("Password: ");
     var password = Console.ReadLine()!;
-    var displayName = default(string);
-    if (startChoice is 1)
-    {
-        Console.Write("Display name (optional): ");
-        displayName = Console.ReadLine()!;
-        if (String.IsNullOrWhiteSpace(displayName))
-            displayName = null;
-    }
 
     try
     {
         settings.Authentication = startChoice is 1
-            ? await httpClient.RegisterAsync(username, username, displayName)
+            ? await httpClient.RegisterAsync(username, username)
             : await httpClient.LoginAsync(username, username);
     }
     catch (HttpRequestException ex)
@@ -107,7 +99,7 @@ while (room is null)
         var roomId = Console.ReadLine()!;
         if (roomId != "/back")
         {
-            var newRoom = await httpClient.GetRoomAsync(roomId, settings.Authentication.AccessToken.Id);
+            var newRoom = await httpClient.GetRoomAsync(roomId, settings.Authentication.AccessToken);
             rooms.Add(newRoom);
             await hubClient.JoinRoomAsync(roomId);
         }

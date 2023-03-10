@@ -73,12 +73,11 @@ public sealed partial class AddRoomViewModel : BaseViewModel
     {
         try
         {
-            var roomId = RoomId!;
-            _ = await _httpClient.CreateRoomAsync(new CreateRoomCommand
+            var room = await _httpClient.CreateRoomAsync(new CreateRoomCommand
             {
-                Id = roomId,
                 Name = RoomName!,
             }, _settings.AccessToken!);
+            RoomId = room.Id;
             var response = await _hubClient.JoinRoomAsync(RoomId!);
             if (response.HasUserJoined)
             {

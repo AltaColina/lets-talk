@@ -85,15 +85,6 @@
                 Grid.Column="1"
                 IsPassword="True"
                 Text="{Binding RegisterPassword}" />
-            <Label
-                Grid.Row="2"
-                Grid.Column="0"
-                VerticalTextAlignment="Center"
-                Text="Display Name"/>
-            <Entry
-                Grid.Row="2"
-                Grid.Column="1"
-                Text="{Binding RegisterDisplayName}" />
         </Grid>
         <Button
             HorizontalOptions="Center"

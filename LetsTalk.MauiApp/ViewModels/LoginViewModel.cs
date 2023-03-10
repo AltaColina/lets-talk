@@ -22,13 +22,9 @@ public partial class LoginViewModel : BaseViewModel
     [NotifyCanExecuteChangedFor(nameof(RegisterCommand))]
     private string? _registerPassword;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(RegisterCommand))]
-    private string? _registerDisplayName;
-
     public bool CanLogin { get => !String.IsNullOrWhiteSpace(LoginUsername) && !String.IsNullOrWhiteSpace(LoginPassword); }
 
-    public bool CanRegister { get => !String.IsNullOrWhiteSpace(RegisterUsername) && !String.IsNullOrWhiteSpace(RegisterPassword) && (RegisterDisplayName is null || !String.IsNullOrWhiteSpace(RegisterDisplayName)); }
+    public bool CanRegister { get => !String.IsNullOrWhiteSpace(RegisterUsername) && !String.IsNullOrWhiteSpace(RegisterPassword); }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
@@ -65,7 +61,7 @@ public partial class LoginViewModel : BaseViewModel
     {
         try
         {
-            var response = await _letsTalkClient.RegisterAsync(RegisterUsername!, RegisterPassword!, RegisterDisplayName);
+            var response = await _letsTalkClient.RegisterAsync(RegisterUsername!, RegisterPassword!);
             await _navigation.ReturnAsync(new NavigationParameters
             {
                 ["Authentication"] = response

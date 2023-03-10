@@ -1,10 +1,9 @@
-﻿using LetsTalk.Security;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 
 namespace LetsTalk.Services;
 
 public interface ITokenProvider
 {
-    Token GenerateAccessToken(ClaimsIdentity identity);
-    Token GenerateRefreshToken(ClaimsIdentity identity);
+    string GenerateAccessToken(ClaimsIdentity identity, out DateTimeOffset expiresIn);
+    string GenerateRefreshToken(ClaimsIdentity identity, out DateTimeOffset expiresIn);
 }

@@ -11,9 +11,9 @@ public interface ILetsTalkSettings
 
     public string? UserId { get => Authentication?.User.Id; }
 
-    public string? AccessToken { get => Authentication?.AccessToken.Id; }
+    public string? AccessToken { get => Authentication?.AccessToken; }
 
-    public string? RefreshToken { get => Authentication?.RefreshToken.Id; }
+    public string? RefreshToken { get => Authentication?.RefreshToken; }
 
     Task<string?> ProvideToken();
 }
