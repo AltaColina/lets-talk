@@ -6,6 +6,7 @@ using LetsTalk.Roles;
 using LetsTalk.Security;
 using LetsTalk.Security.Commands;
 using LetsTalk.Users;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
@@ -65,22 +66,22 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     private async Task<Authentication> LoginKnownUserAsync(User user)
     {
         var identity = GetIdentity(user);
-        var accessToken = _tokenProvider.GenerateAccessToken(identity, out var accessTokenExpiresIn);
-        var refreshToken = _tokenProvider.GenerateRefreshToken(identity, out var refreshTokenExpiresIn);
+        var accessToken = _tokenProvider.GenerateAccessToken(identity, out var serializedAccessToken);
+        var refreshToken = _tokenProvider.GenerateRefreshToken(identity, out var serializedRefreshToken);
         var permissions = await GetPermissions(user);
 
         user.LastLoginTime = DateTime.UtcNow;
-        user.RefreshTokens.RemoveAll(token => token.ExpiresIn < user.LastLoginTime);
-        user.RefreshTokens.Add(new RefreshToken { Value = refreshToken, ExpiresIn = refreshTokenExpiresIn });
+        user.RefreshTokens.RemoveWhere(token => new JwtSecurityToken(token).ValidTo < user.LastLoginTime);
+        user.RefreshTokens.Add(serializedRefreshToken);
         await _userRepository.UpdateAsync(user);
 
         return new Authentication
         {
             User = _mapper.Map<UserDto>(user),
-            AccessToken = accessToken,
-            AccessTokenExpiresIn = accessTokenExpiresIn,
-            RefreshToken = refreshToken,
-            RefreshTokenExpiresIn = refreshTokenExpiresIn,
+            AccessToken = serializedAccessToken,
+            AccessTokenExpires = accessToken.ValidTo,
+            RefreshToken = serializedRefreshToken,
+            RefreshTokenExpires = refreshToken.ValidTo,
             Permissions = permissions
         };
     }
@@ -112,7 +113,13 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     public async Task<Authentication> AuthenticateAsync(RefreshCommand request)
     {
         var user = await _userRepository.GetByNameAsync(request.Username);
-        if (user is null || user.RefreshTokens.SingleOrDefault(token => token.Value == request.RefreshToken) is not RefreshToken token || token.ExpiresIn < DateTimeOffset.UtcNow)
+        if (user is null)
+            throw ExceptionFor<User>.Forbidden();
+        if (!user.RefreshTokens.Contains(request.RefreshToken))
+            throw ExceptionFor<User>.Forbidden();
+
+        var refreshToken = new JwtSecurityToken(request.RefreshToken);
+        if (refreshToken.ValidTo < DateTime.UtcNow)
             throw ExceptionFor<User>.Forbidden();
 
         return await LoginKnownUserAsync(user);

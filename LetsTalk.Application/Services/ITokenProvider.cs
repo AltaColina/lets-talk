@@ -1,9 +1,10 @@
-﻿using System.Security.Claims;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace LetsTalk.Services;
 
 public interface ITokenProvider
 {
-    string GenerateAccessToken(ClaimsIdentity identity, out DateTimeOffset expiresIn);
-    string GenerateRefreshToken(ClaimsIdentity identity, out DateTimeOffset expiresIn);
+    public SecurityToken GenerateAccessToken(ClaimsIdentity identity, out string serializedToken);
+    public SecurityToken GenerateRefreshToken(ClaimsIdentity identity, out string serializedToken);
 }

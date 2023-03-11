@@ -3,9 +3,9 @@ import { User } from "../Users/user";
 export interface IAuthentication {
     readonly user: User;
     readonly accessToken: string;
-    readonly accessTokenExpiresIn: string;
+    readonly accessTokenExpires: string;
     readonly refreshToken: string;
-    readonly refreshTokenExpiresIn: string;
+    readonly refreshTokenExpires: string;
     readonly permissions: ReadonlyArray<string>;
 }
 
@@ -14,9 +14,9 @@ const authKey = 'LetsTalkAuth';
 export class Authentication implements IAuthentication {
     public readonly user: User;
     readonly accessToken: string;
-    readonly accessTokenExpiresIn: string;
+    readonly accessTokenExpires: string;
     readonly refreshToken: string;
-    readonly refreshTokenExpiresIn: string;
+    readonly refreshTokenExpires: string;
     public readonly permissions: ReadonlyArray<string>;
 
     public static get current(): Authentication | null {
@@ -33,9 +33,9 @@ export class Authentication implements IAuthentication {
     public constructor(props: IAuthentication) {
         this.user = props.user;
         this.accessToken = props.accessToken;
-        this.accessTokenExpiresIn = props.accessTokenExpiresIn;
+        this.accessTokenExpires = props.accessTokenExpires;
         this.refreshToken = props.accessToken;
-        this.refreshTokenExpiresIn = props.accessTokenExpiresIn;
+        this.refreshTokenExpires = props.accessTokenExpires;
         this.permissions = props.permissions;
     }
 }
