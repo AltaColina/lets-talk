@@ -15,12 +15,12 @@ namespace LetsTalk.Services;
 internal sealed class AuthenticationManager : IAuthenticationManager
 {
     private readonly IMapper _mapper;
-    private readonly ITokenProvider _tokenProvider;
+    private readonly IJwtTokenProvider _tokenProvider;
     private readonly IPasswordHandler _passwordHandler;
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
 
-    public AuthenticationManager(IMapper mapper, ITokenProvider tokenProvider, IPasswordHandler passwordHandler, IUserRepository userRepository, IRoleRepository roleRepository)
+    public AuthenticationManager(IMapper mapper, IJwtTokenProvider tokenProvider, IPasswordHandler passwordHandler, IUserRepository userRepository, IRoleRepository roleRepository)
     {
         _mapper = mapper;
         _tokenProvider = tokenProvider;
@@ -66,22 +66,22 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     private async Task<Authentication> LoginKnownUserAsync(User user)
     {
         var identity = GetIdentity(user);
-        var accessToken = _tokenProvider.GenerateAccessToken(identity, out var serializedAccessToken);
-        var refreshToken = _tokenProvider.GenerateRefreshToken(identity, out var serializedRefreshToken);
+        var accessToken = _tokenProvider.CreateAccessToken(identity, out var accessTokenExpires);
+        var refreshToken = _tokenProvider.CreateRefreshToken(identity, out var refreshTokenExpires);
         var permissions = await GetPermissions(user);
 
         user.LastLoginTime = DateTime.UtcNow;
         user.RefreshTokens.RemoveWhere(token => new JwtSecurityToken(token).ValidTo < user.LastLoginTime);
-        user.RefreshTokens.Add(serializedRefreshToken);
+        user.RefreshTokens.Add(refreshToken);
         await _userRepository.UpdateAsync(user);
 
         return new Authentication
         {
             User = _mapper.Map<UserDto>(user),
-            AccessToken = serializedAccessToken,
-            AccessTokenExpires = accessToken.ValidTo,
-            RefreshToken = serializedRefreshToken,
-            RefreshTokenExpires = refreshToken.ValidTo,
+            AccessToken = accessToken,
+            AccessTokenExpires = accessTokenExpires,
+            RefreshToken = refreshToken,
+            RefreshTokenExpires = refreshTokenExpires,
             Permissions = permissions
         };
     }
@@ -117,8 +117,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
             throw ExceptionFor<User>.Forbidden();
         if (!user.RefreshTokens.Contains(request.RefreshToken))
             throw ExceptionFor<User>.Forbidden();
-
-        var refreshToken = new JwtSecurityToken(request.RefreshToken);
+        var refreshToken = _tokenProvider.ReadRefreshToken(request.RefreshToken);
         if (refreshToken.ValidTo < DateTime.UtcNow)
             throw ExceptionFor<User>.Forbidden();
 

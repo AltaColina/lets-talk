@@ -1,51 +1,62 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using System.Text;
+using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace LetsTalk.Services;
 
-internal sealed class JwtTokenProvider : ITokenProvider
+internal sealed class JwtTokenProvider : IJwtTokenProvider
 {
+    private readonly ISymmetricEncryptor _encryptor;
     private readonly SigningCredentials _signingCredentials;
-    private readonly JwtSecurityTokenHandler _tokenHandler;
+    private readonly JsonWebTokenHandler _tokenHandler;
     private readonly TimeSpan _accessTokenExpireTime;
     private readonly TimeSpan _refreshTokenExpireTime;
 
-    public JwtTokenProvider(SecurityKey securityKey)
+    public JwtTokenProvider(ISymmetricEncryptor encryptor, IConfiguration configuration)
     {
-        _signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
-        _tokenHandler = new JwtSecurityTokenHandler();
+        _encryptor = encryptor;
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetRequiredSection("SigningKey").Value!));
+        _signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature);
+        _tokenHandler = new JsonWebTokenHandler();
         _accessTokenExpireTime = TimeSpan.FromHours(1);
         _refreshTokenExpireTime = TimeSpan.FromDays(1);
     }
 
-    private SecurityToken CreateToken(ClaimsIdentity identity, bool isAccess, out string serializedToken)
+    public string CreateAccessToken(ClaimsIdentity identity, out DateTime expires)
     {
         var issuedAt = DateTime.UtcNow;
-        var tokenDescriptor = new SecurityTokenDescriptor
+        expires = issuedAt.Add(_accessTokenExpireTime);
+        return _tokenHandler.CreateToken(new SecurityTokenDescriptor
         {
             Subject = identity,
             IssuedAt = issuedAt,
             NotBefore = issuedAt,
-            Expires = issuedAt.Add(isAccess ? _accessTokenExpireTime : _refreshTokenExpireTime)
-        };
-        if (isAccess)
-            tokenDescriptor.SigningCredentials = _signingCredentials;
-
-        var token = _tokenHandler.CreateToken(tokenDescriptor);
-
-        serializedToken = _tokenHandler.WriteToken(token);
-
-        return token;
+            Expires = expires,
+            SigningCredentials = _signingCredentials,
+        });
     }
 
-    public SecurityToken GenerateAccessToken(ClaimsIdentity identity, out string serializedToken)
+    public JsonWebToken ReadAccessToken(string accessToken)
     {
-        return CreateToken(identity, isAccess: true, out serializedToken);
+        return _tokenHandler.ReadJsonWebToken(accessToken);
     }
 
-    public SecurityToken GenerateRefreshToken(ClaimsIdentity identity, out string serializedToken)
+    public string CreateRefreshToken(ClaimsIdentity identity, out DateTime expires)
     {
-        return CreateToken(identity, isAccess: false, out serializedToken);
+        var issuedAt = DateTime.UtcNow;
+        expires = issuedAt.Add(_refreshTokenExpireTime);
+        var name = identity.Claims.Single(c => c.Type == ClaimTypes.Name).Value;
+        var payload = $$"""{"{{JwtRegisteredClaimNames.Name}}":{{name}},"{{JwtRegisteredClaimNames.Nbf}}:{{issuedAt}},"{{JwtRegisteredClaimNames.Exp}}: {{expires}},"{{JwtRegisteredClaimNames.Iss}}: {{issuedAt}}}""";
+        var k = _encryptor.Encrypt(payload);
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(payload));
+    }
+
+    public JsonWebToken ReadRefreshToken(string refreshToken)
+    {
+        var payload = Encoding.UTF8.GetString(Convert.FromBase64String(refreshToken));
+        return new JsonWebToken("{}", payload);
     }
 }

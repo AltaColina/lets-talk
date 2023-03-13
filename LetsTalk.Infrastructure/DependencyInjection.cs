@@ -8,11 +8,9 @@ using LetsTalk.Services;
 using LetsTalk.Users;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,10 +21,9 @@ public static class DependencyInjection
         var hashType = typeof(MD5).Assembly.GetType($"{typeof(MD5).Namespace}.{configuration.GetRequiredSection("HashAlgorithm").Value!}", throwOnError: true)!;
         if (hashType.GetMethod(nameof(MD5.Create), Array.Empty<Type>())!.Invoke(null, null) is not HashAlgorithm instance)
             throw new InvalidOperationException($"Could not create hash algorithm '{configuration.GetRequiredSection("HashAlgorithm").Value}'");
-        services.AddSingleton<SecurityKey>(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetRequiredSection("SecurityKey").Value!)));
         services.AddSingleton<HashAlgorithm>(instance);
         services.AddSingleton<IPasswordHandler, PasswordHandler>();
-        services.AddSingleton<ITokenProvider, JwtTokenProvider>();
+        services.AddSingleton<IJwtTokenProvider, JwtTokenProvider>();
         services.AddSingleton<IAuthenticationManager, AuthenticationManager>();
         return services;
     }
