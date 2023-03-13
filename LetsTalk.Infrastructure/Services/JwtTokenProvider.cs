@@ -44,10 +44,9 @@ internal sealed class JwtTokenProvider : IJwtTokenProvider
 
     public string CreateRefreshToken(ClaimsIdentity identity, out DateTime expires)
     {
-        var issuedAt = DateTime.UtcNow;
-        expires = issuedAt.Add(_refreshTokenExpireTime);
-        var name = identity.Claims.Single(c => c.Type == ClaimTypes.Name).Value;
-        var payload = $$"""{"{{JwtRegisteredClaimNames.Name}}":{{name}},"{{JwtRegisteredClaimNames.Nbf}}:{{issuedAt}},"{{JwtRegisteredClaimNames.Exp}}: {{expires}},"{{JwtRegisteredClaimNames.Iss}}: {{issuedAt}}}""";
+        var offset = DateTimeOffset.UtcNow.Add(_refreshTokenExpireTime);
+        expires = offset.DateTime;
+        var payload = $$"""{"{{JwtRegisteredClaimNames.Jti}}":"{{Guid.NewGuid()}}","{{JwtRegisteredClaimNames.Exp}}":{{offset.ToUnixTimeSeconds()}}}""";
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(payload));
     }
 
