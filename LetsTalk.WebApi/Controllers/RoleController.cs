@@ -20,9 +20,9 @@ public class RoleController : ControllerBase
     }
 
     [HttpGet, Authorize(Permissions.Role.Read)]
-    public async Task<IActionResult> Get()
+    public async Task<IActionResult> Get([FromQuery] List<string?>? permission)
     {
-        var response = await _mediator.Send(new GetRolesQuery());
+        var response = await _mediator.Send(new GetRolesQuery { Permissions = permission });
         return Ok(response);
     }
 

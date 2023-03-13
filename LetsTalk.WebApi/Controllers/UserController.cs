@@ -20,9 +20,9 @@ public sealed class UserController : ControllerBase
     }
 
     [HttpGet, Authorize(Permissions.User.Read)]
-    public async Task<IActionResult> Get()
+    public async Task<IActionResult> Get([FromQuery] List<string?>? role)
     {
-        var response = await _mediator.Send(new GetUsersQuery());
+        var response = await _mediator.Send(new GetUsersQuery { Roles = role });
         return Ok(response);
     }
 

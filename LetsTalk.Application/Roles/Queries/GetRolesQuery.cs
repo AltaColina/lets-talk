@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Ardalis.Specification;
+using AutoMapper;
 using LetsTalk.Repositories;
 using MediatR;
 
@@ -11,6 +12,17 @@ public sealed class GetRolesResponse
 
 public sealed class GetRolesQuery : IRequest<GetRolesResponse>
 {
+    public List<string?>? Permissions { get; init; }
+
+    public sealed class Specification : Specification<Role>
+    {
+        public Specification(List<string?>? permissions)
+        {
+            if (permissions is [_, ..])
+                Query.Where(r => r.Permissions.Any(s => permissions.Any(t => t != null && s.Contains(t!))));
+        }
+    }
+
     public sealed class Handler : IRequestHandler<GetRolesQuery, GetRolesResponse>
     {
         private readonly IMapper _mapper;
@@ -24,7 +36,9 @@ public sealed class GetRolesQuery : IRequest<GetRolesResponse>
 
         public async Task<GetRolesResponse> Handle(GetRolesQuery request, CancellationToken cancellationToken)
         {
-            return new GetRolesResponse { Roles = _mapper.Map<List<RoleDto>>(await _roleRepository.ListAsync(cancellationToken)) };
+            var roles = await _roleRepository.ListAsync(new Specification(request.Permissions), cancellationToken);
+
+            return new GetRolesResponse { Roles = _mapper.Map<List<RoleDto>>(roles) };
         }
     }
 }

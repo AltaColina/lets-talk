@@ -49,6 +49,13 @@ export const Login = () => {
     });
   }
 
+  const onPasswordKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if(e.key === 'Enter') {
+        e.preventDefault();
+        await onLoginClicked();
+    }
+}
+
   return (
     <Box
       component="form"
@@ -66,7 +73,8 @@ export const Login = () => {
           required
           label="Password"
           type="password"
-          onChange={onPasswordChanged} />
+          onChange={onPasswordChanged}
+          onKeyDown={onPasswordKeyDown} />
       </div>
       <div>
         <Button

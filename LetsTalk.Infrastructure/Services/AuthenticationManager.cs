@@ -6,7 +6,6 @@ using LetsTalk.Roles;
 using LetsTalk.Security;
 using LetsTalk.Security.Commands;
 using LetsTalk.Users;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
@@ -71,7 +70,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         var permissions = await GetPermissions(user);
 
         user.LastLoginTime = DateTime.UtcNow;
-        user.RefreshTokens.RemoveWhere(token => new JwtSecurityToken(token).ValidTo < user.LastLoginTime);
+        user.RefreshTokens.RemoveWhere(token => _tokenProvider.ReadRefreshToken(token).ValidTo < user.LastLoginTime);
         user.RefreshTokens.Add(refreshToken);
         await _userRepository.UpdateAsync(user);
 

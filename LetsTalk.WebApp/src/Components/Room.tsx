@@ -1,6 +1,5 @@
-import { List } from '@mui/icons-material';
 import Send from '@mui/icons-material/Send';
-import { Button, Grid, ListItem, TextField } from "@mui/material";
+import { Box, Button, Grid, List, ListItem, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import { ContentMessage } from "../Messaging/content-message";
 import { hubClient } from "../Services/hub-client";
@@ -19,6 +18,7 @@ export const Room = ({ roomId }: { roomId: string }) => {
     const [msgs, setMsgs] = useState(new Array<ContentMessage>());
     const handleContentMessage = (m: CustomEvent<ContentMessage>) => {
         if(m.detail.roomId === roomId) {
+            console.log(m.detail);
             setMsgs([...msgs, m.detail]);
         }
     };
@@ -29,19 +29,45 @@ export const Room = ({ roomId }: { roomId: string }) => {
         return () => messenger.off('content', handleContentMessage);
     });
     
-    const [canSend, setCanSend] = useState(false);
-    let content: string | undefined = undefined;
-    const setContent = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        content = e.target.value
-        setCanSend(!!content);
+    const [content, setContent] = useState('');
+    const onTextFieldChanged = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setContent(e.target.value);
     };
     const sendMessage = async () => {
         await hubClient.sendContentMessage(roomId, 'text/plain', Buffer.from(encode(content)).toString('base64'));
+        setContent('');
     };
+    const onKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if(e.key === 'Enter') {
+            e.preventDefault();
+            await sendMessage();
+        }
+    }
 
     return (
-        <Grid container direction="column" spacing={2}>
-            <Grid item container xs={10}>
+        <Box
+            component="form"
+            sx={{ '& .MuiTextField-root': { m: 1, width: '25ch' } }}
+            noValidate
+            autoComplete="off">
+                <Grid container alignItems={ 'center' }>
+                    <Grid item xs={10}>
+                        <TextField
+                            style={{width: '100%'}}
+                            value={content}
+                            onChange={onTextFieldChanged}
+                            onKeyDown={onKeyDown}/>
+                    </Grid>
+                    <Grid item xs={2}>
+                        <Button
+                            onClick={sendMessage}
+                            variant="contained"
+                            disabled={!content}
+                            endIcon={<Send />}>
+                            Send
+                        </Button>
+                    </Grid>
+                </Grid>
                 <List>
                 {
                     msgs.map(msg => (
@@ -51,23 +77,7 @@ export const Room = ({ roomId }: { roomId: string }) => {
                     ))
                 }
                 </List>
-            </Grid>
-            <Grid item xs={2}>
-                <Grid item container spacing={2}>
-                    <Grid item xs={10}>
-                        <TextField onChange={setContent} />
-                    </Grid>
-                    <Grid item xs={2}>
-                        <Button
-                            onClick={sendMessage}
-                            variant="contained"
-                            disabled={!canSend}
-                            endIcon={<Send />}>
-                            Send
-                        </Button>
-                    </Grid>
-                </Grid>
-            </Grid>
-        </Grid>
+            
+        </Box>
     );
 }

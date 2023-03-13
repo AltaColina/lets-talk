@@ -19,7 +19,7 @@ public class RoomController : ControllerBase
     [HttpGet, Authorize(Permissions.Room.Read)]
     public async Task<IActionResult> Get()
     {
-        var response = await _mediator.Send(new GetRoomQuery());
+        var response = await _mediator.Send(new GetRoomsQuery());
         return Ok(response);
     }
 
