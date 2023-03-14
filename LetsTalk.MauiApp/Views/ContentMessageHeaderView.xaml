@@ -12,7 +12,7 @@
             Grid.Column="0"
             FontSize="10"
             FontAttributes="Italic"
-            Text="{Binding Sender.Name}" />
+            Text="{Binding UserName}" />
         <Label
             Grid.Column="1"
             HorizontalTextAlignment="End"

@@ -1,8 +1,8 @@
-﻿using LetsTalk.Users;
-
-namespace LetsTalk.Messaging;
+﻿namespace LetsTalk.Messaging;
 
 public sealed class ConnectMessage : Message
 {
-    public required UserTag User { get; init; }
+    public required string UserId { get; init; }
+    public required string UserName { get; init; }
+    public string? UserImageUrl { get; init; }
 }

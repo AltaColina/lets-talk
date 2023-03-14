@@ -9,7 +9,7 @@ export const attachMessageHandlers = (messenger: IMessenger) => {
         messenger.on('joinroom', handleMessageEvent);
         messenger.on('leaveroom', handleMessageEvent);
         messenger.on('content', handleMessageEvent);
-        console.log('added handlers');
+        console.log('attached console handlers');
     });
     window.addEventListener('unload', () => {
         messenger.off('connect', handleMessageEvent);
@@ -17,6 +17,6 @@ export const attachMessageHandlers = (messenger: IMessenger) => {
         messenger.off('joinroom', handleMessageEvent);
         messenger.off('leaveroom', handleMessageEvent);
         messenger.off('content', handleMessageEvent);
-        console.log('removed handlers');
+        console.log('detached console handlers');
     });
 }

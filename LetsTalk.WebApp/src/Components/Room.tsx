@@ -1,13 +1,10 @@
 import Send from '@mui/icons-material/Send';
-import { Box, Button, Grid, List, ListItem, TextField } from "@mui/material";
+import { Box, Button, Grid, List, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import { ContentMessage } from "../Messaging/content-message";
 import { hubClient } from "../Services/hub-client";
 import { messenger } from "../Services/messenger";
-
-const decodeTextPlain = (content: string): string => {
-    return Buffer.from(content, 'base64').toString();
-}
+import { Message } from './Message';
 
 const encode = function() {
     const encoder = new TextEncoder();
@@ -70,11 +67,7 @@ export const Room = ({ roomId }: { roomId: string }) => {
                 </Grid>
                 <List>
                 {
-                    msgs.map(msg => (
-                        <ListItem key={msg.id}>
-                            {decodeTextPlain(msg.content)}
-                        </ListItem>
-                    ))
+                    msgs.map(msg => (<Message key={msg.id} message={msg} />))
                 }
                 </List>
             

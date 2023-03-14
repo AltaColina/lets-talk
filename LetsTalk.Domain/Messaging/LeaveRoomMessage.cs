@@ -1,9 +1,10 @@
-﻿using LetsTalk.Users;
-
-namespace LetsTalk.Messaging;
+﻿namespace LetsTalk.Messaging;
 
 public sealed class LeaveRoomMessage : Message
 {
     public required string RoomId { get; init; }
-    public required UserTag User { get; init; }
+    public required string RoomName { get; init; }
+
+    public required string UserId { get; init; }
+    public required string UserName { get; init; }
 }

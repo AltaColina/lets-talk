@@ -29,20 +29,20 @@ internal sealed class MessageRecipient :
 
     public void ListenToRoom(string roomId) => _messenger.Register<ContentMessage, string>(this, roomId);
 
-    void IRecipient<ConnectMessage>.Receive(ConnectMessage message) => NotifyMessage($"User '{message.User.Name}' has connected to the server.");
-    void IRecipient<DisconnectMessage>.Receive(DisconnectMessage message) => NotifyMessage($"User '{message.User.Name}' has disconnected from the server.");
-    void IRecipient<JoinRoomMessage>.Receive(JoinRoomMessage message) => NotifyMessage($"User '{message.User.Name}' has joined channel '{message.RoomId}'.");
-    void IRecipient<LeaveRoomMessage>.Receive(LeaveRoomMessage message) => NotifyMessage($"User '{message.User.Name}' has left channel '{message.RoomId}'.");
+    void IRecipient<ConnectMessage>.Receive(ConnectMessage message) => NotifyMessage($"User '{message.UserName}' has connected to the server.");
+    void IRecipient<DisconnectMessage>.Receive(DisconnectMessage message) => NotifyMessage($"User '{message.UserName}' has disconnected from the server.");
+    void IRecipient<JoinRoomMessage>.Receive(JoinRoomMessage message) => NotifyMessage($"User '{message.UserName}' has joined channel '{message.RoomId}'.");
+    void IRecipient<LeaveRoomMessage>.Receive(LeaveRoomMessage message) => NotifyMessage($"User '{message.UserName}' has left channel '{message.RoomId}'.");
     void IRecipient<ContentMessage>.Receive(ContentMessage message)
     {
         switch (message.ContentType)
         {
             case MediaTypeNames.Text.Plain:
-                NotifyMessage($"{message.Sender.Name}: {Encoding.UTF8.GetString(message.Content)}");
+                NotifyMessage($"{message.UserName}: {Encoding.UTF8.GetString(message.Content)}");
                 return;
 
             default:
-                NotifyMessage($"{message.Sender.Name}: {message.ContentType} ({message.Content.Length} bytes)");
+                NotifyMessage($"{message.UserName}: {message.ContentType} ({message.Content.Length} bytes)");
                 return;
         }
     }

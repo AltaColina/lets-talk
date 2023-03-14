@@ -1,3 +1,4 @@
+import { SnackbarProvider } from 'notistack';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { attachMessageHandlers } from './Callbacks/attach-message-handlers';
@@ -11,14 +12,16 @@ attachMessageHandlers(messenger);
 const App = () => {
   return (
     <div className="App">
-      <Router>
-        <Routes>
-          <Route element={<PrivateRoutes />}>
-            <Route element={<Home />} path="/" />
-          </Route>
-          <Route element={<Login />} path="/login" />
-        </Routes>
-      </Router>
+      <SnackbarProvider anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}>
+        <Router>
+          <Routes>
+            <Route element={<PrivateRoutes />}>
+              <Route element={<Home />} path="/" />
+            </Route>
+            <Route element={<Login />} path="/login" />
+          </Routes>
+        </Router>
+      </SnackbarProvider>
     </div>
   );
 }
