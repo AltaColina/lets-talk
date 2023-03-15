@@ -5,11 +5,9 @@ import { JoinRoomMessage } from "./join-room-message";
 import { LeaveRoomMessage } from "./leave-room-message";
 
 export interface LTMessageMap {
-  'content': ContentMessage;
-  'connect': ConnectMessage;
-  'disconnect': DisconnectMessage;
-  'joinroom': JoinRoomMessage;
-  'leaveroom': LeaveRoomMessage;
+  'Content': ContentMessage;
+  'Connect': ConnectMessage;
+  'Disconnect': DisconnectMessage;
+  'JoinRoom': JoinRoomMessage;
+  'LeaveRoom': LeaveRoomMessage;
 }
-
-export type LTMessageType = keyof LTMessageMap;

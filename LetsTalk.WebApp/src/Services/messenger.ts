@@ -1,4 +1,5 @@
-import { LTMessageMap, LTMessageType } from "../Messaging/lt-message-map";
+import { LTMessageType } from "../Messaging/lt-message";
+import { LTMessageMap } from "../Messaging/lt-message-map";
 
 export interface IMessenger {
   on<T extends LTMessageType>(type: T, handler: (e: CustomEvent<LTMessageMap[T]>) => any): any,

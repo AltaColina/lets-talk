@@ -4,17 +4,24 @@ import { ContentMessage } from "../Messaging/content-message";
 import { DisconnectMessage } from "../Messaging/disconnect-message";
 import { JoinRoomMessage } from "../Messaging/join-room-message";
 import { LeaveRoomMessage } from "../Messaging/leave-room-message";
+import { GetLoggedUsersResponse } from "../Rooms/get-logged-users-response";
 import { GetUserRoomsResponse } from "../Rooms/get-user-rooms-response";
+import { User } from "../Users/user";
 import { IMessenger } from "./messenger";
 
-const EMPTY_CONTENT_MESSAGE_ARRAY = new Array<ContentMessage>();
+const EMPTY_CONTENT_MESSAGES_ARRAY = new Array<ContentMessage>();
+const EMPTY_USERS_ITERATOR = { next() { return { value: undefined as unknown as User, done: true }; } };
 
 class Listener {
   private _messenger: IMessenger;
   private _connection: HubConnection | null;
   private _handlers: Map<string, (...args: any[]) => any>;
   private _contentMessages: Map<string, ContentMessage[]> = new Map();
+  private _loggedUsers: Map<string, User> = new Map();
+
   public get isListening(): boolean { return !!this._connection; }
+  public get loggedUsers(): Map<string, User> { return this._loggedUsers; }
+
   public constructor(messenger: IMessenger) {
     this._messenger = messenger;
     this._connection = null;
@@ -27,16 +34,20 @@ class Listener {
   }
 
   public getRoomMessages(roomId: string): ContentMessage[] {
-    return this._contentMessages.get(roomId) || EMPTY_CONTENT_MESSAGE_ARRAY;
+    return this._contentMessages.get(roomId) || EMPTY_CONTENT_MESSAGES_ARRAY;
   }
 
-  public attach(connection: HubConnection): void {
+  public async attach(connection: HubConnection): Promise<void> {
     if (this.isListening)
       throw new Error("Already listening to a connection");
     this._connection = connection;
     for (const [k, v] of this._handlers) {
       this._connection.on(k, v);
     }
+    this._loggedUsers.clear();
+    const response = await this._connection!.invoke<GetLoggedUsersResponse>('GetLoggedUsersAsync');
+    for (const user of response.users)
+      this._loggedUsers.set(user.id, user);
   }
 
   public detach(): void {
@@ -49,28 +60,30 @@ class Listener {
   }
 
   private handleConnect(message: ConnectMessage) {
-    this._messenger.emit('connect', message);
+    this._loggedUsers.set(message.userId, { id: message.userId, name: message.userName, imageUrl: message.userImageUrl });
+    this._messenger.emit('Connect', message);
   }
 
   private handleDisconnect(message: DisconnectMessage) {
-    this._messenger.emit('disconnect', message);
+    this._loggedUsers.delete(message.userId);
+    this._messenger.emit('Disconnect', message);
   }
 
   private handleJoinRoom(message: JoinRoomMessage) {
-    this._messenger.emit('joinroom', message);
+    this._messenger.emit('JoinRoom', message);
   }
 
   private handleLeaveRoom(message: LeaveRoomMessage) {
-    this._messenger.emit('leaveroom', message);
+    this._messenger.emit('LeaveRoom', message);
   }
 
   private handleContent(message: ContentMessage) {
     let messages = this._contentMessages.get(message.roomId);
     if (!messages) {
-        this._contentMessages.set(message.roomId, messages = []);
+      this._contentMessages.set(message.roomId, messages = []);
     }
     messages.push(message);
-    this._messenger.emit('content', message);
+    this._messenger.emit('Content', message);
   }
 }
 
@@ -81,7 +94,9 @@ class HubClient {
   private _connection: HubConnection | undefined;
 
   public get isConnected(): boolean { return !!this._connection && this._connection.state === HubConnectionState.Connected; }
-  
+
+  public get loggedUsers(): User[] { return Array.from(this._listener!.loggedUsers.values()); }
+
   public getRoomMessages(roomId: string): ContentMessage[] {
     if (!this.isConnected)
       throw new Error('Not connected');
@@ -104,8 +119,8 @@ class HubClient {
       })
       .withAutomaticReconnect()
       .build();
-    this._listener.attach(this._connection);
-    await this._connection.start();
+      await this._connection.start();
+      await this._listener.attach(this._connection);
   }
 
   public async disconnect(): Promise<void> {

@@ -20,10 +20,10 @@ export const Room = ({ roomId }: { roomId: string }) => {
         }
     };
     useEffect(() => {
-        messenger.on('content', handleContentMessage);
+        messenger.on('Content', handleContentMessage);
         const messages = hubClient.getRoomMessages(roomId!);
         setMsgs(messages);
-        return () => messenger.off('content', handleContentMessage);
+        return () => messenger.off('Content', handleContentMessage);
     });
     
     const [content, setContent] = useState('');
