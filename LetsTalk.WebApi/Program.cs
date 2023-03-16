@@ -3,13 +3,18 @@ using LetsTalk.Hubs;
 using LetsTalk.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Logging.
+builder.Host.UseSerilog((host, services, config) => config
+    .ReadFrom.Configuration(host.Configuration));
 // Security.
 builder.Services.AddCryptography(builder.Configuration);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -81,7 +86,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<LetsTalkHub>("/hubs/letstalk", opts => opts.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets);
+app.MapHub<LetsTalkHub>("/hubs/letstalk", opts => opts.Transports = HttpTransportType.WebSockets);
 
 await app.LoadDatabaseData(app.Configuration, overwrite: true);
 

@@ -10,6 +10,7 @@ services:
     depends_on:
       - cache
       - database
+      - logsink
   cache:
     container_name: RedisCache
     image: redis
@@ -25,3 +26,10 @@ services:
       ME_CONFIG_MONGODB_SERVER: database
     depends_on:
       - database
+  logsink:
+    container_name: SeqLog
+    image: datalust/seq
+    ports:
+      - 55555:80
+    environment:
+      ACCEPT_EULA: 'Y'
