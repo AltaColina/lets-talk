@@ -40,21 +40,16 @@ public sealed class SensitiveDataDestructuringPolicy : IDestructuringPolicy
             .Where(o => o is not null)
             .ToDictionary(o => o!.Name, o => o!.Attribute!);
 
-        return (o, f) =>
+        return (obj, fact) =>
         {
             var structured = new List<LogEventProperty>();
             foreach (var (name, getter) in getters)
             {
-                var value = getter.Invoke(o)!;
+                var value = getter.Invoke(obj)!;
 
-                if (attributes.TryGetValue(name, out var attribute))
-                {
-                    structured.Add(new(name, new ScalarValue(attribute.FormatValue(value))));
-                }
-                else
-                {
-                    structured.Add(new(name, f.CreatePropertyValue(value, true)));
-                }
+                var factory = attributes.TryGetValue(name, out var attribute) ? attribute : fact;
+
+                structured.Add(new(name, factory.CreatePropertyValue(value, true)));
             }
 
             return new StructureValue(structured, type.Name);
