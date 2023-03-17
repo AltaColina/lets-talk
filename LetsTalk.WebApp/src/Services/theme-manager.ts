@@ -16,13 +16,14 @@ const themes = {
 export type ThemeName = keyof typeof themes;
 
 class ThemeManager {
-    private _themeName: ThemeName = 'light';
+    private _themeName: ThemeName = 'dark';
     private _theme: Theme = themes.light;
 
     public get themeName(): ThemeName {
         return this._themeName;
     }
     public set themeName(value: ThemeName) {
+        console.log('Change', value)
         if (value && value !== this._themeName) {
             const theme = themes[this._themeName];
             if (theme) {

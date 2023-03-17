@@ -15,6 +15,7 @@ attachMessageHandlers(messenger);
 
 const App = () => {
   const [ theme, setTheme ] = useState(themeManager.theme);
+  console.log(`Theme`, theme.palette.mode)
   useEffect(() => {
     const handleThemeChanged: (e: CustomEvent<Theme>) => any = e => setTheme(e.detail);
     return themeManager.addThemeChangedListener(handleThemeChanged);
