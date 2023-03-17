@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import { Navigate } from 'react-router-dom';
 import { httpClient } from "../Services/http-client";
 import { hubClient } from "../Services/hub-client";
-import { messenger } from "../Services/messenger";
 
 const areValidCredentials = (username?: string, password?: string): boolean => {
   if (!username || !password)
@@ -42,7 +41,7 @@ export const Login = () => {
 
   const onLoginClicked = async (): Promise<void> => {
     const auth = await httpClient.auth.login(values.username!, values.password!);
-    await hubClient.connect('/hubs/letstalk', messenger, () => auth.accessToken);
+    await hubClient.connect('/hubs/letstalk', () => auth.accessToken);
     setValues({
       ...values,
       isLoggedIn: true

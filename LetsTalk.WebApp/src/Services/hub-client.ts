@@ -7,13 +7,12 @@ import { LeaveRoomMessage } from "../Messaging/leave-room-message";
 import { GetLoggedUsersResponse } from "../Rooms/get-logged-users-response";
 import { GetUserRoomsResponse } from "../Rooms/get-user-rooms-response";
 import { User } from "../Users/user";
-import { IMessenger } from "./messenger";
+import { messenger } from "./messenger";
 
 const EMPTY_CONTENT_MESSAGES_ARRAY = new Array<ContentMessage>();
 const EMPTY_USERS_ITERATOR = { next() { return { value: undefined as unknown as User, done: true }; } };
 
 class Listener {
-  private _messenger: IMessenger;
   private _connection: HubConnection | null;
   private _handlers: Map<string, (...args: any[]) => any>;
   private _contentMessages: Map<string, ContentMessage[]> = new Map();
@@ -22,8 +21,7 @@ class Listener {
   public get isListening(): boolean { return !!this._connection; }
   public get loggedUsers(): Map<string, User> { return this._loggedUsers; }
 
-  public constructor(messenger: IMessenger) {
-    this._messenger = messenger;
+  public constructor() {
     this._connection = null;
     this._handlers = new Map();
     this._handlers.set('ConnectMessage', this.handleConnect.bind(this));
@@ -61,20 +59,20 @@ class Listener {
 
   private handleConnect(message: ConnectMessage) {
     this._loggedUsers.set(message.userId, { id: message.userId, name: message.userName, imageUrl: message.userImageUrl });
-    this._messenger.emit('Connect', message);
+    messenger.send('Connect', message);
   }
 
   private handleDisconnect(message: DisconnectMessage) {
     this._loggedUsers.delete(message.userId);
-    this._messenger.emit('Disconnect', message);
+    messenger.send('Disconnect', message);
   }
 
   private handleJoinRoom(message: JoinRoomMessage) {
-    this._messenger.emit('JoinRoom', message);
+    messenger.send('JoinRoom', message);
   }
 
   private handleLeaveRoom(message: LeaveRoomMessage) {
-    this._messenger.emit('LeaveRoom', message);
+    messenger.send('LeaveRoom', message);
   }
 
   private handleContent(message: ContentMessage) {
@@ -83,7 +81,7 @@ class Listener {
       this._contentMessages.set(message.roomId, messages = []);
     }
     messages.push(message);
-    this._messenger.emit('Content', message);
+    messenger.send('Content', message);
   }
 }
 
@@ -103,12 +101,12 @@ class HubClient {
     return this._listener!.getRoomMessages(roomId);
   }
 
-  public async connect(url: string, messenger: IMessenger, provideToken: () => string | Promise<string>): Promise<void> {
+  public async connect(url: string, provideToken: () => string | Promise<string>): Promise<void> {
     if (this._connection)
       await this.disconnect();
 
     this._url = url;
-    this._listener = new Listener(messenger);
+    this._listener = new Listener();
     this._provideToken = provideToken;
 
     this._connection = new HubConnectionBuilder()
