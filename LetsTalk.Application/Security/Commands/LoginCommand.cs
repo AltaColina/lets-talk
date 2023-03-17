@@ -6,7 +6,10 @@ namespace LetsTalk.Security.Commands;
 
 public sealed class LoginCommand : IRequest<Authentication>
 {
+    [SensitiveData(ShowFirst = 1, ShowLast = 1)]
     public required string Username { get; init; }
+
+    [SensitiveData]
     public required string Password { get; init; }
 
     public sealed class Validator : AbstractValidator<LoginCommand>

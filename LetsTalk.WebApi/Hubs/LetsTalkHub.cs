@@ -20,35 +20,36 @@ public sealed class LetsTalkHub : Hub
 
     public override async Task OnConnectedAsync()
     {
-        var user = await _mediator.Send(new ConnectCommand
+        var response = await _mediator.Send(new ConnectCommand
         {
             ConnectionId = Context.ConnectionId,
             UserId = Context.User!.ReadUserIdClaim()
         });
 
-        await Task.WhenAll(user.Rooms.Select(roomId => Groups.AddToGroupAsync(Context.ConnectionId, roomId)));
+        await Task.WhenAll(response.Rooms.Select(roomId => Groups.AddToGroupAsync(Context.ConnectionId, roomId)));
         await Clients.Others.SendAsync(new ConnectMessage
         {
-            UserId = user.Id,
-            UserName = user.Name,
-            UserImageUrl = user.ImageUrl,
+            UserId = response.User.Id,
+            UserName = response.User.Name,
+            UserImageUrl = response.User.ImageUrl,
         });
         await base.OnConnectedAsync();
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var user = await _mediator.Send(new DisconnectCommand
+        var response = await _mediator.Send(new DisconnectCommand
         {
             ConnectionId = Context.ConnectionId,
             UserId = Context.User!.ReadUserIdClaim()
         });
-        await Task.WhenAll(user.Rooms.Select(roomId => Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId)));
+
+        await Task.WhenAll(response.Rooms.Select(roomId => Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId)));
         await Clients.Others.SendAsync(new DisconnectMessage
         {
-            UserId = user.Id,
-            UserName = user.Name,
-            UserImageUrl = user.ImageUrl
+            UserId = response.User.Id,
+            UserName = response.User.Name,
+            UserImageUrl = response.User.ImageUrl
         });
         await base.OnDisconnectedAsync(exception);
     }

@@ -8,6 +8,8 @@ namespace LetsTalk.Security.Commands;
 public sealed partial class RegisterCommand : IRequest<Authentication>
 {
     public required string Username { get; init; }
+
+    [SensitiveData]
     public required string Password { get; init; }
 
     public sealed partial class Validator : AbstractValidator<RegisterCommand>

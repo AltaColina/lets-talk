@@ -7,8 +7,14 @@ using LetsTalk.Users;
 using MediatR;
 
 namespace LetsTalk.Hubs.Commands;
+public sealed class ConnectCommandResponse
+{
+    public required UserDto User { get; init; }
 
-public sealed class ConnectCommand : IRequest<UserDto>
+    public required IReadOnlyCollection<string> Rooms { get; init; }
+}
+
+public sealed class ConnectCommand : IRequest<ConnectCommandResponse>
 {
     public required string UserId { get; init; }
     public required string ConnectionId { get; init; }
@@ -22,7 +28,7 @@ public sealed class ConnectCommand : IRequest<UserDto>
         }
     }
 
-    public sealed class Handler : IRequestHandler<ConnectCommand, UserDto>
+    public sealed class Handler : IRequestHandler<ConnectCommand, ConnectCommandResponse>
     {
         private readonly IMapper _mapper;
         private readonly IHubConnectionManager _connectionManager;
@@ -35,14 +41,18 @@ public sealed class ConnectCommand : IRequest<UserDto>
             _userRepository = userRepository;
         }
 
-        public async Task<UserDto> Handle(ConnectCommand request, CancellationToken cancellationToken)
+        public async Task<ConnectCommandResponse> Handle(ConnectCommand request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
             if (user is null)
                 throw ExceptionFor<User>.Unauthorized();
             _connectionManager.AddMapping(request.ConnectionId, user);
 
-            return _mapper.Map<UserDto>(user);
+            return new ConnectCommandResponse
+            {
+                User = _mapper.Map<UserDto>(user),
+                Rooms = user.Rooms
+            };
         }
     }
 }

@@ -90,7 +90,6 @@ while (room is null)
     else if (number == rooms.Count + 1)
     {
         var allRooms = (await hubClient.GetUserAvailableRoomsAsync()).Rooms;
-        allRooms.RemoveAll(room => settings.Authentication.User.Rooms.Contains(room.Id));
         Console.WriteLine("Available rooms:");
         foreach (var item in allRooms)
             Console.WriteLine($"- {item.Name} (id: {item.Id})");
@@ -126,7 +125,7 @@ if (room is not null)
     users.RemoveAll(user => user.Id == settings.Authentication.User.Id);
     Console.WriteLine($"Listening to room {room.Name} (id: {room.Id}). Logged users:");
     foreach (var item in users)
-        Console.WriteLine($"- {item.Id} (roles: {String.Join(';', item.Roles)})");
+        Console.WriteLine($"- {item.Name} (id: {item.Id})");
     // Send messages.
     Console.WriteLine("You can start writing messages. Type '/exit' to stop.");
     while (Console.ReadLine() is string message && message != "/exit")
