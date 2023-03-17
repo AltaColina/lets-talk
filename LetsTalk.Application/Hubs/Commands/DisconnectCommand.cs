@@ -8,7 +8,14 @@ using MediatR;
 
 namespace LetsTalk.Hubs.Commands;
 
-public sealed class DisconnectCommand : IRequest<UserDto>
+public sealed class DisconnectCommandResponse
+{
+    public required UserDto User { get; init; }
+
+    public required IReadOnlyCollection<string> Rooms { get; init; }
+}
+
+public sealed class DisconnectCommand : IRequest<DisconnectCommandResponse>
 {
     public required string UserId { get; init; }
     public required string ConnectionId { get; init; }
@@ -22,7 +29,7 @@ public sealed class DisconnectCommand : IRequest<UserDto>
         }
     }
 
-    public sealed class Handler : IRequestHandler<DisconnectCommand, UserDto>
+    public sealed class Handler : IRequestHandler<DisconnectCommand, DisconnectCommandResponse>
     {
         private readonly IMapper _mapper;
         private readonly IHubConnectionManager _connectionManager;
@@ -35,7 +42,7 @@ public sealed class DisconnectCommand : IRequest<UserDto>
             _userRepository = userRepository;
         }
 
-        public async Task<UserDto> Handle(DisconnectCommand request, CancellationToken cancellationToken)
+        public async Task<DisconnectCommandResponse> Handle(DisconnectCommand request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
             if (user is null)
@@ -43,7 +50,11 @@ public sealed class DisconnectCommand : IRequest<UserDto>
 
             _connectionManager.RemoveMapping(request.ConnectionId);
 
-            return _mapper.Map<UserDto>(user);
+            return new DisconnectCommandResponse
+            {
+                User = _mapper.Map<UserDto>(user),
+                Rooms = user.Rooms
+            };
         }
     }
 }

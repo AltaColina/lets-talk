@@ -7,6 +7,8 @@ namespace LetsTalk.Security.Commands;
 public sealed class RefreshCommand : IRequest<Authentication>
 {
     public required string Username { get; init; }
+
+    [SensitiveData]
     public required string RefreshToken { get; init; }
 
     public sealed class Validator : AbstractValidator<RefreshCommand>

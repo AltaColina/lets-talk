@@ -30,6 +30,6 @@ services:
     container_name: SeqLog
     image: datalust/seq
     ports:
-      - 55555:80
+      - 5341:80
     environment:
       ACCEPT_EULA: 'Y'

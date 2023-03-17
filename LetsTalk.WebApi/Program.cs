@@ -14,7 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Logging.
 builder.Host.UseSerilog((host, services, config) => config
-    .ReadFrom.Configuration(host.Configuration));
+    .ReadFrom.Configuration(host.Configuration)
+    .Destructure.With<SensitiveDataDestructuringPolicy>());
 // Security.
 builder.Services.AddCryptography(builder.Configuration);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

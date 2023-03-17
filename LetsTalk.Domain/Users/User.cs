@@ -2,6 +2,7 @@
 
 public sealed class User : Entity
 {
+    [SensitiveData]
     public required string Secret { get; set; }
     public string? ImageUrl { get; set; }
     public DateTimeOffset LastLoginTime { get; set; }
