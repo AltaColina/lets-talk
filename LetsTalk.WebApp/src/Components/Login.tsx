@@ -1,3 +1,4 @@
+import LockIcon from '@mui/icons-material/Lock';
 import { Avatar, Paper, TextField } from "@mui/material";
 import Button from "@mui/material/Button";
 import { Box } from "@mui/system";
@@ -6,7 +7,6 @@ import { Navigate } from 'react-router-dom';
 import { httpClient } from "../Services/http-client";
 import { hubClient } from "../Services/hub-client";
 import { messenger } from "../Services/messenger";
-import LockIcon from '@mui/icons-material/Lock';
 
 const areValidCredentials = (username?: string, password?: string): boolean => {
   if (!username || !password)

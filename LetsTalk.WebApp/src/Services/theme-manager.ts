@@ -1,40 +1,47 @@
 import { createTheme, Theme } from "@mui/material";
 
-const themes: Map<string, Theme> = new Map<string, Theme>(
-    [
-        ['light', createTheme({
-            palette: {
-                mode: 'light'
-            }
-        })],
-        ['dark', createTheme({
-            palette: {
-                mode: 'dark'
-            }
-        })]
-    ]
-);
+const themes = {
+    light: createTheme({
+        palette: {
+            mode: 'light'
+        }
+    }),
+    dark: createTheme({
+        palette: {
+            mode: 'dark'
+        }
+    })
+};
+
+export type ThemeName = keyof typeof themes;
 
 class ThemeManager {
-    private _mode: string = 'light';
-    private _theme: Theme = themes.get(this._mode)!;
-    public get themeMode(): string {
-        return this._theme.palette.mode
+    private _themeName: ThemeName = 'light';
+    private _theme: Theme = themes.light;
+
+    public get themeName(): ThemeName {
+        return this._themeName;
     }
-    public set themeMode(mode: string) {
-        const theme = themes.get(mode);
-        if (theme) {
-            this._theme = theme;
-            document.dispatchEvent(new CustomEvent('ThemeChanged', { detail: this._mode }));
-        } else {
-            console.warn(`Theme ${mode} does not exist.`);
+    public set themeName(value: ThemeName) {
+        if (value && value !== this._themeName) {
+            const theme = themes[this._themeName];
+            if (theme) {
+                this._themeName = value;
+                this._theme = theme;
+                document.dispatchEvent(new CustomEvent<Theme>('ThemeChanged', { detail: this._theme }));
+            }
+            else {
+                console.warn(`Theme '${value}' does not exist`);
+            }
+
         }
     }
-    public theme(mode: string): Theme {
-        return themes.get(mode)!;
+
+    public get theme(): Theme {
+        return this._theme;
     }
 
-    public addThemeChangedListener(handler: (e: CustomEvent<string>) => any): () => any {
+    public addThemeChangedListener(handler: (e: CustomEvent<Theme>) => any): () => any {
         document.addEventListener<any>('ThemeChanged', handler);
         return () => document.removeEventListener<any>('ThemeChanged', handler);
     }
