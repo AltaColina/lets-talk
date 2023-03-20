@@ -1,10 +1,7 @@
-import { Avatar, Badge, Box, Drawer, Divider, Grid, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Typography, Button, Toolbar, Container } from "@mui/material";
+import { Box, Button, Divider, Drawer, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography } from "@mui/material";
 import { useSnackbar } from 'notistack';
-import { useContext, useEffect, useState } from "react";
-import { MenuContext, useMenuContext } from "../Context/Menu";
-import { ConnectMessage } from "../Messaging/connect-message";
-import { ContentMessage } from "../Messaging/content-message";
-import { DisconnectMessage } from "../Messaging/disconnect-message";
+import { useEffect, useState } from "react";
+import { useMenuContext } from "../Context/Menu";
 import { GetUserRoomsResponse } from "../Rooms/get-user-rooms-response";
 import { hubClient } from "../Services/hub-client";
 import { messenger } from "../Services/messenger";
@@ -22,27 +19,25 @@ export const Lobby = ({ getUserRooms }: { getUserRooms: () => GetUserRoomsRespon
         setRoomId(roomId);
     }
     useEffect(() => {
-        const handleConnectMessage = (e: CustomEvent<ConnectMessage>) => {
-            setUsers(hubClient.loggedUsers);
-            enqueueSnackbar(`${e.detail.userName} has connected to the server.`);
-        };
-        const handleDisconnectMessage = (e: CustomEvent<DisconnectMessage>) => {
-            setUsers(hubClient.loggedUsers);
-            enqueueSnackbar(`${e.detail.userName} has disconnected from the server.`);
-        };
-        const handleContentMessage = (e: CustomEvent<ContentMessage>) => {
-            if (e.detail.roomId !== roomId) {
-                const rid = e.detail.roomId;
-                setBadges({ ...badges, [rid]: (badges[rid] || 0) + 1 });
-            }
-        };
-        messenger.on('Connect', handleConnectMessage);
-        messenger.on('Disconnect', handleDisconnectMessage);
-        messenger.on('Content', handleContentMessage);
+        const subscriptions = [
+            messenger.on('Connect', e => {
+                setUsers(hubClient.loggedUsers);
+                enqueueSnackbar(`${e.detail.userName} has connected to the server.`);
+            }),
+            messenger.on('Disconnect', e => {
+                setUsers(hubClient.loggedUsers);
+                enqueueSnackbar(`${e.detail.userName} has disconnected from the server.`);
+            }),
+            messenger.on('Content', e => {
+                if (e.detail.roomId !== roomId) {
+                    const rid = e.detail.roomId;
+                    setBadges({ ...badges, [rid]: (badges[rid] || 0) + 1 });
+                }
+            })
+        ];
         return () => {
-            messenger.off('Connect', handleConnectMessage);
-            messenger.off('Disconnect', handleDisconnectMessage);
-            messenger.off('Content', handleContentMessage);
+            subscriptions.forEach(s => s.dispose());
+            subscriptions.length = 0;
         };
     });
     const drawerWidth = 240;

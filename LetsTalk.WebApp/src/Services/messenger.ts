@@ -1,28 +1,35 @@
-import { LTMessageType } from "../Messaging/lt-message";
-import { LTMessageMap } from "../Messaging/lt-message-map";
+import { Theme } from "@mui/material";
+import { IDisposable } from "../Callbacks/idisposable";
+import { LTMessageMap } from "../Messaging/lt-message";
 
-export interface IMessenger {
-  on<T extends LTMessageType>(type: T, handler: (e: CustomEvent<LTMessageMap[T]>) => any): any,
-  off<T extends LTMessageType>(type: T, handler: (e: CustomEvent<LTMessageMap[T]>) => any): any,
-  once<T extends LTMessageType>(type: T, handler: (e: CustomEvent<LTMessageMap[T]>) => any): any,
-  emit<T extends LTMessageType>(type: T, data: LTMessageMap[T]): any
+export interface UIMessageMap {
+  'ThemeChanged': Theme;
 }
 
-export const messenger: IMessenger = {
-  on: <T extends LTMessageType>(type: T, handler: (e: CustomEvent<LTMessageMap[T]>) => any) => {
+export type MessengerMap = LTMessageMap & UIMessageMap;
+
+export type MessageType = keyof MessengerMap;
+
+export class Messenger {
+  on<T extends MessageType>(type: T, handler: (e: CustomEvent<MessengerMap[T]>) => any): IDisposable {
     document.addEventListener<any>(type, handler);
-  },
-  off: <T extends LTMessageType>(type: T, handler: (e: CustomEvent<LTMessageMap[T]>) => any) => {
-    document.removeEventListener<any>(type, handler);
-  },
-  once: <T extends LTMessageType>(type: T, handler: (e: CustomEvent<LTMessageMap[T]>) => any) => {
-    messenger.on(type, handleOnce);
-    function handleOnce(e: CustomEvent<LTMessageMap[T]>) {
+    return {
+      dispose() {
+        document.removeEventListener<any>(type, handler)
+      }
+    };
+  }
+
+  once<T extends MessageType>(type: T, handler: (e: CustomEvent<MessengerMap[T]>) => any): void {
+    const subscription = messenger.on<T>(type, e => {
       handler(e);
-      messenger.off(type, handleOnce);
-    }
-  },
-  emit: <T extends LTMessageType>(type: T, data: LTMessageMap[T]) => {
+      subscription.dispose();
+    });
+  }
+
+  send<T extends MessageType>(type: T, data: MessengerMap[T]): void {
     document.dispatchEvent(new CustomEvent(type, { detail: data }));
   }
 }
+
+export const messenger = new Messenger();

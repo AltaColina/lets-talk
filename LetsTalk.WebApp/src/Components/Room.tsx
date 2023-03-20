@@ -13,17 +13,15 @@ const encode = function() {
 
 export const Room = ({ roomId }: { roomId: string }) => {
     const [msgs, setMsgs] = useState(new Array<ContentMessage>());
-    const handleContentMessage = (m: CustomEvent<ContentMessage>) => {
-        if(m.detail.roomId === roomId) {
-            console.log(m.detail);
-            setMsgs([...msgs, m.detail]);
-        }
-    };
     useEffect(() => {
-        messenger.on('Content', handleContentMessage);
         const messages = hubClient.getRoomMessages(roomId!);
         setMsgs(messages);
-        return () => messenger.off('Content', handleContentMessage);
+        return messenger.on('Content', e => {
+            if(e.detail.roomId === roomId) {
+                console.log(e.detail);
+                setMsgs([...msgs, e.detail]);
+            }
+        }).dispose;
     });
     
     const [content, setContent] = useState('');

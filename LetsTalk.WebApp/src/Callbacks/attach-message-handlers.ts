@@ -1,22 +1,23 @@
-import { IMessenger } from "../Services/messenger";
+import { Messenger } from "../Services/messenger";
+import { IDisposable } from "./idisposable";
 
-export const attachMessageHandlers = (messenger: IMessenger) => {
+export const attachMessageHandlers = (messenger: Messenger) => {
     const handleMessageEvent = (e: CustomEvent) => console.log(e);
 
+    const subscriptions = new Array<IDisposable>();
+
     window.addEventListener('load', () => {
-        messenger.on('Connect', handleMessageEvent);
-        messenger.on('Disconnect', handleMessageEvent);
-        messenger.on('JoinRoom', handleMessageEvent);
-        messenger.on('LeaveRoom', handleMessageEvent);
-        messenger.on('Content', handleMessageEvent);
+        subscriptions.push(
+            messenger.on('Connect', handleMessageEvent),
+            messenger.on('Disconnect', handleMessageEvent),
+            messenger.on('JoinRoom', handleMessageEvent),
+            messenger.on('LeaveRoom', handleMessageEvent),
+            messenger.on('Content', handleMessageEvent));
         console.log('attached console handlers');
     });
     window.addEventListener('unload', () => {
-        messenger.off('Connect', handleMessageEvent);
-        messenger.off('Disconnect', handleMessageEvent);
-        messenger.off('JoinRoom', handleMessageEvent);
-        messenger.off('LeaveRoom', handleMessageEvent);
-        messenger.off('Content', handleMessageEvent);
+        subscriptions.forEach(s => s.dispose());
+        subscriptions.length = 0;
         console.log('detached console handlers');
     });
 }
