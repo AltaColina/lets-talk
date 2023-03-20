@@ -1,4 +1,5 @@
-import { TextField } from "@mui/material";
+import LockIcon from '@mui/icons-material/Lock';
+import { Avatar, Paper, TextField } from "@mui/material";
 import Button from "@mui/material/Button";
 import { Box } from "@mui/system";
 import React, { useState } from "react";
@@ -56,33 +57,54 @@ export const Login = () => {
 }
 
   return (
-    <Box
-      component="form"
-      sx={{ '& .MuiTextField-root': { m: 1, width: '25ch' } }}
-      noValidate
-      autoComplete="off">
-      {values.isLoggedIn && (<Navigate to="/" replace={true} />)}
-      <div>
-        <TextField
-          required
-          label="Username"
-          type='text'
-          onChange={onUsernameChanged} />
-        <TextField
-          required
-          label="Password"
-          type="password"
-          onChange={onPasswordChanged}
-          onKeyDown={onPasswordKeyDown} />
-      </div>
-      <div>
-        <Button
-          variant="contained"
-          onClick={onLoginClicked}
-          disabled={!values.isValid}>
-          Login
-        </Button>
-      </div>
-    </Box>
+      <Paper
+        sx={{
+          minHeight: '25em',
+          maxHeight: '50em',
+          minWidth: '20em',
+          maxWidth: '25em',
+          margin: '20px auto'
+        }}
+        elevation={10}>
+        <Box
+          component="form"
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: 3,
+            gap: 1
+          }}
+          noValidate
+          autoComplete="off">
+          {values.isLoggedIn && (<Navigate to="/" replace={true} />)}
+          <Avatar sx={{ backgroundColor: 'green' }}><LockIcon/></Avatar>
+          <h2>Sign In</h2>
+          <TextField
+            required
+            fullWidth
+            label="Username"
+            type='text'
+            onChange={onUsernameChanged} />
+          <TextField
+            // sx={{ '& label.Mui-focused': { color: 'green' } }}
+            // sx={{ '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: 'green' } } }}
+            // sx={{ '& .MuiOutlinedInput-root': { '& input:invalid + fieldset': { borderColor: 'red' } } }}
+            required
+            fullWidth
+            label="Password"
+            type="password"
+            onChange={onPasswordChanged}
+            onKeyDown={onPasswordKeyDown} />
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={onLoginClicked}
+            disabled={!values.isValid}>
+            Login
+          </Button>
+        </Box>
+      </Paper>
   );
 }
