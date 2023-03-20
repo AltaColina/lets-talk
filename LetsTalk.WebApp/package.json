@@ -2,7 +2,7 @@
   "name": "letstalk.webapp",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://localhost:58023",
+  "proxy": "https://localhost:49788",
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",

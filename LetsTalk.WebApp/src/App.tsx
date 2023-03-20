@@ -1,4 +1,4 @@
-import { CssBaseline, Theme, ThemeProvider } from '@mui/material';
+import { Box, CssBaseline, Theme, ThemeProvider } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -9,13 +9,12 @@ import { Login } from './Components/Login';
 import { PrivateRoutes } from './Components/PrivateRoutes';
 import { messenger } from './Services/messenger';
 import { themeManager } from './Services/theme-manager';
-import { Themes } from './Themes/Themes';
+import { Themes } from './Components/Themes';
 
 attachMessageHandlers(messenger);
 
 const App = () => {
   const [ theme, setTheme ] = useState(themeManager.theme);
-  console.log(`Theme`, theme.palette.mode)
   useEffect(() => {
     const handleThemeChanged: (e: CustomEvent<Theme>) => any = e => setTheme(e.detail);
     return themeManager.addThemeChangedListener(handleThemeChanged);
@@ -26,7 +25,7 @@ const App = () => {
         <Router>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Themes></Themes>
+          {/* <Themes></Themes> */}
           <Routes>
             <Route element={<PrivateRoutes />}>
               <Route element={<Home />} path="/" />
