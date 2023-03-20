@@ -1,11 +1,7 @@
-import { Avatar, Badge, Box, Drawer, Divider, Grid, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Typography, Button, Toolbar, Container } from "@mui/material";
+import { Box, Button, Divider, Drawer, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography } from "@mui/material";
 import { useSnackbar } from 'notistack';
-import { useContext, useEffect, useState } from "react";
-import { MenuContext, useMenuContext } from "../Context/Menu";
-import { ConnectMessage } from "../Messaging/connect-message";
-import { ContentMessage } from "../Messaging/content-message";
-import { DisconnectMessage } from "../Messaging/disconnect-message";
 import { useEffect, useState } from "react";
+import { useMenuContext } from "../Context/Menu";
 import { GetUserRoomsResponse } from "../Rooms/get-user-rooms-response";
 import { hubClient } from "../Services/hub-client";
 import { messenger } from "../Services/messenger";
