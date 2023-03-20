@@ -10,7 +10,6 @@ import { User } from "../Users/user";
 import { messenger } from "./messenger";
 
 const EMPTY_CONTENT_MESSAGES_ARRAY = new Array<ContentMessage>();
-const EMPTY_USERS_ITERATOR = { next() { return { value: undefined as unknown as User, done: true }; } };
 
 class Listener {
   private _connection: HubConnection | null;

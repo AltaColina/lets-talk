@@ -1,4 +1,4 @@
-import { Box, CssBaseline, Theme, ThemeProvider } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -9,16 +9,12 @@ import { Login } from './Components/Login';
 import { PrivateRoutes } from './Components/PrivateRoutes';
 import { messenger } from './Services/messenger';
 import { themeManager } from './Services/theme-manager';
-import { Themes } from './Components/Themes';
 
 attachMessageHandlers(messenger);
 
 const App = () => {
   const [ theme, setTheme ] = useState(themeManager.theme);
-  useEffect(() => {
-    const handleThemeChanged: (e: CustomEvent<Theme>) => any = e => setTheme(e.detail);
-    return themeManager.addThemeChangedListener(handleThemeChanged);
-  })
+  useEffect(() => messenger.on('ThemeChanged', e => setTheme(e.detail)).dispose);
   return (
     <div className="App">
       <SnackbarProvider anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}>

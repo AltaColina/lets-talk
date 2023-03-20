@@ -1,6 +1,6 @@
 import { createTheme, Theme } from "@mui/material";
-import { amber, deepOrange, green, purple, red } from "@mui/material/colors";
-import { PaletteMode } from '@mui/material';
+import { amber, deepOrange, purple, red } from "@mui/material/colors";
+import { messenger } from "./messenger";
 
 const themes = {
     light: createTheme({
@@ -72,7 +72,7 @@ class ThemeManager {
             if (theme) {
                 this._themeName = value;
                 this._theme = theme;
-                document.dispatchEvent(new CustomEvent<Theme>('ThemeChanged', { detail: this._theme }));
+                messenger.send('ThemeChanged', this._theme);
             }
             else {
                 console.warn(`Theme '${value}' does not exist`);
@@ -84,13 +84,6 @@ class ThemeManager {
     public get theme(): Theme {
         return this._theme;
     }
-
-    public addThemeChangedListener(handler: (e: CustomEvent<Theme>) => any): () => any {
-        document.addEventListener<any>('ThemeChanged', handler);
-        return () => document.removeEventListener<any>('ThemeChanged', handler);
-    }
 }
 
 export const themeManager = new ThemeManager();
-
-themeManager.addThemeChangedListener(e => e.detail);
