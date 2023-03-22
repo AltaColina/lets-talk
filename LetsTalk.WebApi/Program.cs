@@ -34,7 +34,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                if (context.HttpContext.Request.Path.StartsWithSegments("/hubs/letstalk"))
+                if (context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
                 {
                     var accessToken = context.Request.Query["access_token"];
                     if (!String.IsNullOrEmpty(accessToken))
@@ -46,6 +46,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+/*
+builder.Services.AddAuthentication("token")
+    .AddJwtBearer("token", options =>
+    {
+        options.Authority = "https://demo.duendesoftware.com";
+        options.Audience = "api";
+
+        options.MapInboundClaims = false;
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ApiCaller", policy =>
+    {
+        policy.RequireClaim("scope", "api");
+    });
+
+    options.AddPolicy("RequireInteractiveUser", policy =>
+    {
+        policy.RequireClaim("sub");
+    });
+});
+ */
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 

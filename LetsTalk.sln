@@ -11,13 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.MauiApp", "LetsTal
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{C8CA29B4-AF01-400A-8615-B4D17040D426}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "LetsTalk.WebApp", "LetsTalk.WebApp\LetsTalk.WebApp.esproj", "{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Domain", "LetsTalk.Domain\LetsTalk.Domain.csproj", "{6C328501-724B-4418-80A7-6B2E32C70A6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Domain", "LetsTalk.Domain\LetsTalk.Domain.csproj", "{6C328501-724B-4418-80A7-6B2E32C70A6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Application", "LetsTalk.Application\LetsTalk.Application.csproj", "{48B0E385-1A3C-447D-B13C-2DCC7F294E4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Application", "LetsTalk.Application\LetsTalk.Application.csproj", "{48B0E385-1A3C-447D-B13C-2DCC7F294E4A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Infrastructure", "LetsTalk.Infrastructure\LetsTalk.Infrastructure.csproj", "{09CEEDC4-962B-4097-ADAB-8FAAA262E3A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Infrastructure", "LetsTalk.Infrastructure\LetsTalk.Infrastructure.csproj", "{09CEEDC4-962B-4097-ADAB-8FAAA262E3A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.WebApp", "LetsTalk.WebApp\LetsTalk.WebApp.csproj", "{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,12 +43,6 @@ Global
 		{C8CA29B4-AF01-400A-8615-B4D17040D426}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8CA29B4-AF01-400A-8615-B4D17040D426}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8CA29B4-AF01-400A-8615-B4D17040D426}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3FDDC88E-6AF0-4755-9C53-3AAD8563F54A}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{6C328501-724B-4418-80A7-6B2E32C70A6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6C328501-724B-4418-80A7-6B2E32C70A6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C328501-724B-4418-80A7-6B2E32C70A6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -61,6 +55,10 @@ Global
 		{09CEEDC4-962B-4097-ADAB-8FAAA262E3A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09CEEDC4-962B-4097-ADAB-8FAAA262E3A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09CEEDC4-962B-4097-ADAB-8FAAA262E3A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
