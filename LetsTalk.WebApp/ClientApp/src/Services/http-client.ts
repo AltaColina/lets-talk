@@ -1,6 +1,8 @@
 import Axios from "axios";
 import { Authentication } from "../Security/authentitcation";
 
+Axios.defaults.headers['X-CSRF'] = '1';
+
 export const httpClient = {
   auth: {
     register: async (username: string, password: string): Promise<Authentication> => {

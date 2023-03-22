@@ -2,7 +2,7 @@
   "name": "letstalk.webapp",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://localhost:59391",
+  "proxy": "https://localhost:59422",
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
@@ -29,10 +29,12 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "node get-webapi-port.js && react-scripts start",
+    "prestart": "node aspnetcore-https && node aspnetcore-react",
+    "start": "rimraf ./build && react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "cross-env CI=true react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "lint": "eslint ./src/"
   },
   "eslintConfig": {
     "extends": [
