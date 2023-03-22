@@ -40,8 +40,6 @@ public static class DependencyInjection
                 var port = ports.Count == 1
                     ? ports[0]
                     : ports.Find(p => p.PrivatePort == 443 /*https*/) ?? ports[0];
-                if (port.PrivatePort == 80 /*http*/)
-                    throw new InvalidOperationException("Exposing HTTP port");
                 var containerName = container.Names[0][1..];
                 connectionStrings[$"ConnectionStrings:{containerName}"] = $"https://{hostname}:{port.PublicPort}";
             }

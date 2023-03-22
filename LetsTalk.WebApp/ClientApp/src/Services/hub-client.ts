@@ -1,4 +1,4 @@
-import { HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
+import { HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
 import { ConnectMessage } from "../Messaging/connect-message";
 import { ContentMessage } from "../Messaging/content-message";
 import { DisconnectMessage } from "../Messaging/disconnect-message";
@@ -112,12 +112,23 @@ class HubClient {
       .withUrl(this._url, {
         accessTokenFactory: this._provideToken,
         skipNegotiation: true,
-        transport: HttpTransportType.WebSockets
+        transport: HttpTransportType.WebSockets,
+        headers: {
+          'X-CSRF': '1'
+        }
       })
+      .configureLogging(LogLevel.Trace)
       .withAutomaticReconnect()
       .build();
+      try {
       await this._connection.start();
       await this._listener.attach(this._connection);
+      }
+      catch(e: unknown) 
+      {
+        console.error(e);
+        throw e;
+      }
   }
 
   public async disconnect(): Promise<void> {
