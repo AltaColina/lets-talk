@@ -4,7 +4,6 @@ using LetsTalk.Roles.Queries;
 using LetsTalk.Rooms;
 using LetsTalk.Rooms.Commands;
 using LetsTalk.Rooms.Queries;
-using LetsTalk.Security;
 using LetsTalk.Users;
 using LetsTalk.Users.Commands;
 using LetsTalk.Users.Queries;
@@ -13,27 +12,26 @@ namespace LetsTalk.Services;
 
 public interface ILetsTalkHttpClient
 {
-    Task<Authentication> RegisterAsync(string username, string password);
-    Task<Authentication> LoginAsync(string username, string password);
-    Task<Authentication> RefreshAsync(string username, string refreshToken);
+    Task<string> PingAsync();
 
-    Task<GetRoomsResponse> GetRoomsAsync(string accessToken);
-    Task<RoomDto> GetRoomAsync(string roomId, string accessToken);
-    Task<RoomDto> CreateRoomAsync(CreateRoomCommand room, string accessToken);
-    Task<RoomDto> UpdateRoomAsync(UpdateRoomCommand room, string accessToken);
-    Task DeleteRoomAsync(string roomId, string accessToken);
-    Task<GetRoomUsersResponse> GetRoomUsersAsync(string roomId, string accessToken);
+    Task<GetRoomsResponse> GetRoomsAsync();
+    Task<RoomDto> GetRoomAsync(string roomId);
+    Task<RoomDto> CreateRoomAsync(CreateRoomCommand room);
+    Task<RoomDto> UpdateRoomAsync(UpdateRoomCommand room);
+    Task DeleteRoomAsync(string roomId);
+    Task<GetRoomUsersResponse> GetRoomUsersAsync(string roomId);
 
-    Task<GetRolesResponse> GetRolesAsync(string accessToken);
-    Task<RoleDto> GetRoleAsync(string roleId, string accessToken);
-    Task<RoleDto> CreateRoleAsync(CreateRoleCommand role, string accessToken);
-    Task<RoleDto> UpdateRoleAsync(UpdateRoleCommand role, string accessToken);
-    Task DeleteRoleAsync(string roleId, string accessToken);
-    Task<GetRoleUsersResponse> GetRoleUsersAsync(string roleId, string accessToken);
+    Task<GetRolesResponse> GetRolesAsync();
+    Task<RoleDto> GetRoleAsync(string roleId);
+    Task<RoleDto> CreateRoleAsync(CreateRoleCommand role);
+    Task<RoleDto> UpdateRoleAsync(UpdateRoleCommand role);
+    Task DeleteRoleAsync(string roleId);
+    Task<GetRoleUsersResponse> GetRoleUsersAsync(string roleId);
 
-    Task<GetUsersResponse> GetUsersAsync(string accessToken);
-    Task<UserDto> GetUserAsync(string userId, string accessToken);
-    Task<UserDto> UpdateUserAsync(UpdateUserCommand user, string accessToken);
-    Task DeleteUserAsync(string userId, string accessToken);
-    Task<GetUserRoomsResponse> GetUserRoomsAsync(string userId, string accessToken);
+    Task<GetUsersResponse> GetUsersAsync();
+    Task<UserDto> GetUserAsync(string userId);
+    Task<UserDto> CreateUserAsync(CreateUserCommand user);
+    Task<UserDto> UpdateUserAsync(UpdateUserCommand user);
+    Task DeleteUserAsync(string userId);
+    Task<GetRoomsWithUserResponse> GetUserRoomsAsync(string userId);
 }

@@ -1,6 +1,14 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+
+#WORKDIR /
+#RUN mkdir -p /https-root
+#COPY ["Certificates/root-cert.cer", "/https-root/root-cert.cer"]
+#COPY ["LetsTalk.WebApi/docker-entrypoint.sh", "/docker-entrypoint.sh"]
+#RUN chmod +x docker-entrypoint.sh
+#RUN ./docker-entrypoint.sh
+
 WORKDIR /app
 EXPOSE 443
 

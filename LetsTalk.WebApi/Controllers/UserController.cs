@@ -1,4 +1,5 @@
-﻿using LetsTalk.Security;
+﻿using LetsTalk.Rooms.Queries;
+using LetsTalk.Security;
 using LetsTalk.Users.Commands;
 using LetsTalk.Users.Queries;
 using MediatR;
@@ -33,6 +34,13 @@ public sealed class UserController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost, Authorize(Permissions.User.Create)]
+    public async Task<IActionResult> Put([FromBody, Required] CreateUserCommand user)
+    {
+        var response = await _mediator.Send(user);
+        return Ok(response);
+    }
+
     [HttpPut("{userId}"), Authorize(Permissions.User.Update)]
     public async Task<IActionResult> Put([FromRoute, Required] string userId, [FromBody, Required] UpdateUserCommand user)
     {
@@ -51,7 +59,7 @@ public sealed class UserController : ControllerBase
     [HttpGet("{userId}/room"), Authorize(Permissions.User.Room.Read)]
     public async Task<IActionResult> GetRooms([FromRoute, Required] string userId)
     {
-        var response = await _mediator.Send(new GetUserRoomsQuery { UserId = userId });
+        var response = await _mediator.Send(new GetRoomsWithUserQuery { UserId = userId });
         return Ok(response);
     }
 }

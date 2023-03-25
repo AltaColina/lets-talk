@@ -1,6 +1,6 @@
 ﻿using LetsTalk.Hubs.Commands;
 using LetsTalk.Hubs.Queries;
-using LetsTalk.Users.Queries;
+using LetsTalk.Rooms.Queries;
 
 namespace LetsTalk.Services;
 
@@ -11,9 +11,9 @@ public interface ILetsTalkHubClient
     Task DisconnectAsync();
     Task<JoinRoomResponse> JoinRoomAsync(string roomId);
     Task<LeaveRoomResponse> LeaveRoomAsync(string roomId);
-    Task<GetLoggedUsersResponse> GetLoggedUsersAsync();
-    Task<GetLoggedRoomUsersResponse> GetLoggedRoomUsersAsync(string roomId);
-    Task<GetUserRoomsResponse> GetUserRoomsAsync();
-    Task<GetUserAvailableRoomsResponse> GetUserAvailableRoomsAsync();
+    Task<GetUsersLoggedInResponse> GetUsersLoggedInAsync();
+    Task<GetUsersLoggedInRoomResponse> GetUsersLoggedInRoomAsync(string roomId);
+    Task<GetRoomsWithUserResponse> GetRoomsWithUserAsync();
+    Task<GetRoomsWithoutUserResponse> GetRoomsWithoutUserAsync();
     Task SendContentMessageAsync(string roomId, string contentType, byte[] message);
 }

@@ -1,3 +1,4 @@
+using IdentityModel;
 using LetsTalk.Filters;
 using LetsTalk.Hubs;
 using LetsTalk.Services;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,16 +20,22 @@ builder.Host.UseSerilog((host, services, config) => config
 // Security.
 builder.Services.AddCryptography(builder.Configuration);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(opts =>
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts =>
     {
-        opts.RequireHttpsMetadata = false;
-        opts.SaveToken = true;
+        opts.Authority = builder.Configuration.GetConnectionString("Identity");
+        //options.Audience = "api";
+
+        //options.MapInboundClaims = false;
         opts.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetRequiredSection("SigningKey").Value!)),
-            ValidateIssuer = false,
+            RoleClaimType = JwtClaimTypes.Role,
+            NameClaimType = JwtClaimTypes.Name,
             ValidateAudience = false,
+        };
+        opts.BackchannelHttpHandler = new HttpClientHandler()
+        {
+            ClientCertificateOptions = ClientCertificateOption.Manual,
+            ServerCertificateCustomValidationCallback = (httpRequestMessage, x509Certificate2, x509Chain, sslPolicyErrors) => true
         };
         opts.Events = new JwtBearerEvents
         {
@@ -44,31 +51,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-
 builder.Services.AddAuthorization();
-/*
-builder.Services.AddAuthentication("token")
-    .AddJwtBearer("token", options =>
-    {
-        options.Authority = "https://demo.duendesoftware.com";
-        options.Audience = "api";
 
-        options.MapInboundClaims = false;
-    });
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("ApiCaller", policy =>
-    {
-        policy.RequireClaim("scope", "api");
-    });
-
-    options.AddPolicy("RequireInteractiveUser", policy =>
-    {
-        policy.RequireClaim("sub");
-    });
-});
- */
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
@@ -106,12 +90,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<LetsTalkHub>("/hubs/letstalk", opts => opts.Transports = HttpTransportType.WebSockets);
-
-await app.LoadDatabaseData(app.Configuration, overwrite: true);
 
 app.Run();

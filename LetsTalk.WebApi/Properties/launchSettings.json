@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "LetsTalk": {
+    "LetsTalk.WebApi": {
       "commandName": "Project",
       "launchBrowser": false,
       "launchUrl": "swagger",
