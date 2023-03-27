@@ -42,7 +42,7 @@ class Listener {
       this._connection.on(k, v);
     }
     this._loggedUsers.clear();
-    const response = await this._connection!.invoke<GetLoggedUsersResponse>('GetLoggedUsersAsync');
+    const response = await this._connection!.invoke<GetLoggedUsersResponse>('GetUsersLoggedInAsync');
     for (const user of response.users)
       this._loggedUsers.set(user.id, user);
   }
@@ -57,7 +57,7 @@ class Listener {
   }
 
   private handleConnect(message: ConnectMessage) {
-    this._loggedUsers.set(message.userId, { id: message.userId, name: message.userName, imageUrl: message.userImageUrl });
+    this._loggedUsers.set(message.userId, { id: message.userId, name: message.userName, image: message.userImage });
     messenger.send('Connect', message);
   }
 
@@ -85,11 +85,12 @@ class Listener {
 }
 
 class HubClient {
-  private _url?: string;
+  private readonly _url: string = '/hubs/letstalk';
   private _listener?: Listener;
-  private _provideToken?: () => string | Promise<string>;
   private _connection: HubConnection | undefined;
+  private _isConnecting = false;
 
+  public get isConnecting(): boolean { return this._isConnecting; }
   public get isConnected(): boolean { return !!this._connection && this._connection.state === HubConnectionState.Connected; }
 
   public get loggedUsers(): User[] { return Array.from(this._listener!.loggedUsers.values()); }
@@ -100,35 +101,37 @@ class HubClient {
     return this._listener!.getRoomMessages(roomId);
   }
 
-  public async connect(url: string, provideToken: () => string | Promise<string>): Promise<void> {
-    if (this._connection)
-      await this.disconnect();
+  public async connect(): Promise<void> {
+    if (this._isConnecting) {
+      return;
+    }
+    
+    this._isConnecting = true;
 
-    this._url = url;
-    this._listener = new Listener();
-    this._provideToken = provideToken;
+    try {
+      if (this._connection) {
+        await this.disconnect();
+      }
 
-    this._connection = new HubConnectionBuilder()
-      .withUrl(this._url, {
-        accessTokenFactory: this._provideToken,
-        skipNegotiation: true,
-        transport: HttpTransportType.WebSockets,
-        headers: {
-          'X-CSRF': '1'
-        }
-      })
-      .configureLogging(LogLevel.Trace)
-      .withAutomaticReconnect()
-      .build();
-      try {
+      this._listener = new Listener();
+
+      this._connection = new HubConnectionBuilder()
+        .withUrl(this._url, {
+          skipNegotiation: true,
+          transport: HttpTransportType.WebSockets,
+          headers: {
+            'X-CSRF': '1'
+          }
+        })
+        .configureLogging(LogLevel.Debug)
+        .withAutomaticReconnect()
+        .build();
       await this._connection.start();
       await this._listener.attach(this._connection);
-      }
-      catch(e: unknown) 
-      {
-        console.error(e);
-        throw e;
-      }
+    }
+    finally {
+      this._isConnecting = false;
+    }
   }
 
   public async disconnect(): Promise<void> {
@@ -144,10 +147,10 @@ class HubClient {
     return await this._connection!.invoke('SendContentMessageAsync', roomId, contentType, contentBase64);
   }
 
-  public async getUserRooms(): Promise<GetUserRoomsResponse> {
+  public async getRoomsWithUserAsync(): Promise<GetUserRoomsResponse> {
     if (!this.isConnected)
       throw new Error('Not connected');
-    return await this._connection!.invoke('GetUserRoomsAsync');
+    return await this._connection!.invoke('GetRoomsWithUserAsync');
   }
 }
 

@@ -12,17 +12,17 @@ const encode = function() {
 }();
 
 export const Room = ({ roomId }: { roomId: string }) => {
-    const [msgs, setMsgs] = useState(new Array<ContentMessage>());
+    const [messages, setMessages] = useState(new Map<string, ContentMessage>());
     useEffect(() => {
-        const messages = hubClient.getRoomMessages(roomId!);
-        setMsgs(messages);
+        const roomMessages = hubClient.getRoomMessages(roomId!);
+        setMessages(new Map(roomMessages.map(m => [m.id, m])));
         return messenger.on('Content', e => {
-            if(e.detail.roomId === roomId) {
-                console.log(e.detail);
-                setMsgs([...msgs, e.detail]);
+            if(e.detail.roomId === roomId && !messages.get(e.detail.id)) {
+                messages.set(e.detail.id, e.detail);
+                setMessages(new Map(messages));
             }
         }).dispose;
-    });
+    }, [messages]);
     
     const [content, setContent] = useState('');
     const onTextFieldChanged = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -65,7 +65,7 @@ export const Room = ({ roomId }: { roomId: string }) => {
                 </Grid>
                 <List>
                 {
-                    msgs.map(msg => (<Message key={msg.id} message={msg} />))
+                    Array.from(messages.values()).map(m => (<Message key={m.id} message={m} />))
                 }
                 </List>
             

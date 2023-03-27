@@ -27,7 +27,8 @@ builder.Services.AddIdentityServer(options =>
     .AddClientStore<ClientStore>()
     .AddProfileService<UserProfileService>()
     .AddResourceOwnerValidator<UserResourceOwnerPasswordValidator>()
-    .AddBackchannelAuthenticationUserValidator<BackchannelAuthenticationUserValidator>();
+    .AddBackchannelAuthenticationUserValidator<BackchannelAuthenticationUserValidator>()
+    .AddRedirectUriValidator<RedirectUriValidator>();
 
 var app = builder.Build();
 
