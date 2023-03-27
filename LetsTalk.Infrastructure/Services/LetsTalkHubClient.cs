@@ -2,11 +2,12 @@
 using LetsTalk.Hubs.Commands;
 using LetsTalk.Hubs.Queries;
 using LetsTalk.Messaging;
+using LetsTalk.Rooms.Queries;
 using LetsTalk.Services;
-using LetsTalk.Users.Queries;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace LetsTalk.Services;
 
@@ -14,18 +15,18 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
 {
     private readonly Listener _listener;
     private readonly string _hubEndpoint;
-    private readonly ILetsTalkSettings _settings;
+    private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly IMessenger _messenger;
     private HubConnection? _connection;
 
     public bool IsConnected { get; private set; }
 
-    public LetsTalkHubClient(IConfiguration configuration, ILetsTalkSettings settings, IMessenger messenger)
+    public LetsTalkHubClient(IAccessTokenProvider accessTokenProvider, IMessenger messenger, IConfiguration configuration)
     {
         _listener = new Listener(messenger);
         _hubEndpoint = $"{configuration.GetConnectionString("LetsTalk.WebApi")}/hubs/letstalk";
+        _accessTokenProvider = accessTokenProvider;
         _messenger = messenger;
-        _settings = settings;
     }
     public async Task ConnectAsync()
     {
@@ -33,7 +34,8 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
             await DisconnectAsync();
 
         _connection = new HubConnectionBuilder()
-            .WithUrl(_hubEndpoint, opts => opts.AccessTokenProvider = _settings.ProvideToken)
+            .WithUrl(_hubEndpoint, opts => opts.AccessTokenProvider = _accessTokenProvider.GetAccessTokenAsync)
+            .ConfigureLogging(opts => opts.SetMinimumLevel(LogLevel.Trace))
             .AddMessagePackProtocol()
             .Build();
         _listener.Attach(_connection);
@@ -60,17 +62,17 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
     public async Task SendContentMessageAsync(string roomId, string contentType, byte[] message) =>
         await _connection!.InvokeAsync(nameof(SendContentMessageAsync), roomId, contentType, message);
 
-    public async Task<GetLoggedUsersResponse> GetLoggedUsersAsync() =>
-        await _connection!.InvokeAsync<GetLoggedUsersResponse>(nameof(GetLoggedUsersAsync));
+    public async Task<GetUsersLoggedInResponse> GetUsersLoggedInAsync() =>
+        await _connection!.InvokeAsync<GetUsersLoggedInResponse>(nameof(GetUsersLoggedInAsync));
 
-    public async Task<GetLoggedRoomUsersResponse> GetLoggedRoomUsersAsync(string roomId)
-        => await _connection!.InvokeAsync<GetLoggedRoomUsersResponse>(nameof(GetLoggedRoomUsersAsync), roomId);
+    public async Task<GetUsersLoggedInRoomResponse> GetUsersLoggedInRoomAsync(string roomId)
+        => await _connection!.InvokeAsync<GetUsersLoggedInRoomResponse>(nameof(GetUsersLoggedInRoomAsync), roomId);
 
-    public async Task<GetUserRoomsResponse> GetUserRoomsAsync() =>
-        await _connection!.InvokeAsync<GetUserRoomsResponse>(nameof(GetUserRoomsAsync));
+    public async Task<GetRoomsWithUserResponse> GetRoomsWithUserAsync() =>
+        await _connection!.InvokeAsync<GetRoomsWithUserResponse>(nameof(GetRoomsWithUserAsync));
 
-    public async Task<GetUserAvailableRoomsResponse> GetUserAvailableRoomsAsync() =>
-        await _connection!.InvokeAsync<GetUserAvailableRoomsResponse>(nameof(GetUserAvailableRoomsAsync));
+    public async Task<GetRoomsWithoutUserResponse> GetRoomsWithoutUserAsync() =>
+        await _connection!.InvokeAsync<GetRoomsWithoutUserResponse>(nameof(GetRoomsWithoutUserAsync));
 
     private sealed class Ref<T>
     {

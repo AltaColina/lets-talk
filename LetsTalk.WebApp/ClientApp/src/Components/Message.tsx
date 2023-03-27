@@ -1,4 +1,4 @@
-import { Breadcrumbs, Grid, Paper } from "@mui/material";
+import { Grid, Paper } from "@mui/material";
 import { ContentMessage } from "../Messaging/content-message";
 
 const getContentRenderer = (contentType: string): (content: string) => JSX.Element => {
@@ -15,16 +15,15 @@ export const Message = ({ message }: { message: ContentMessage }) => {
   return (
     <Paper>
       <Grid container direction={"column"} margin={1} padding={1} textAlign={"left"}>
-        <Breadcrumbs>
-          Tiago
-          Test
-        </Breadcrumbs>
         <Grid container spacing={2} textAlign={"left"} fontStyle={"italic"} fontSize={'14px'}>
           <Grid item>
-            <span>{message.userName}</span>
+            {message.userName}
           </Grid>
           <Grid item textAlign={"right"}>
-            <span>{new Date(message.timestamp).toLocaleString()}</span>
+            {new Date(message.timestamp).toLocaleString()}
+          </Grid>
+          <Grid item textAlign={"right"}>
+            {message.id}
           </Grid>
         </Grid>
         {renderer(message.content)}

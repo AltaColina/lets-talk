@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LetsTalk.Controllers;
 [Route("api/[controller]")]
@@ -6,9 +7,10 @@ namespace LetsTalk.Controllers;
 public class PingController : ControllerBase
 {
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Ping()
     {
         var name = HttpContext.User.FindFirst("name")?.Value ?? "Guest";
-        return Ok($"Hello, {name}!");
+        return await Task.FromResult(Ok($"Hello, {name}!"));
     }
 }

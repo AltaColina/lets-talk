@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.SignalR;
 namespace LetsTalk.ViewModels;
 public sealed partial class AddRoomViewModel : BaseViewModel
 {
-    private readonly ILetsTalkSettings _settings;
     private readonly INavigationService _navigation;
     private readonly ILetsTalkHttpClient _httpClient;
     private readonly ILetsTalkHubClient _hubClient;
@@ -32,9 +31,8 @@ public sealed partial class AddRoomViewModel : BaseViewModel
 
     public bool HasError { get => !String.IsNullOrWhiteSpace(ErrorMessage); }
 
-    public AddRoomViewModel(ILetsTalkSettings settings, INavigationService navigation, ILetsTalkHttpClient httpClient, ILetsTalkHubClient hubClient, RoomConnectionManager roomConnectionManager)
+    public AddRoomViewModel(INavigationService navigation, ILetsTalkHttpClient httpClient, ILetsTalkHubClient hubClient, RoomConnectionManager roomConnectionManager)
     {
-        _settings = settings;
         _navigation = navigation;
         _httpClient = httpClient;
         _hubClient = hubClient;
@@ -44,10 +42,11 @@ public sealed partial class AddRoomViewModel : BaseViewModel
     [RelayCommand]
     private async Task OnNavigatedTo()
     {
-        if (_settings.IsAuthenticated)
-            HasCreateRoomPermission = _settings.Authentication.Permissions.Contains(Security.Permissions.Room.Create);
-        else
-            await _navigation.ReturnAsync();
+        // TODO: Check auth here.
+        //if (_settings.IsAuthenticated)
+        //    HasCreateRoomPermission = _settings.Authentication.Permissions.Contains(Security.Permissions.Room.Create);
+        //else
+        await _navigation.ReturnAsync();
     }
 
     [RelayCommand(CanExecute = nameof(CanJoinRoom))]
@@ -73,10 +72,11 @@ public sealed partial class AddRoomViewModel : BaseViewModel
     {
         try
         {
+            // TODO: Pass valid access token.
             var room = await _httpClient.CreateRoomAsync(new CreateRoomCommand
             {
                 Name = RoomName!,
-            }, _settings.AccessToken!);
+            });
             RoomId = room.Id;
             var response = await _hubClient.JoinRoomAsync(RoomId!);
             if (response.HasUserJoined)

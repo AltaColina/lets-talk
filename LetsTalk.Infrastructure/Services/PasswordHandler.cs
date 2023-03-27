@@ -16,40 +16,38 @@ internal sealed class PasswordHandler : IPasswordHandler
         _secretLength = ((4 * _hashSize / 3) + 3) & ~3;
     }
 
-    public string Encrypt(ReadOnlySpan<char> password, ReadOnlySpan<char> salt)
+    private void EncryptPassword(ReadOnlySpan<char> password, Span<char> secret)
     {
-        Span<char> secret = stackalloc char[_secretLength];
-        EncryptPassword(password, salt, secret);
-        return new string(secret);
-    }
-
-    private void EncryptPassword(ReadOnlySpan<char> password, ReadOnlySpan<char> salt, Span<char> secret)
-    {
-        if (salt.Length == 0 || salt.Length > 64)
-            throw new ArgumentException("Salt too small or too big");
         if (password.Length == 0 || password.Length > 64)
             throw new ArgumentException("Password too small or too big");
 
         Span<byte> passwordSpan = stackalloc byte[Encoding.UTF8.GetByteCount(password)];
-        Span<byte> saltSpan = stackalloc byte[Encoding.UTF8.GetByteCount(salt)];
         Span<byte> secretSpan = stackalloc byte[_hashSize];
-        EncryptPassword(passwordSpan, saltSpan, secretSpan);
+        EncryptPassword(passwordSpan, secretSpan);
         Convert.TryToBase64Chars(secretSpan, secret, out _);
+
+        void EncryptPassword(ReadOnlySpan<byte> password, Span<byte> secret)
+        {
+            Span<byte> buffer = stackalloc byte[password.Length];
+            password.CopyTo(buffer);
+            _hashAlgorithm.Initialize();
+            _hashAlgorithm.TryComputeHash(buffer, secret, out _);
+        }
     }
 
-    private void EncryptPassword(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt, Span<byte> secret)
+    public string Encrypt(ReadOnlySpan<char> password)
     {
-        Span<byte> buffer = stackalloc byte[password.Length + salt.Length];
-        password.CopyTo(buffer);
-        salt.CopyTo(buffer[password.Length..]);
-        _hashAlgorithm.Initialize();
-        _hashAlgorithm.TryComputeHash(buffer, secret, out _);
+        Span<char> secret = stackalloc char[_secretLength];
+        EncryptPassword(password, secret);
+        return new string(secret);
     }
 
-    public bool IsValid(ReadOnlySpan<char> secret, ReadOnlySpan<char> password, ReadOnlySpan<char> salt)
+    public bool IsValid(ReadOnlySpan<char> secret, ReadOnlySpan<char> password)
     {
+        if (secret.Length == 0 || password.Length == 0)
+            return true;
         Span<char> buffer = stackalloc char[_secretLength];
-        EncryptPassword(password, salt, buffer);
+        EncryptPassword(password, buffer);
         return secret.SequenceEqual(buffer);
     }
 }

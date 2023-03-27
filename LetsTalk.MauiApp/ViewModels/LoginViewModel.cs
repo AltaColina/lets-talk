@@ -1,6 +1,4 @@
-﻿using LetsTalk.Security.Commands;
-
-namespace LetsTalk.ViewModels;
+﻿namespace LetsTalk.ViewModels;
 public partial class LoginViewModel : BaseViewModel
 {
     private readonly INavigationService _navigation;
@@ -40,36 +38,40 @@ public partial class LoginViewModel : BaseViewModel
     }
 
     [RelayCommand(CanExecute = nameof(CanLogin))]
-    private async Task OnLoginAsync()
+    private Task OnLoginAsync()
     {
-        try
-        {
-            var response = await _letsTalkClient.LoginAsync(LoginUsername!, LoginPassword!);
-            await _navigation.ReturnAsync(new NavigationParameters
-            {
-                ["Authentication"] = response
-            });
-        }
-        catch (HttpRequestException ex)
-        {
-            ErrorMessage = ex.Message;
-        }
+        // TODO: Perform login here.
+        //try
+        //{
+        //    var response = await _letsTalkClient.LoginAsync(LoginUsername!, LoginPassword!);
+        //    await _navigation.ReturnAsync(new NavigationParameters
+        //    {
+        //        ["Authentication"] = response
+        //    });
+        //}
+        //catch (HttpRequestException ex)
+        //{
+        //    ErrorMessage = ex.Message;
+        //}
+        return Task.CompletedTask;
     }
 
     [RelayCommand(CanExecute = nameof(CanRegister))]
-    private async Task OnRegisterAsync()
+    private Task OnRegisterAsync()
     {
-        try
-        {
-            var response = await _letsTalkClient.RegisterAsync(RegisterUsername!, RegisterPassword!);
-            await _navigation.ReturnAsync(new NavigationParameters
-            {
-                ["Authentication"] = response
-            });
-        }
-        catch (HttpRequestException ex)
-        {
-            ErrorMessage = ex.Message;
-        }
+        // TODO: Perform register here.
+        //try
+        //{
+        //    var response = await _letsTalkClient.CreateUserAsync(RegisterUsername!, RegisterPassword!);
+        //    await _navigation.ReturnAsync(new NavigationParameters
+        //    {
+        //        ["Authentication"] = response
+        //    });
+        //}
+        //catch (HttpRequestException ex)
+        //{
+        //    ErrorMessage = ex.Message;
+        //}
+        return Task.CompletedTask;
     }
 }

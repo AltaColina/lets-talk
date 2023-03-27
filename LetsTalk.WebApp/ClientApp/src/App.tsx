@@ -3,14 +3,14 @@ import { SnackbarProvider } from 'notistack';
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
-import { attachMessageHandlers } from './Callbacks/attach-message-handlers';
+import attachDebugListeners from './Callbacks/attach-debug-listeners';
 import { Home } from './Components/Home';
 import { Login } from './Components/Login';
 import { PrivateRoutes } from './Components/PrivateRoutes';
 import { messenger } from './Services/messenger';
 import { themeManager } from './Services/theme-manager';
 
-attachMessageHandlers(messenger);
+attachDebugListeners(messenger);
 
 const App = () => {
   const [ theme, setTheme ] = useState(themeManager.theme);

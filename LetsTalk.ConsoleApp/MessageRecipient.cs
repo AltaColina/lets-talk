@@ -27,7 +27,11 @@ internal sealed class MessageRecipient :
 
     private void NotifyMessage(string message) => MessageReceived?.Invoke(this, message);
 
-    public void ListenToRoom(string roomId) => _messenger.Register<ContentMessage, string>(this, roomId);
+    public void AddMessageListener(string roomId) => _messenger.Register<ContentMessage, string>(this, roomId);
+
+    public void RemoveMessageListener(string roomId) => _messenger.Unregister<ContentMessage, string>(this, roomId);
+
+    public void RemoveEventHandlers() => MessageReceived = null;
 
     void IRecipient<ConnectMessage>.Receive(ConnectMessage message) => NotifyMessage($"User '{message.UserName}' has connected to the server.");
     void IRecipient<DisconnectMessage>.Receive(DisconnectMessage message) => NotifyMessage($"User '{message.UserName}' has disconnected from the server.");

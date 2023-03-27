@@ -4,8 +4,6 @@ using LetsTalk.Roles.Queries;
 using LetsTalk.Rooms;
 using LetsTalk.Rooms.Commands;
 using LetsTalk.Rooms.Queries;
-using LetsTalk.Security;
-using LetsTalk.Security.Commands;
 using LetsTalk.Users;
 using LetsTalk.Users.Commands;
 using LetsTalk.Users.Queries;
@@ -17,118 +15,109 @@ namespace LetsTalk.Services;
 internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
 {
     private readonly HttpClient _httpClient;
+    private readonly IAccessTokenProvider _accessTokenProvider;
 
-    public LetsTalkHttpClient(HttpClient httpClient)
+    public LetsTalkHttpClient(HttpClient httpClient, IAccessTokenProvider accessTokenProvider)
     {
         _httpClient = httpClient;
+        _accessTokenProvider = accessTokenProvider;
     }
 
-    public async Task<Authentication> RegisterAsync(string username, string password)
+    public async Task<string> PingAsync() =>
+        await GetStringAsync("api/ping");
+
+    public async Task<GetRoomsResponse> GetRoomsAsync() =>
+        await GetJsonAsync<GetRoomsResponse>("api/room");
+
+    public async Task<RoomDto> GetRoomAsync(string roomId) =>
+        await GetJsonAsync<RoomDto>($"api/room/{roomId}");
+
+    public async Task<RoomDto> CreateRoomAsync(CreateRoomCommand room) =>
+        await PostJsonAsync<CreateRoomCommand, RoomDto>("api/room", room);
+
+    public async Task<RoomDto> UpdateRoomAsync(UpdateRoomCommand room) =>
+        await PutJsonAsync<UpdateRoomCommand, RoomDto>("api/room", room);
+
+    public async Task DeleteRoomAsync(string roomId) =>
+        await DeleteAsync($"api/room/{roomId}");
+
+    public async Task<GetRoomUsersResponse> GetRoomUsersAsync(string roomId) =>
+        await GetJsonAsync<GetRoomUsersResponse>($"api/room/{roomId}/user");
+
+    public async Task<GetRolesResponse> GetRolesAsync() =>
+        await GetJsonAsync<GetRolesResponse>("api/role");
+
+    public async Task<RoleDto> GetRoleAsync(string roleId) =>
+        await GetJsonAsync<RoleDto>($"api/role/{roleId}");
+
+    public async Task<RoleDto> CreateRoleAsync(CreateRoleCommand role) =>
+        await PostJsonAsync<CreateRoleCommand, RoleDto>("api/role", role);
+
+    public async Task<RoleDto> UpdateRoleAsync(UpdateRoleCommand role) =>
+        await PutJsonAsync<UpdateRoleCommand, RoleDto>("api/role", role);
+
+    public async Task DeleteRoleAsync(string roleId) =>
+        await DeleteAsync($"api/role/{roleId}");
+
+    public async Task<GetRoleUsersResponse> GetRoleUsersAsync(string roleId) =>
+        await GetJsonAsync<GetRoleUsersResponse>($"api/role/{roleId}/user");
+
+    public async Task<GetUsersResponse> GetUsersAsync() =>
+        await GetJsonAsync<GetUsersResponse>("api/user");
+
+    public async Task<UserDto> GetUserAsync(string userId) =>
+        await GetJsonAsync<UserDto>($"api/user/{userId}");
+
+    public async Task<UserDto> CreateUserAsync(CreateUserCommand user) =>
+        await PostJsonAsync<CreateUserCommand, UserDto>($"api/user", user);
+
+    public async Task<UserDto> UpdateUserAsync(UpdateUserCommand user) =>
+        await PutJsonAsync<UpdateUserCommand, UserDto>("api/user", user);
+
+    public async Task DeleteUserAsync(string userId) =>
+        await DeleteAsync($"api/user/{userId}");
+
+    public async Task<GetRoomsWithUserResponse> GetUserRoomsAsync(string userId) =>
+        await GetJsonAsync<GetRoomsWithUserResponse>($"api/user/{userId}/room");
+
+    private async Task<string> GetStringAsync(string uri)
     {
-        var request = new RegisterCommand { Username = username, Password = password };
-        var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
+        var response = await _httpClient.SendAsync(await CreateRequestAsync<string>(HttpMethod.Get, uri));
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<Authentication>())!;
+        return (await response.Content.ReadAsStringAsync())!;
     }
 
-    public async Task<Authentication> LoginAsync(string username, string password)
+    private async Task<T> GetJsonAsync<T>(string uri)
     {
-        var request = new LoginCommand { Username = username, Password = password };
-        var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
-        response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<Authentication>())!;
-    }
-
-    public async Task<Authentication> RefreshAsync(string username, string refreshToken)
-    {
-        var request = new RefreshCommand { Username = username, RefreshToken = refreshToken };
-        var response = await _httpClient.PostAsJsonAsync("api/auth/refresh", request);
-        response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<Authentication>())!;
-    }
-
-    public async Task<GetRoomsResponse> GetRoomsAsync(string accessToken) =>
-        await GetAsync<GetRoomsResponse>("api/room", accessToken);
-
-    public async Task<RoomDto> GetRoomAsync(string roomId, string accessToken) =>
-        await GetAsync<RoomDto>($"api/room/{roomId}", accessToken);
-
-    public async Task<RoomDto> CreateRoomAsync(CreateRoomCommand room, string accessToken) =>
-        await PostAsync<CreateRoomCommand, RoomDto>("api/room", room, accessToken);
-
-    public async Task<RoomDto> UpdateRoomAsync(UpdateRoomCommand room, string accessToken) =>
-        await PutAsync<UpdateRoomCommand, RoomDto>("api/room", room, accessToken);
-
-    public async Task DeleteRoomAsync(string roomId, string accessToken) =>
-        await DeleteAsync($"api/room/{roomId}", accessToken);
-
-    public async Task<GetRoomUsersResponse> GetRoomUsersAsync(string roomId, string accessToken) =>
-        await GetAsync<GetRoomUsersResponse>($"api/room/{roomId}/user", accessToken);
-
-    public async Task<GetRolesResponse> GetRolesAsync(string accessToken) =>
-        await GetAsync<GetRolesResponse>("api/role", accessToken);
-
-    public async Task<RoleDto> GetRoleAsync(string roleId, string accessToken) =>
-        await GetAsync<RoleDto>($"api/role/{roleId}", accessToken);
-
-    public async Task<RoleDto> CreateRoleAsync(CreateRoleCommand role, string accessToken) =>
-        await PostAsync<CreateRoleCommand, RoleDto>("api/role", role, accessToken);
-
-    public async Task<RoleDto> UpdateRoleAsync(UpdateRoleCommand role, string accessToken) =>
-        await PutAsync<UpdateRoleCommand, RoleDto>("api/role", role, accessToken);
-
-    public async Task DeleteRoleAsync(string roleId, string accessToken) =>
-        await DeleteAsync($"api/role/{roleId}", accessToken);
-
-    public async Task<GetRoleUsersResponse> GetRoleUsersAsync(string roleId, string accessToken) =>
-        await GetAsync<GetRoleUsersResponse>($"api/role/{roleId}/user", accessToken);
-
-    public async Task<GetUsersResponse> GetUsersAsync(string accessToken) =>
-        await GetAsync<GetUsersResponse>("api/user", accessToken);
-
-    public async Task<UserDto> GetUserAsync(string userId, string accessToken) =>
-        await GetAsync<UserDto>($"api/user/{userId}", accessToken);
-
-    public async Task<UserDto> UpdateUserAsync(UpdateUserCommand user, string accessToken) =>
-        await PutAsync<UpdateUserCommand, UserDto>("api/user", user, accessToken);
-
-    public async Task DeleteUserAsync(string userId, string accessToken) =>
-        await DeleteAsync($"api/user/{userId}", accessToken);
-
-    public async Task<GetUserRoomsResponse> GetUserRoomsAsync(string userId, string accessToken) =>
-        await GetAsync<GetUserRoomsResponse>($"api/user/{userId}/room", accessToken);
-
-    private async Task<T> GetAsync<T>(string uri, string accessToken)
-    {
-        var response = await _httpClient.SendAsync(CreateRequest<T>(HttpMethod.Get, uri, accessToken));
+        var response = await _httpClient.SendAsync(await CreateRequestAsync<T>(HttpMethod.Get, uri));
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<T>())!;
     }
 
-    private async Task<T2> PostAsync<T1, T2>(string uri, T1? value, string accessToken)
+    private async Task<T2> PostJsonAsync<T1, T2>(string uri, T1? value)
     {
-        var response = await _httpClient.SendAsync(CreateRequest<T1>(HttpMethod.Post, uri, accessToken, value));
+        var response = await _httpClient.SendAsync(await CreateRequestAsync(HttpMethod.Post, uri, value));
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<T2>())!;
     }
 
-    private async Task<T2> PutAsync<T1, T2>(string uri, T1? value, string accessToken)
+    private async Task<T2> PutJsonAsync<T1, T2>(string uri, T1? value)
     {
-        var response = await _httpClient.SendAsync(CreateRequest<T1>(HttpMethod.Put, uri, accessToken, value));
+        var response = await _httpClient.SendAsync(await CreateRequestAsync(HttpMethod.Put, uri, value));
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<T2>())!;
     }
 
-    private async Task DeleteAsync(string uri, string accessToken)
+    private async Task DeleteAsync(string uri)
     {
-        var response = await _httpClient.SendAsync(CreateRequest<int>(HttpMethod.Delete, uri, accessToken));
+        var response = await _httpClient.SendAsync(await CreateRequestAsync<int>(HttpMethod.Delete, uri));
         response.EnsureSuccessStatusCode();
     }
 
-    private static HttpRequestMessage CreateRequest<T>(HttpMethod method, string uri, string accessToken, T? value = default)
+    private async Task<HttpRequestMessage> CreateRequestAsync<T>(HttpMethod method, string uri, T? value = default)
     {
         var request = new HttpRequestMessage(method, uri);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await _accessTokenProvider.GetAccessTokenAsync());
         request.Content = JsonContent.Create(value);
         return request;
     }

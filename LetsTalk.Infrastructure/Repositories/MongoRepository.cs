@@ -4,86 +4,104 @@ using MongoDB.Driver;
 using System.Linq.Expressions;
 
 namespace LetsTalk.Repositories;
-internal abstract class MongoRepository<T> : IRepository<T> where T : Entity
+internal abstract class MongoRepository<T> : IRepository<T> where T : class
 {
-    private readonly IMongoCollection<T> _collection;
+    private Func<T, string>? _getIdFunc;
 
-    public string CollectionName { get; } = typeof(T).Name.Pluralize().Camelize();
+    public string CollectionName { get; } = typeof(T).Name.Pluralize().Underscore().Hyphenate();
+
+    protected IMongoCollection<T> Collection { get; }
+
+    protected abstract Expression<Func<T, string>> GetIdExpr { get; }
+    private Func<T, string> GetIdFunc { get => _getIdFunc ??= GetIdExpr.Compile(); }
+
+    protected abstract Expression<Func<T, string>> GetNameExpr { get; }
 
     public MongoRepository(IMongoDatabase database)
     {
-        _collection = database.GetCollection<T>(CollectionName);
+        Collection = database.GetCollection<T>(CollectionName);
     }
 
     public async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
     {
-        await _collection.InsertOneAsync(entity, cancellationToken: cancellationToken);
+        await Collection.InsertOneAsync(entity, cancellationToken: cancellationToken);
         return entity;
     }
 
     public async Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
-        await _collection.InsertManyAsync(entities, cancellationToken: cancellationToken);
+        await Collection.InsertManyAsync(entities, cancellationToken: cancellationToken);
         return entities;
     }
 
     public async Task<bool> AnyAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
     {
-        var cursor = await _collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
+        var cursor = await Collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
         return await cursor.AnyAsync(cancellationToken);
     }
 
     public async Task<bool> AnyAsync(CancellationToken cancellationToken = default)
     {
-        var cursor = await _collection.FindAsync(FilterDefinition<T>.Empty, cancellationToken: cancellationToken);
+        var cursor = await Collection.FindAsync(FilterDefinition<T>.Empty, cancellationToken: cancellationToken);
         return await cursor.AnyAsync(cancellationToken);
     }
 
     public async Task<int> CountAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
     {
-        var count = await _collection.CountDocumentsAsync(specification.ToFilterDefinition(), specification.ToCountOptions(), cancellationToken);
+        var count = await Collection.CountDocumentsAsync(specification.ToFilterDefinition(), specification.ToCountOptions(), cancellationToken);
         return (int)count;
     }
 
     public async Task<int> CountAsync(CancellationToken cancellationToken = default)
     {
-        var count = await _collection.CountDocumentsAsync(FilterDefinition<T>.Empty, cancellationToken: cancellationToken);
+        var count = await Collection.CountDocumentsAsync(FilterDefinition<T>.Empty, cancellationToken: cancellationToken);
         return (int)count;
     }
 
     public async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
     {
-        await _collection.DeleteOneAsync(Builders<T>.Filter.Eq(e => e.Id, entity.Id), cancellationToken);
+        var id = GetIdFunc.Invoke(entity);
+        await Collection.DeleteOneAsync(Builders<T>.Filter.Eq(GetIdExpr, id), cancellationToken);
     }
 
     public async Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
-        await _collection.DeleteManyAsync(Builders<T>.Filter.In(e => e.Id, entities.Select(e => e.Id)), cancellationToken);
+        var ids = entities.Select(GetIdFunc);
+        await Collection.DeleteManyAsync(Builders<T>.Filter.In(GetIdExpr, ids), cancellationToken);
     }
 
     public async Task<T?> FirstOrDefaultAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
     {
-        var cursor = await _collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
+        var cursor = await Collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
         return await cursor.FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<TResult?> FirstOrDefaultAsync<TResult>(ISpecification<T, TResult> specification, CancellationToken cancellationToken = default)
     {
-        var cursor = await _collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
+        var cursor = await Collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
         return await cursor.FirstOrDefaultAsync(cancellationToken);
     }
 
-    private async Task<T?> FindOneAsync(Expression<Func<T, bool>> filter, CancellationToken cancellationToken)
+    private async Task<T?> FindOneAsync(FilterDefinition<T> filter, CancellationToken cancellationToken)
     {
-        var cursor = await _collection.FindAsync(filter, cancellationToken: cancellationToken);
+        var cursor = await Collection.FindAsync(filter, cancellationToken: cancellationToken);
         return await cursor.SingleOrDefaultAsync(cancellationToken);
     }
 
-    public Task<T?> GetByIdAsync<TId>(TId id, CancellationToken cancellationToken) where TId : notnull => FindOneAsync(e => e.Id.Equals(id), cancellationToken);
+    public Task<T?> GetByIdAsync<TId>(TId id, CancellationToken cancellationToken) where TId : notnull
+    {
+        return FindOneAsync(Builders<T>.Filter.Eq(GetIdExpr, id.ToString()!), cancellationToken);
+    }
 
-    public Task<T?> GetByIdAsync(string id, CancellationToken cancellationToken) => FindOneAsync(e => e.Id == id, cancellationToken);
+    public Task<T?> GetByIdAsync(string id, CancellationToken cancellationToken)
+    {
+        return FindOneAsync(Builders<T>.Filter.Eq(GetIdExpr, id), cancellationToken);
+    }
 
-    public Task<T?> GetByNameAsync(string name, CancellationToken cancellationToken = default) => FindOneAsync(e => e.Name == name, cancellationToken);
+    public Task<T?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        return FindOneAsync(Builders<T>.Filter.Eq(GetNameExpr, name), cancellationToken);
+    }
 
     [Obsolete]
     public Task<T?> GetBySpecAsync(ISpecification<T> specification, CancellationToken cancellationToken) => throw new NotSupportedException();
@@ -93,19 +111,19 @@ internal abstract class MongoRepository<T> : IRepository<T> where T : Entity
 
     public async Task<List<T>> ListAsync(CancellationToken cancellationToken = default)
     {
-        var cursor = await _collection.FindAsync(FilterDefinition<T>.Empty, cancellationToken: cancellationToken);
+        var cursor = await Collection.FindAsync(FilterDefinition<T>.Empty, cancellationToken: cancellationToken);
         return await cursor.ToListAsync(cancellationToken);
     }
 
     public async Task<List<T>> ListAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
     {
-        var cursor = await _collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
+        var cursor = await Collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
         return await cursor.ToListAsync(cancellationToken);
     }
 
     public async Task<List<TResult>> ListAsync<TResult>(ISpecification<T, TResult> specification, CancellationToken cancellationToken = default)
     {
-        var cursor = await _collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
+        var cursor = await Collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
         return await cursor.ToListAsync(cancellationToken);
     }
 
@@ -113,27 +131,26 @@ internal abstract class MongoRepository<T> : IRepository<T> where T : Entity
 
     public async Task<T?> SingleOrDefaultAsync(ISingleResultSpecification<T> specification, CancellationToken cancellationToken = default)
     {
-        var cursor = await _collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
+        var cursor = await Collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
         return await cursor.SingleOrDefaultAsync(cancellationToken);
     }
 
     public async Task<TResult?> SingleOrDefaultAsync<TResult>(ISingleResultSpecification<T, TResult> specification, CancellationToken cancellationToken = default)
     {
-        var cursor = await _collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
+        var cursor = await Collection.FindAsync(specification.ToFilterDefinition(), specification.ToFindOptions(), cancellationToken);
         return await cursor.SingleOrDefaultAsync(cancellationToken);
     }
 
     public async Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
-        var k = await _collection.FindOneAndReplaceAsync(Builders<T>.Filter.Eq(e => e.Id, entity.Id), entity, cancellationToken: cancellationToken);
-        Console.WriteLine(k);
+        var id = GetIdFunc.Invoke(entity);
+        await Collection.FindOneAndReplaceAsync(Builders<T>.Filter.Eq(GetIdExpr, id), entity, cancellationToken: cancellationToken);
     }
 
     public async Task UpdateRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
-        await _collection.BulkWriteAsync(entities.Select(e => new ReplaceOneModel<T>(Builders<T>.Filter.Eq(f => f.Id, e.Id), e)), cancellationToken: cancellationToken);
+        await Collection.BulkWriteAsync(entities.Select(e => new ReplaceOneModel<T>(Builders<T>.Filter.Eq(GetIdExpr, GetIdFunc.Invoke(e)), e)), cancellationToken: cancellationToken);
     }
-
 }
 
 internal static class SpecificationExtensions

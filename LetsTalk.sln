@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.WebApp", "LetsTalk.WebApp\LetsTalk.WebApp.csproj", "{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LetsTalk.Identity", "LetsTalk.Identity\LetsTalk.Identity.csproj", "{A145DEFC-AC1D-45C1-879F-7D035C798E21}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A145DEFC-AC1D-45C1-879F-7D035C798E21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A145DEFC-AC1D-45C1-879F-7D035C798E21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A145DEFC-AC1D-45C1-879F-7D035C798E21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A145DEFC-AC1D-45C1-879F-7D035C798E21}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,15 +1,15 @@
+import { Box } from "@mui/material";
 import { Suspense } from "react";
-import { wrapPromise } from "../Callbacks/wrap-promise";
+import wrapPromise from "../Callbacks/wrap-promise";
+import { MenuContextProvider } from "../Context/Menu";
 import { hubClient } from "../Services/hub-client";
-import { Lobby } from "./Lobby";
-import { Top } from "./Top";
 import { Footer } from "./Footer";
 import { Loading } from "./Loading";
-import { MenuContextProvider } from "../Context/Menu";
-import { Box } from "@mui/material";
+import { Lobby } from "./Lobby";
+import { Top } from "./Top";
 
 export const Home = () => {
-  const getUserRooms = wrapPromise(hubClient.getUserRooms());
+  const getUserRooms = wrapPromise(hubClient.getRoomsWithUserAsync());
   return (
     <Suspense fallback={<Loading />}>
       <MenuContextProvider>
