@@ -4,52 +4,55 @@ using Duende.IdentityServer.Stores;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace LetsTalk.Identity.Pages.ServerSideSessions
+namespace LetsTalk.Identity.Pages.ServerSideSessions;
+
+public class IndexModel : PageModel
 {
-    public class IndexModel : PageModel
+    private readonly ISessionManagementService? _sessionManagementService;
+
+    public IndexModel(ISessionManagementService? sessionManagementService = null)
     {
-        private readonly ISessionManagementService _sessionManagementService;
+        _sessionManagementService = sessionManagementService;
+    }
 
-        public IndexModel(ISessionManagementService sessionManagementService = null)
+    public QueryResult<UserSession> UserSessions { get; set; } = null!;
+
+    [BindProperty(SupportsGet = true)]
+    public string Filter { get; set; } = null!;
+
+    [BindProperty(SupportsGet = true)]
+    public string Token { get; set; } = null!;
+
+    [BindProperty(SupportsGet = true)]
+    public string Prev { get; set; } = null!;
+
+    public async Task OnGet()
+    {
+        if (_sessionManagementService != null)
         {
-            _sessionManagementService = sessionManagementService;
-        }
-
-        public QueryResult<UserSession> UserSessions { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public string Filter { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public string Token { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public string Prev { get; set; }
-
-        public async Task OnGet()
-        {
-            if (_sessionManagementService != null)
+            UserSessions = await _sessionManagementService.QuerySessionsAsync(new SessionQuery
             {
-                UserSessions = await _sessionManagementService.QuerySessionsAsync(new SessionQuery
-                {
-                    ResultsToken = Token,
-                    RequestPriorResults = Prev == "true",
-                    DisplayName = Filter,
-                    SessionId = Filter,
-                    SubjectId = Filter,
-                });
-            }
+                ResultsToken = Token,
+                RequestPriorResults = Prev == "true",
+                DisplayName = Filter,
+                SessionId = Filter,
+                SubjectId = Filter,
+            });
         }
+    }
 
-        [BindProperty]
-        public string SessionId { get; set; }
+    [BindProperty]
+    public string SessionId { get; set; } = null!;
 
-        public async Task<IActionResult> OnPost()
+    public async Task<IActionResult> OnPost()
+    {
+        if (_sessionManagementService != null)
         {
-            await _sessionManagementService.RemoveSessionsAsync(new RemoveSessionsContext { 
+            await _sessionManagementService.RemoveSessionsAsync(new RemoveSessionsContext
+            {
                 SessionId = SessionId,
             });
-            return RedirectToPage("/ServerSideSessions/Index", new { Token, Filter, Prev });
         }
+        return RedirectToPage("/ServerSideSessions/Index", new { Token, Filter, Prev });
     }
 }

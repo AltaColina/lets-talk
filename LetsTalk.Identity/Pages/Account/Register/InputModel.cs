@@ -4,7 +4,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace LetsTalk.Identity.Pages.Login;
+namespace LetsTalk.Identity.Pages.Register;
 
 public class InputModel
 {
@@ -12,7 +12,13 @@ public class InputModel
     public string Username { get; set; } = null!;
 
     [Required]
+    public string Email { get; set; } = null!;
+
+    [Required]
     public string Password { get; set; } = null!;
+
+    [Required]
+    public string ConfirmPassword { get; set; } = null!;
 
     public bool RememberLogin { get; set; }
 

@@ -25,7 +25,10 @@ internal sealed class UserProfileService : IProfileService
         {
             var user = await _userStore.FindBySubjectIdAsync(context.Subject.GetSubjectId());
             if (user is not null)
-                context.AddRequestedClaims(user.GetClaims());
+            {
+                var userClaims = user.GetClaims();
+                context.AddRequestedClaims(userClaims);
+            }
         }
 
         context.LogIssuedClaims(_logger);

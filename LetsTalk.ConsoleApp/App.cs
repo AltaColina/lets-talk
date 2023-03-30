@@ -1,7 +1,6 @@
 ﻿using IdentityModel;
 using IdentityModel.Client;
 using LetsTalk.Rooms;
-using LetsTalk.Security;
 using LetsTalk.Services;
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Diagnostics;
@@ -63,7 +62,7 @@ internal sealed class App
         {
             Console.Write("Username: ");
             userName = Console.ReadLine()!;
-            if (!RegexValidation.UserName.IsMatch(userName))
+            if (!RegexExpr.UserName().IsMatch(userName))
             {
                 Console.WriteLine("Invalid username");
                 userName = null!;

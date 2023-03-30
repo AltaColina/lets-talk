@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Extensions;
 using Duende.IdentityServer.Services;
@@ -6,6 +5,7 @@ using Duende.IdentityServer.Stores;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.ComponentModel.DataAnnotations;
 
 namespace LetsTalk.Identity.Pages.Grants;
 
@@ -29,8 +29,8 @@ public class Index : PageModel
         _events = events;
     }
 
-    public ViewModel View { get; set; }
-        
+    public ViewModel View { get; set; } = null!;
+
     public async Task OnGet()
     {
         var grants = await _interaction.GetAllUserGrantsAsync();
@@ -68,7 +68,7 @@ public class Index : PageModel
 
     [BindProperty]
     [Required]
-    public string ClientId { get; set; }
+    public string ClientId { get; set; } = null!;
 
     public async Task<IActionResult> OnPost()
     {

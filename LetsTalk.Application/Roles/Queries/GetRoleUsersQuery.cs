@@ -48,10 +48,7 @@ public sealed class GetRoleUsersQuery : IRequest<GetRoleUsersResponse>
 
         public async Task<GetRoleUsersResponse> Handle(GetRoleUsersQuery request, CancellationToken cancellationToken)
         {
-            var role = await _roleRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (role is null)
-                throw ExceptionFor<Role>.NotFound(r => r.Id, request.Id);
-
+            var role = await _roleRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw ExceptionFor<Role>.NotFound(r => r.Id, request.Id);
             var users = await _userRepository.ListAsync(new Specification(request.Id), cancellationToken);
             return new GetRoleUsersResponse { Users = _mapper.Map<List<UserDto>>(users) };
         }

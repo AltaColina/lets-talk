@@ -36,9 +36,7 @@ public sealed class UpdateRoomCommand : IRequest<RoomDto>, IMapTo<Room>
 
         public async Task<RoomDto> Handle(UpdateRoomCommand request, CancellationToken cancellationToken)
         {
-            var room = await _roomRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (room is null)
-                throw ExceptionFor<Room>.NotFound(r => r.Id, request.Id);
+            var room = await _roomRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw ExceptionFor<Room>.NotFound(r => r.Id, request.Id);
             room = _mapper.Map(request, room);
             await _roomRepository.UpdateAsync(room, cancellationToken);
             return _mapper.Map<RoomDto>(room);

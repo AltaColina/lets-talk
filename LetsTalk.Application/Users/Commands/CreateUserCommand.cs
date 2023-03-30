@@ -3,7 +3,6 @@ using FluentValidation;
 using LetsTalk.Exceptions;
 using LetsTalk.Interfaces;
 using LetsTalk.Repositories;
-using LetsTalk.Security;
 using LetsTalk.Services;
 using MediatR;
 
@@ -21,9 +20,9 @@ public sealed class CreateUserCommand : IRequest<UserDto>, IMapTo<User>
     {
         public Validator()
         {
-            RuleFor(e => e.UserName).NotEmpty().Must(e => e is not null && RegexValidation.UserName.IsMatch(e));
-            RuleFor(e => e.Email).EmailAddress();
-            RuleFor(e => e.Password).NotEmpty();
+            RuleFor(e => e.UserName).NotEmpty().Matches(RegexExpr.UserName());
+            RuleFor(e => e.Email).NotEmpty().Matches(RegexExpr.Email());
+            //RuleFor(e => e.Password).NotEmpty().Matches(RegexExpr.Password());
         }
     }
 

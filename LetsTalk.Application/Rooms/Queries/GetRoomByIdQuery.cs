@@ -31,9 +31,7 @@ public sealed class GetRoomByIdQuery : IRequest<RoomDto>
 
         public async Task<RoomDto> Handle(GetRoomByIdQuery request, CancellationToken cancellationToken)
         {
-            var room = await _roomRepository.GetByIdAsync(request.RoomId, cancellationToken);
-            if (room is null)
-                throw ExceptionFor<Room>.NotFound(r => r.Id, request.RoomId);
+            var room = await _roomRepository.GetByIdAsync(request.RoomId, cancellationToken) ?? throw ExceptionFor<Room>.NotFound(r => r.Id, request.RoomId);
             return _mapper.Map<RoomDto>(room);
         }
     }

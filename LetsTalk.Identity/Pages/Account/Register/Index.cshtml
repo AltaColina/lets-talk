@@ -1,9 +1,9 @@
 @page
-@model LetsTalk.Identity.Pages.Login.Index
+@model LetsTalk.Identity.Pages.Register.Index
 
 <div class="login-page">
     <div class="lead">
-        <h1>Login</h1>
+        <h1>Register</h1>
     </div>
 
     <partial name="_ValidationSummary" />
@@ -16,7 +16,7 @@
                 </div>
 
                 <div class="card-body">
-                    <form asp-page="/Account/Login/Index">
+                    <form asp-page="/Account/Register/Index">
                         <input type="hidden" asp-for="Input.ReturnUrl" />
 
                         <div class="form-group">
@@ -24,8 +24,16 @@
                             <input class="form-control" placeholder="Username" asp-for="Input.Username" autofocus>
                         </div>
                         <div class="form-group">
+                            <label asp-for="Input.Email"></label>
+                            <input class="form-control" placeholder="email" asp-for="Input.Email" autofocus>
+                        </div>
+                        <div class="form-group">
                             <label asp-for="Input.Password"></label>
                             <input type="password" class="form-control" placeholder="Password" asp-for="Input.Password" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Input.ConfirmPassword"></label>
+                            <input type="password" class="form-control" placeholder="ConfirmPassword" asp-for="Input.ConfirmPassword" autocomplete="off">
                         </div>
 
                         @if (Model.View.AllowRememberLogin)
@@ -40,13 +48,9 @@
                             </div>
                         }
 
-                        <button class="btn btn-primary" name="Input.Button" value="login">Login</button>
+                        <button type="submit" class="btn btn-primary" name="Input.Button" value="register">Register</button>
                         <button class="btn btn-secondary" name="Input.Button" value="cancel">Cancel</button>
                     </form>
-                </div>
-
-                <div class="card-footer text-center">
-                    <h3>Don't have a Let's Talk Account? <a asp-page="/Account/Register/Index" asp-route-ReturnUrl="@Request.Query["ReturnUrl"]">Register here</a></h3>
                 </div>
             </div>
         </div>

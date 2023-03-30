@@ -28,18 +28,17 @@ public class Index : PageModel
         _logger = logger;
     }
 
-    public ViewModel View { get; set; }
-        
+    public ViewModel View { get; set; } = null!;
+
     [BindProperty]
-    public InputModel Input { get; set; }
+    public InputModel Input { get; set; } = null!;
 
     public async Task<IActionResult> OnGet(string returnUrl)
     {
-        View = await BuildViewModelAsync(returnUrl);
-        if (View == null)
-        {
+        var view = await BuildViewModelAsync(returnUrl);
+        if (view is null)
             return RedirectToPage("/Home/Error/Index");
-        }
+        View = view;
 
         Input = new InputModel
         {
@@ -55,7 +54,7 @@ public class Index : PageModel
         var request = await _interaction.GetAuthorizationContextAsync(Input.ReturnUrl);
         if (request == null) return RedirectToPage("/Home/Error/Index");
 
-        ConsentResponse grantedConsent = null;
+        ConsentResponse? grantedConsent = null;
 
         // user clicked 'no' - send back the standard 'access_denied' response
         if (Input?.Button == "no")
@@ -107,46 +106,43 @@ public class Index : PageModel
             {
                 // The client is native, so this change in how to
                 // return the response is for better UX for the end user.
-                return this.LoadingPage(Input.ReturnUrl);
+                return this.LoadingPage(Input!.ReturnUrl);
             }
 
-            return Redirect(Input.ReturnUrl);
+            return Redirect(Input!.ReturnUrl);
         }
 
         // we need to redisplay the consent UI
-        View = await BuildViewModelAsync(Input.ReturnUrl, Input);
+        View = (await BuildViewModelAsync(Input!.ReturnUrl, Input))!;
         return Page();
     }
 
-    private async Task<ViewModel> BuildViewModelAsync(string returnUrl, InputModel model = null)
+    private async Task<ViewModel?> BuildViewModelAsync(string returnUrl, InputModel? model = null)
     {
         var request = await _interaction.GetAuthorizationContextAsync(returnUrl);
         if (request != null)
         {
-            return CreateConsentViewModel(model, returnUrl, request);
+            return CreateConsentViewModel(model, request);
         }
         else
         {
-            _logger.LogError("No consent request matching request: {0}", returnUrl);
+            _logger.LogError("No consent request matching request: {returnUrl}", returnUrl);
         }
         return null;
     }
 
-    private ViewModel CreateConsentViewModel(
-        InputModel model, string returnUrl,
-        AuthorizationRequest request)
+    private static ViewModel CreateConsentViewModel(InputModel? model, AuthorizationRequest request)
     {
         var vm = new ViewModel
         {
             ClientName = request.Client.ClientName ?? request.Client.ClientId,
             ClientUrl = request.Client.ClientUri,
             ClientLogoUrl = request.Client.LogoUri,
-            AllowRememberConsent = request.Client.AllowRememberConsent
+            AllowRememberConsent = request.Client.AllowRememberConsent,
+            IdentityScopes = request.ValidatedResources.Resources.IdentityResources
+                .Select(x => CreateScopeViewModel(x, model?.ScopesConsented == null || model.ScopesConsented?.Contains(x.Name) == true))
+                .ToArray()
         };
-
-        vm.IdentityScopes = request.ValidatedResources.Resources.IdentityResources
-            .Select(x => CreateScopeViewModel(x, model?.ScopesConsented == null || model.ScopesConsented?.Contains(x.Name) == true))
-            .ToArray();
 
         var resourceIndicators = request.Parameters.GetValues(OidcConstants.AuthorizeRequest.Resource) ?? Enumerable.Empty<string>();
         var apiResources = request.ValidatedResources.Resources.ApiResources.Where(x => resourceIndicators.Contains(x.Name));
@@ -176,7 +172,7 @@ public class Index : PageModel
         return vm;
     }
 
-    private ScopeViewModel CreateScopeViewModel(IdentityResource identity, bool check)
+    private static ScopeViewModel CreateScopeViewModel(IdentityResource identity, bool check)
     {
         return new ScopeViewModel
         {
@@ -190,7 +186,7 @@ public class Index : PageModel
         };
     }
 
-    public ScopeViewModel CreateScopeViewModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
+    public static ScopeViewModel CreateScopeViewModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
     {
         var displayName = apiScope.DisplayName ?? apiScope.Name;
         if (!String.IsNullOrWhiteSpace(parsedScopeValue.ParsedParameter))
@@ -210,7 +206,7 @@ public class Index : PageModel
         };
     }
 
-    private ScopeViewModel GetOfflineAccessScope(bool check)
+    private static ScopeViewModel GetOfflineAccessScope(bool check)
     {
         return new ScopeViewModel
         {

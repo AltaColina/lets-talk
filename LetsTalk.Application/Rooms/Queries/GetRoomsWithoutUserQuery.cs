@@ -48,10 +48,7 @@ public sealed class GetRoomsWithoutUserQuery : IRequest<GetRoomsWithoutUserRespo
 
         public async Task<GetRoomsWithoutUserResponse> Handle(GetRoomsWithoutUserQuery request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
-            if (user is null)
-                throw ExceptionFor<User>.NotFound(r => r.Id, request.UserId);
-
+            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken) ?? throw ExceptionFor<User>.NotFound(r => r.Id, request.UserId);
             var rooms = await _roomRepository.ListAsync(new Specification(user.Rooms), cancellationToken);
             return new GetRoomsWithoutUserResponse { Rooms = _mapper.Map<List<RoomDto>>(rooms) };
         }

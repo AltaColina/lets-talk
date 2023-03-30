@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace LetsTalk.Identity.Pages.Login;
+namespace LetsTalk.Identity.Pages.Register;
 
 [SecurityHeaders]
 [AllowAnonymous]
@@ -49,7 +49,7 @@ public class Index : PageModel
         var context = await _interaction.GetAuthorizationContextAsync(Input.ReturnUrl);
 
         // the user clicked the "cancel" button
-        if (Input.Button != "login")
+        if (Input.Button != "register")
         {
             if (context != null)
             {
@@ -78,7 +78,7 @@ public class Index : PageModel
         if (ModelState.IsValid)
         {
             // validate username/password against in-memory store
-            if (await _userStore.ValidateCredentialsAsync(Input.Username, Input.Password) is UserResult result && result.IsValid)
+            if (await _userStore.ProvisionUserAsync(Input.Username, Input.Email, Input.Password) is UserResult result && result.IsValid)
             {
                 var user = result.User;
                 await _events.RaiseAsync(new UserLoginSuccessEvent(user.Name, user.Id, user.Name, clientId: context?.Client.ClientId));
@@ -86,22 +86,22 @@ public class Index : PageModel
                 // only set explicit expiration here if user chooses "remember me". 
                 // otherwise we rely upon expiration configured in cookie middleware.
                 AuthenticationProperties? props = null;
-                if (LoginOptions.AllowRememberLogin && Input.RememberLogin)
+                if (RegisterOptions.AllowRememberLogin && Input.RememberLogin)
                 {
                     props = new AuthenticationProperties
                     {
                         IsPersistent = true,
-                        ExpiresUtc = DateTimeOffset.UtcNow.Add(LoginOptions.RememberMeLoginDuration)
+                        ExpiresUtc = DateTimeOffset.UtcNow.Add(RegisterOptions.RememberMeLoginDuration)
                     };
                 };
 
                 // issue authentication cookie with subject ID and username
-                var isuser = new IdentityServerUser(user.Id)
+                var issuer = new IdentityServerUser(user.Id)
                 {
                     DisplayName = user.Name
                 };
 
-                await HttpContext.SignInAsync(isuser, props);
+                await HttpContext.SignInAsync(issuer, props);
 
                 if (context != null)
                 {
@@ -133,7 +133,7 @@ public class Index : PageModel
             }
 
             await _events.RaiseAsync(new UserLoginFailureEvent(Input.Username, "invalid credentials", clientId: context?.Client.ClientId));
-            ModelState.AddModelError(string.Empty, LoginOptions.InvalidCredentialsErrorMessage);
+            ModelState.AddModelError(string.Empty, RegisterOptions.InvalidCredentialsErrorMessage);
         }
 
         // something went wrong, show form with error
@@ -161,7 +161,7 @@ public class Index : PageModel
 
         View = new ViewModel
         {
-            AllowRememberLogin = LoginOptions.AllowRememberLogin,
+            AllowRememberLogin = RegisterOptions.AllowRememberLogin,
         };
     }
 }

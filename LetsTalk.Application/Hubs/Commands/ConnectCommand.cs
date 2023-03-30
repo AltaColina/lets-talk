@@ -43,9 +43,7 @@ public sealed class ConnectCommand : IRequest<ConnectCommandResponse>
 
         public async Task<ConnectCommandResponse> Handle(ConnectCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
-            if (user is null)
-                throw ExceptionFor<User>.Unauthorized();
+            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken) ?? throw ExceptionFor<User>.Unauthorized();
             _connectionManager.AddMapping(request.ConnectionId, user);
 
             return new ConnectCommandResponse

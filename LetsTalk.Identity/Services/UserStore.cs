@@ -5,23 +5,47 @@ namespace LetsTalk.Services;
 
 internal sealed class UserStore : IUserStore
 {
+    private readonly IUserStoreDefaults _userStoreDefaults;
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHandler _passwordHandler;
 
-    public UserStore(IUserRepository userRepository, IPasswordHandler passwordHandler)
+    public UserStore(IUserStoreDefaults userStoreDefaults, IUserRepository userRepository, IPasswordHandler passwordHandler)
     {
+        _userStoreDefaults = userStoreDefaults;
         _userRepository = userRepository;
         _passwordHandler = passwordHandler;
     }
 
-    public async Task<ValidateCredentialsResult> ValidateCredentialsAsync(string username, string password)
+    public async Task<UserResult> ProvisionUserAsync(string username, string email, string password)
     {
+        if (String.IsNullOrWhiteSpace(username))
+            return UserResult.Invalid;
+        if (await _userRepository.GetByNameAsync(username) is not null)
+            return UserResult.Invalid;
+        var user = new User
+        {
+            Name = username,
+            Email = email,
+            Secret = _passwordHandler.Encrypt(password),
+            IsActive = true,
+            IsEmailVerified = true
+        };
+        user.Roles.UnionWith(await _userStoreDefaults.GetDefaultRolesAsync());
+        user.Rooms.UnionWith(await _userStoreDefaults.GetDefaultRoomsAsync());
+        return UserResult.Success(await _userRepository.AddAsync(user));
+    }
+
+    public async Task<UserResult> ValidateCredentialsAsync(string username, string password)
+    {
+        if (String.IsNullOrWhiteSpace(username))
+            return UserResult.Invalid;
+
         var user = await FindByUsernameAsync(username);
 
         if (user is null || !_passwordHandler.IsValid(user.Secret, password))
-            return ValidateCredentialsResult.Invalid;
+            return UserResult.Invalid;
 
-        return ValidateCredentialsResult.Success(user);
+        return UserResult.Success(user);
     }
 
 
@@ -34,76 +58,4 @@ internal sealed class UserStore : IUserStore
     {
         return _userRepository.GetByNameAsync(username);
     }
-
-    //public Task<User?> FindByExternalProviderAsync(string provider, string userId)
-    //{
-    //    return _userRepository.SingleOrDefaultAsync(x =>
-    //        x.ProviderName == provider &&
-    //        x.ProviderSubjectId == userId);
-    //}
-
-    //public async Task<User> AutoProvisionUserAsync(string provider, string userId, List<Claim> claims)
-    //{
-    //    // create a list of claims that we want to transfer into our store
-    //    var filtered = new List<Claim>();
-
-    //    foreach (var claim in claims)
-    //    {
-    //        // if the external system sends a display name - translate that to the standard OIDC name claim
-    //        if (claim.Type == ClaimTypes.Name)
-    //        {
-    //            filtered.Add(new Claim(JwtClaimTypes.Name, claim.Value));
-    //        }
-    //        // if the JWT handler has an outbound mapping to an OIDC claim use that
-    //        else if (JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.TryGetValue(claim.Type, out var value))
-    //        {
-    //            filtered.Add(new Claim(value, claim.Value));
-    //        }
-    //        // copy the claim as-is
-    //        else
-    //        {
-    //            filtered.Add(claim);
-    //        }
-    //    }
-
-    //    // if no display name was provided, try to construct by first and/or last name
-    //    if (!filtered.Any(x => x.Type == JwtClaimTypes.Name))
-    //    {
-    //        var first = filtered.FirstOrDefault(x => x.Type == JwtClaimTypes.GivenName)?.Value;
-    //        var last = filtered.FirstOrDefault(x => x.Type == JwtClaimTypes.FamilyName)?.Value;
-    //        if (first != null && last != null)
-    //        {
-    //            filtered.Add(new Claim(JwtClaimTypes.Name, first + " " + last));
-    //        }
-    //        else if (first != null)
-    //        {
-    //            filtered.Add(new Claim(JwtClaimTypes.Name, first));
-    //        }
-    //        else if (last != null)
-    //        {
-    //            filtered.Add(new Claim(JwtClaimTypes.Name, last));
-    //        }
-    //    }
-
-    //    // create a new unique subject id
-    //    var sub = Guid.NewGuid().ToString();
-
-    //    // check if a display name is available, otherwise fallback to subject id
-    //    var name = filtered.FirstOrDefault(c => c.Type == JwtClaimTypes.Name)?.Value ?? sub;
-
-    //    // create new user
-    //    var user = new User
-    //    {
-    //        Id = sub,
-    //        Name = name,
-    //        //ProviderName = provider,
-    //        //ProviderSubjectId = userId,
-    //        Claims = filtered
-    //    };
-
-    //    // add user to in-memory store
-    //    await _userRepository.AddAsync(user);
-
-    //    return user;
-    //}
 }

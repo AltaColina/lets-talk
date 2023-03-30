@@ -1,4 +1,6 @@
-﻿using LetsTalk.Services;
+﻿using Duende.IdentityServer.ResponseHandling;
+using Duende.IdentityServer.Validation;
+using LetsTalk.Services;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +18,11 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Identity.
 builder.Services.AddRazorPages();
 
+builder.Services.AddScoped<IAuthorizeInteractionResponseGenerator, CustomAuthorizeInteractionResponseGenerator>();
+builder.Services.AddScoped<ICustomAuthorizeRequestValidator, CustomAuthorizeRequestValidator>();
+
 builder.Services.AddSingleton<IUserStore, UserStore>();
+builder.Services.AddSingleton<IUserStoreDefaults, UserStoreDefaults>();
 builder.Services.AddIdentityServer(options =>
 {
     options.IssuerUri = "https://identity";

@@ -70,9 +70,8 @@ app.MapRemoteBffApiEndpoint("/api", $"{webApiUrl}/api")
      .WithOptionalUserAccessToken()
      .AllowAnonymous();
 
-app.MapRemoteBffApiEndpoint("/hubs/letstalk", $"{webApiUrl.Replace("https", "wss")}/hubs/letstalk")
+app.MapRemoteBffApiEndpoint("/hubs", $"{webApiUrl}/hubs")
     .RequireAccessToken()
-    .SkipResponseHandling()
     .SkipAntiforgery();
 
 app.MapFallbackToFile("index.html");
