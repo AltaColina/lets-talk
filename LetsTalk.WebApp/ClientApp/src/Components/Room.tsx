@@ -41,6 +41,7 @@ export const Room = () => {
         }
     }
 
+    //? Use Button not Fab for send
     return (
         //<Grid container component={Paper} sx={{ width: '100%', height: '80vh', backgroundColor: 'pink' }}>
         <Container
@@ -63,7 +64,6 @@ export const Room = () => {
                     <TextField value={content} onChange={onTextFieldChanged} onKeyDown={onKeyDown} label="Type Something" fullWidth />
                 </Grid>
                 <Grid item xs={1}>
-                    //? Use Button not Fab
                     <Fab color="primary" aria-label="add" onClick={sendMessage}><Send /></Fab>
                 </Grid>
             </Grid>
