@@ -40,9 +40,7 @@ public sealed class UpdateUserCommand : IRequest<UserDto>, IMapTo<User>
 
         public async Task<UserDto> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (user is null)
-                throw ExceptionFor<User>.NotFound(r => r.Id, request.Id);
+            var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw ExceptionFor<User>.NotFound(r => r.Id, request.Id);
             user = _mapper.Map(request, user);
             await _userRepository.UpdateAsync(user, cancellationToken);
             return _mapper.Map<UserDto>(user);

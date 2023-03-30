@@ -7,7 +7,7 @@ namespace LetsTalk.Identity.Pages.Redirect;
 [AllowAnonymous]
 public class IndexModel : PageModel
 {
-    public string RedirectUri { get; set; }
+    public string RedirectUri { get; set; } = null!;
 
     public IActionResult OnGet(string redirectUri)
     {

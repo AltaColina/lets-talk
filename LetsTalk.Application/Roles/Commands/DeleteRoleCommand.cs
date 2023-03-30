@@ -28,9 +28,7 @@ public sealed class DeleteRoleCommand : IRequest
 
         public async Task Handle(DeleteRoleCommand request, CancellationToken cancellationToken)
         {
-            var role = await _roleRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (role is null)
-                throw ExceptionFor<Role>.NotFound(r => r.Id, request.Id);
+            var role = await _roleRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw ExceptionFor<Role>.NotFound(r => r.Id, request.Id);
             await _roleRepository.DeleteAsync(role, cancellationToken);
         }
     }

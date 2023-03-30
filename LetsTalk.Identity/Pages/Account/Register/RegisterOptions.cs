@@ -1,6 +1,6 @@
-namespace LetsTalk.Identity.Pages.Login;
+namespace LetsTalk.Identity.Pages.Register;
 
-public class LoginOptions
+public class RegisterOptions
 {
     public static readonly bool AllowLocalLogin = true;
     public static readonly bool AllowRememberLogin = true;

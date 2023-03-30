@@ -48,10 +48,7 @@ public sealed class GetRoomUsersQuery : IRequest<GetRoomUsersResponse>
 
         public async Task<GetRoomUsersResponse> Handle(GetRoomUsersQuery request, CancellationToken cancellationToken)
         {
-            var room = await _roomRepository.GetByIdAsync(request.RoomId, cancellationToken);
-            if (room is null)
-                throw ExceptionFor<Room>.NotFound(r => r.Id, request.RoomId);
-
+            var room = await _roomRepository.GetByIdAsync(request.RoomId, cancellationToken) ?? throw ExceptionFor<Room>.NotFound(r => r.Id, request.RoomId);
             var users = await _userRepository.ListAsync(new Specification(room.Users), cancellationToken);
             return new GetRoomUsersResponse { Users = _mapper.Map<List<UserDto>>(users) };
         }

@@ -44,10 +44,7 @@ public sealed class DisconnectCommand : IRequest<DisconnectCommandResponse>
 
         public async Task<DisconnectCommandResponse> Handle(DisconnectCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
-            if (user is null)
-                throw ExceptionFor<User>.Unauthorized();
-
+            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken) ?? throw ExceptionFor<User>.Unauthorized();
             _connectionManager.RemoveMapping(request.ConnectionId);
 
             return new DisconnectCommandResponse

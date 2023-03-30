@@ -18,13 +18,11 @@ internal sealed class PermissionHandler : AuthorizationHandler<PermissionRequire
 {
     private readonly IDistributedCache _distributedCache;
     private readonly IRoleRepository _roleRepository;
-    private readonly IUserRepository _userRepository;
 
-    public PermissionHandler(IDistributedCache distributedCache, IRoleRepository roleRepository, IUserRepository userRepository)
+    public PermissionHandler(IDistributedCache distributedCache, IRoleRepository roleRepository)
     {
         _distributedCache = distributedCache;
         _roleRepository = roleRepository;
-        _userRepository = userRepository;
     }
 
     private sealed class GetUserRolesSpecification : Specification<Role>
@@ -37,24 +35,36 @@ internal sealed class PermissionHandler : AuthorizationHandler<PermissionRequire
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        if (context.User.Identity?.Name is string userId)
+        var roleIds = context.User.Identity.GetRoles();
+        if (roleIds.Any())
         {
-            var cacheKey = $"roles_{userId}";
-            var roles = default(List<Role>);
-            var rolesJson = await _distributedCache.GetStringAsync(cacheKey);
-            if (rolesJson is not null)
+            const string key = "permissions";
+            var permissions = await _distributedCache.GetFromJsonAsync<Dictionary<string, HashSet<string>>>(key);
+            if (permissions is null)
             {
-                roles = JsonSerializer.Deserialize<List<Role>>(rolesJson)!;
+                permissions = (await _roleRepository.ListAsync()).ToDictionary(r => r.Id, r => r.Permissions);
+                await _distributedCache.SetFromJsonAsync(key, permissions);
             }
-            else
-            {
-                var user = (await _userRepository.GetByIdAsync(userId))!;
-                roles = await _roleRepository.ListAsync(new GetUserRolesSpecification(user));
-                await _distributedCache.SetStringAsync(cacheKey, JsonSerializer.Serialize(roles));
-            }
-
-            if (roles.Any(role => role.Permissions.Contains(requirement.Permission)))
+            if (roleIds.Any(id => permissions.TryGetValue(id, out var list) && list.Contains(requirement.Permission)))
                 context.Succeed(requirement);
         }
     }
 }
+
+file static class DistributedCacheExtensions
+{
+    private static readonly DistributedCacheEntryOptions DefaultEntryOptions = new();
+
+    public static async Task<T?> GetFromJsonAsync<T>(this IDistributedCache cache, string key)
+    {
+        var json = await cache.GetAsync(key);
+        return json is not null ? JsonSerializer.Deserialize<T>(json) : default;
+    }
+
+    public static async Task SetFromJsonAsync<T>(this IDistributedCache cache, string key, T value, DistributedCacheEntryOptions? options = null)
+    {
+        var json = JsonSerializer.SerializeToUtf8Bytes(value);
+        await cache.SetAsync(key, json, options ?? DefaultEntryOptions);
+    }
+}
+

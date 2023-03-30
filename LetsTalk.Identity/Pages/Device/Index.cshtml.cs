@@ -1,4 +1,3 @@
-using Duende.IdentityServer.Configuration;
 using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Extensions;
 using Duende.IdentityServer.Models;
@@ -8,7 +7,6 @@ using LetsTalk.Identity.Pages.Consent;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Options;
 
 namespace LetsTalk.Identity.Pages.Device;
 
@@ -18,25 +16,17 @@ public class Index : PageModel
 {
     private readonly IDeviceFlowInteractionService _interaction;
     private readonly IEventService _events;
-    private readonly IOptions<IdentityServerOptions> _options;
-    private readonly ILogger<Index> _logger;
 
-    public Index(
-        IDeviceFlowInteractionService interaction,
-        IEventService eventService,
-        IOptions<IdentityServerOptions> options,
-        ILogger<Index> logger)
+    public Index(IDeviceFlowInteractionService interaction, IEventService eventService)
     {
         _interaction = interaction;
         _events = eventService;
-        _options = options;
-        _logger = logger;
     }
 
-    public ViewModel View { get; set; }
+    public ViewModel View { get; set; } = null!;
 
     [BindProperty]
-    public InputModel Input { get; set; }
+    public InputModel Input { get; set; } = null!;
 
     public async Task<IActionResult> OnGet(string userCode)
     {
@@ -47,16 +37,18 @@ public class Index : PageModel
             return Page();
         }
 
-        View = await BuildViewModelAsync(userCode);
-        if (View == null)
+        var view = await BuildViewModelAsync(userCode);
+        if (view is null)
         {
             ModelState.AddModelError("", DeviceOptions.InvalidUserCode);
             View = new ViewModel();
             Input = new InputModel();
             return Page();
         }
+        View = view;
 
-        Input = new InputModel { 
+        Input = new InputModel
+        {
             UserCode = userCode,
         };
 
@@ -68,7 +60,7 @@ public class Index : PageModel
         var request = await _interaction.GetAuthorizationContextAsync(Input.UserCode);
         if (request == null) return RedirectToPage("/Home/Error/Index");
 
-        ConsentResponse grantedConsent = null;
+        ConsentResponse? grantedConsent = null;
 
         // user clicked 'no' - send back the standard 'access_denied' response
         if (Input.Button == "no")
@@ -123,12 +115,12 @@ public class Index : PageModel
         }
 
         // we need to redisplay the consent UI
-        View = await BuildViewModelAsync(Input.UserCode, Input);
+        View = (await BuildViewModelAsync(Input.UserCode, Input))!;
         return Page();
     }
 
 
-    private async Task<ViewModel> BuildViewModelAsync(string userCode, InputModel model = null)
+    private async Task<ViewModel?> BuildViewModelAsync(string userCode, InputModel? model = null)
     {
         var request = await _interaction.GetAuthorizationContextAsync(userCode);
         if (request != null)
@@ -139,17 +131,18 @@ public class Index : PageModel
         return null;
     }
 
-    private ViewModel CreateConsentViewModel(InputModel model, DeviceFlowAuthorizationRequest request)
+    private static ViewModel CreateConsentViewModel(InputModel? model, DeviceFlowAuthorizationRequest request)
     {
         var vm = new ViewModel
         {
             ClientName = request.Client.ClientName ?? request.Client.ClientId,
             ClientUrl = request.Client.ClientUri,
             ClientLogoUrl = request.Client.LogoUri,
-            AllowRememberConsent = request.Client.AllowRememberConsent
+            AllowRememberConsent = request.Client.AllowRememberConsent,
+            IdentityScopes = request.ValidatedResources.Resources.IdentityResources
+                .Select(x => CreateScopeViewModel(x, model == null || model.ScopesConsented?.Contains(x.Name) == true))
+                .ToArray()
         };
-
-        vm.IdentityScopes = request.ValidatedResources.Resources.IdentityResources.Select(x => CreateScopeViewModel(x, model == null || model.ScopesConsented?.Contains(x.Name) == true)).ToArray();
 
         var apiScopes = new List<ScopeViewModel>();
         foreach (var parsedScope in request.ValidatedResources.ParsedScopes)
@@ -170,7 +163,7 @@ public class Index : PageModel
         return vm;
     }
 
-    private ScopeViewModel CreateScopeViewModel(IdentityResource identity, bool check)
+    private static ScopeViewModel CreateScopeViewModel(IdentityResource identity, bool check)
     {
         return new ScopeViewModel
         {
@@ -183,7 +176,7 @@ public class Index : PageModel
         };
     }
 
-    public ScopeViewModel CreateScopeViewModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
+    public static ScopeViewModel CreateScopeViewModel(ParsedScopeValue parsedScopeValue, ApiScope apiScope, bool check)
     {
         return new ScopeViewModel
         {
@@ -197,7 +190,7 @@ public class Index : PageModel
         };
     }
 
-    private ScopeViewModel GetOfflineAccessScope(bool check)
+    private static ScopeViewModel GetOfflineAccessScope(bool check)
     {
         return new ScopeViewModel
         {

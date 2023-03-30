@@ -31,9 +31,7 @@ public sealed class GetRoleByIdQuery : IRequest<RoleDto>
 
         public async Task<RoleDto> Handle(GetRoleByIdQuery request, CancellationToken cancellationToken)
         {
-            var role = await _roleRepository.GetByIdAsync(request.RoleId, cancellationToken);
-            if (role is null)
-                throw ExceptionFor<Role>.NotFound(r => r.Id, request.RoleId);
+            var role = await _roleRepository.GetByIdAsync(request.RoleId, cancellationToken) ?? throw ExceptionFor<Role>.NotFound(r => r.Id, request.RoleId);
             return _mapper.Map<RoleDto>(role);
         }
     }
