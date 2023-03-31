@@ -1,6 +1,6 @@
 ﻿import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
 import { useState } from 'react';
-import { Authentication } from "../Security/authentitcation";
+import { useProfileContext } from '../Context/User';
 import { User } from '../Users/user';
 
 const MENU_OPTIONS = [
@@ -19,14 +19,8 @@ const MENU_OPTIONS = [
 ];
 
 export default function UserPopover() {
-    let user: User = {
-        id: '0',
-        name: 'Login',
-        imageUrl: ''
-    };
-    if (Authentication.current) {
-        user = Authentication.current.user;
-    };
+    const profileContext = useProfileContext();
+    console.log(profileContext.profile)
     const [open, setOpen] = useState(null);
 
     const handleOpen = (event: any) => {
@@ -43,7 +37,7 @@ export default function UserPopover() {
                 onClick={handleOpen}
                 
             >
-                <Avatar src={user?.imageUrl} alt={user?.name} />
+                <Avatar src={profileContext.profile.picture} alt={profileContext.profile.displayName} />
             </IconButton>
 
             <Popover
@@ -67,7 +61,7 @@ export default function UserPopover() {
             >
                 <Box sx={{ my: 1.5, px: 2.5 }}>
                     <Typography variant="subtitle2" noWrap>
-                        {user?.name}
+                        {profileContext.profile.displayName}
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
                         user.email

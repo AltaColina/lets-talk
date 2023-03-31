@@ -19,7 +19,7 @@ export const RoomsContextProvider = ({ children }: Props) => {
     const [activeRoom, setActiveRoom] = useState('');
 
     const loadRooms = async () => {
-        const roomsData = await hubClient.getUserRooms();
+        const roomsData = await hubClient.getRoomsWithUser();
         setRooms(roomsData.rooms);
         setActiveRoom(roomsData.rooms[0].id);
     }
@@ -37,6 +37,6 @@ export const RoomsContextProvider = ({ children }: Props) => {
 
 export const useRoomsContext = () => {
     const roomsContext = useContext(RoomsContext);
-    if (!roomsContext) throw new Error('Context most be within provider!');
+    if (!roomsContext) throw new Error('Context must be within provider!');
     return roomsContext;
 }

@@ -4,6 +4,7 @@ import { MenuContextProvider } from "../Context/Menu";
 import { RoomsContextProvider } from "../Context/Rooms";
 import Header from '../Components/Header';
 import Nav from "../Components/Nav";
+import { ProfileContextProvider } from '../Context/User';
 
 const APP_BAR_MOBILE = 64;
 const APP_BAR_DESKTOP = 92;
@@ -29,15 +30,17 @@ const Main = styled('div')(({ theme }) => ({
 export default function Layout() {
     return (
         <StyledRoot>
-            <MenuContextProvider>
-                <RoomsContextProvider>
-                    <Header />
-                    <Nav />
-                    <Main>
-                        <Outlet />
-                    </Main>
-                </RoomsContextProvider>
-            </MenuContextProvider>
+            <ProfileContextProvider>
+                <MenuContextProvider>
+                    <RoomsContextProvider>
+                        <Header />
+                        <Nav />
+                        <Main>
+                            <Outlet />
+                        </Main>
+                    </RoomsContextProvider>
+                </MenuContextProvider>
+            </ProfileContextProvider>
         </StyledRoot>
     );
 }

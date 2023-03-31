@@ -147,7 +147,7 @@ class HubClient {
     return await this._connection!.invoke('SendContentMessageAsync', roomId, contentType, contentBase64);
   }
 
-  public async getRoomsWithUserAsync(): Promise<GetUserRoomsResponse> {
+  public async getRoomsWithUser(): Promise<GetUserRoomsResponse> {
     if (!this.isConnected)
       throw new Error('Not connected');
     return await this._connection!.invoke('GetRoomsWithUserAsync');

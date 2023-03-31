@@ -17,30 +17,29 @@ import { Room } from './Components/Room';
 attachDebugListeners(messenger);
 
 const App = () => {
-  const [ theme, setTheme ] = useState(themeManager.theme);
-  useEffect(() => messenger.on('ThemeChanged', e => setTheme(e.detail)).dispose);
-  return (
+    const [theme, setTheme] = useState(themeManager.theme);
+    useEffect(() => messenger.on('ThemeChanged', e => setTheme(e.detail)).dispose);
+    return (
         <HelmetProvider>
             <SnackbarProvider anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
                     <Router>
-          <Routes>
-            <Route element={<PrivateRoutes />}>
+                        <Routes>
+                            <Route element={<PrivateRoutes />}>
                                 <Route element={<Layout />} path="/">
                                     <Route element={<Room />} index />
                                     <Route element={<Test />} path="test" />
                                 </Route>
-            </Route>
-            <Route element={<Login />} path="/login" />
+                            </Route>
+                            <Route element={<Login />} path="/login" />
                             <Route element={<Page404 />} path="*" />
-          </Routes>
+                        </Routes>
                     </Router>
-          </ThemeProvider>
-        </Router>
-      </SnackbarProvider>
+                </ThemeProvider>
+            </SnackbarProvider>
         </HelmetProvider>
-  );
+    );
 }
 
 export default App;
