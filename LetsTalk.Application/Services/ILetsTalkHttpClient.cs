@@ -26,12 +26,10 @@ public interface ILetsTalkHttpClient
     Task<RoleDto> CreateRoleAsync(CreateRoleCommand role);
     Task<RoleDto> UpdateRoleAsync(UpdateRoleCommand role);
     Task DeleteRoleAsync(string roleId);
-    Task<GetRoleUsersResponse> GetRoleUsersAsync(string roleId);
 
     Task<GetUsersResponse> GetUsersAsync();
     Task<UserDto> GetUserAsync(string userId);
     Task<UserDto> CreateUserAsync(CreateUserCommand user);
     Task<UserDto> UpdateUserAsync(UpdateUserCommand user);
     Task DeleteUserAsync(string userId);
-    Task<GetRoomsWithUserResponse> GetUserRoomsAsync(string userId);
 }

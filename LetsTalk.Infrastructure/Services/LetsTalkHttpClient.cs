@@ -59,9 +59,6 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
     public async Task DeleteRoleAsync(string roleId) =>
         await DeleteAsync($"api/role/{roleId}");
 
-    public async Task<GetRoleUsersResponse> GetRoleUsersAsync(string roleId) =>
-        await GetJsonAsync<GetRoleUsersResponse>($"api/role/{roleId}/user");
-
     public async Task<GetUsersResponse> GetUsersAsync() =>
         await GetJsonAsync<GetUsersResponse>("api/user");
 
@@ -76,9 +73,6 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
 
     public async Task DeleteUserAsync(string userId) =>
         await DeleteAsync($"api/user/{userId}");
-
-    public async Task<GetRoomsWithUserResponse> GetUserRoomsAsync(string userId) =>
-        await GetJsonAsync<GetRoomsWithUserResponse>($"api/user/{userId}/room");
 
     private async Task<string> GetStringAsync(string uri)
     {

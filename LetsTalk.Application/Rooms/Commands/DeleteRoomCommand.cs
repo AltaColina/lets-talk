@@ -1,11 +1,13 @@
 ﻿using FluentValidation;
-using LetsTalk.Exceptions;
+using LetsTalk.Errors;
 using LetsTalk.Repositories;
+using LetsTalk.Services;
 using MediatR;
+using OneOf.Types;
 
 namespace LetsTalk.Rooms.Commands;
 
-public sealed class DeleteRoomCommand : IRequest
+public sealed class DeleteRoomCommand : IRequest<Response<Success>>
 {
     public required string Id { get; init; }
 
@@ -17,19 +19,30 @@ public sealed class DeleteRoomCommand : IRequest
         }
     }
 
-    public sealed class Handler : IRequestHandler<DeleteRoomCommand>
+    public sealed class Handler : IRequestHandler<DeleteRoomCommand, Response<Success>>
     {
+        private readonly IValidatorService<DeleteRoomCommand> _validator;
         private readonly IRoomRepository _roomRepository;
 
-        public Handler(IRoomRepository roomRepository)
+        public Handler(IValidatorService<DeleteRoomCommand> validator, IRoomRepository roomRepository)
         {
+            _validator = validator;
             _roomRepository = roomRepository;
         }
 
-        public async Task Handle(DeleteRoomCommand request, CancellationToken cancellationToken)
+        public async Task<Response<Success>> Handle(DeleteRoomCommand request, CancellationToken cancellationToken)
         {
-            var room = await _roomRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw ExceptionFor<Room>.NotFound(r => r.Id, request.Id);
+            var validation = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validation.IsValid)
+                return new Invalid(validation.ToDictionary());
+
+            var room = await _roomRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (room is null)
+                return new NotFound();
+
             await _roomRepository.DeleteAsync(room, cancellationToken);
+
+            return new Success();
         }
     }
 }

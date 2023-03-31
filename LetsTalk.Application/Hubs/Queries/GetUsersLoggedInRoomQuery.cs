@@ -1,12 +1,12 @@
 ﻿using Ardalis.Specification;
 using AutoMapper;
 using FluentValidation;
-using LetsTalk.Exceptions;
+using LetsTalk.Errors;
 using LetsTalk.Repositories;
-using LetsTalk.Rooms;
 using LetsTalk.Services;
 using LetsTalk.Users;
 using MediatR;
+using OneOf.Types;
 
 namespace LetsTalk.Hubs.Queries;
 
@@ -15,7 +15,7 @@ public sealed class GetUsersLoggedInRoomResponse
     public required List<UserDto> Users { get; init; }
 }
 
-public sealed class GetUsersLoggedInRoomQuery : IRequest<GetUsersLoggedInRoomResponse>
+public sealed class GetUsersLoggedInRoomQuery : IRequest<Response<GetUsersLoggedInRoomResponse>>
 {
     public required string RoomId { get; init; }
 
@@ -35,24 +35,38 @@ public sealed class GetUsersLoggedInRoomQuery : IRequest<GetUsersLoggedInRoomRes
         }
     }
 
-    public sealed class Handler : IRequestHandler<GetUsersLoggedInRoomQuery, GetUsersLoggedInRoomResponse>
+    public sealed class Handler : IRequestHandler<GetUsersLoggedInRoomQuery, Response<GetUsersLoggedInRoomResponse>>
     {
+        private readonly IValidatorService<GetUsersLoggedInRoomQuery> _validator;
         private readonly IMapper _mapper;
         private readonly IHubConnectionManager _connectionManager;
         private readonly IUserRepository _userRepository;
         private readonly IRoomRepository _roomRepository;
 
-        public Handler(IMapper mapper, IHubConnectionManager connectionManager, IUserRepository userRepository, IRoomRepository roomRepository)
+        public Handler(
+            IValidatorService<GetUsersLoggedInRoomQuery> validator,
+            IMapper mapper,
+            IHubConnectionManager connectionManager,
+            IUserRepository userRepository,
+            IRoomRepository roomRepository)
         {
+            _validator = validator;
             _mapper = mapper;
             _connectionManager = connectionManager;
             _userRepository = userRepository;
             _roomRepository = roomRepository;
         }
 
-        public async Task<GetUsersLoggedInRoomResponse> Handle(GetUsersLoggedInRoomQuery request, CancellationToken cancellationToken)
+        public async Task<Response<GetUsersLoggedInRoomResponse>> Handle(GetUsersLoggedInRoomQuery request, CancellationToken cancellationToken)
         {
-            var room = await _roomRepository.GetByIdAsync(request.RoomId, cancellationToken) ?? throw ExceptionFor<Room>.NotFound(r => r.Id, request.RoomId);
+            var validation = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validation.IsValid)
+                return new Invalid(validation.ToDictionary());
+
+            var room = await _roomRepository.GetByIdAsync(request.RoomId, cancellationToken);
+            if (room is null)
+                return new NotFound();
+
             var userIds = _connectionManager.GetUserIds().Intersect(room.Users).ToList();
             var users = await _userRepository.ListAsync(new Specification(userIds), cancellationToken);
             return new GetUsersLoggedInRoomResponse { Users = _mapper.Map<List<UserDto>>(users) };

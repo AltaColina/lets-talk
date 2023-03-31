@@ -1,10 +1,11 @@
 ﻿using Ardalis.Specification;
 using AutoMapper;
 using FluentValidation;
-using LetsTalk.Exceptions;
+using LetsTalk.Errors;
 using LetsTalk.Repositories;
-using LetsTalk.Users;
+using LetsTalk.Services;
 using MediatR;
+using OneOf.Types;
 
 namespace LetsTalk.Rooms.Queries;
 
@@ -13,7 +14,7 @@ public sealed class GetRoomsWithUserResponse
     public required List<RoomDto> Rooms { get; init; }
 }
 
-public sealed class GetRoomsWithUserQuery : IRequest<GetRoomsWithUserResponse>
+public sealed class GetRoomsWithUserQuery : IRequest<Response<GetRoomsWithUserResponse>>
 {
     public required string UserId { get; init; }
 
@@ -33,22 +34,31 @@ public sealed class GetRoomsWithUserQuery : IRequest<GetRoomsWithUserResponse>
         }
     }
 
-    public sealed class Handler : IRequestHandler<GetRoomsWithUserQuery, GetRoomsWithUserResponse>
+    public sealed class Handler : IRequestHandler<GetRoomsWithUserQuery, Response<GetRoomsWithUserResponse>>
     {
+        private readonly IValidatorService<GetRoomsWithUserQuery> _validator;
         private readonly IMapper _mapper;
         private readonly IUserRepository _userRepository;
         private readonly IRoomRepository _roomRepository;
 
-        public Handler(IMapper mapper, IUserRepository userRepository, IRoomRepository roomRepository)
+        public Handler(IValidatorService<GetRoomsWithUserQuery> validator, IMapper mapper, IUserRepository userRepository, IRoomRepository roomRepository)
         {
+            _validator = validator;
             _mapper = mapper;
             _userRepository = userRepository;
             _roomRepository = roomRepository;
         }
 
-        public async Task<GetRoomsWithUserResponse> Handle(GetRoomsWithUserQuery request, CancellationToken cancellationToken)
+        public async Task<Response<GetRoomsWithUserResponse>> Handle(GetRoomsWithUserQuery request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken) ?? throw ExceptionFor<User>.NotFound(r => r.Id, request.UserId);
+            var validation = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validation.IsValid)
+                return new Invalid(validation.ToDictionary());
+
+            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
+            if (user is null)
+                return new NotFound();
+
             var rooms = await _roomRepository.ListAsync(new Specification(user.Rooms), cancellationToken);
             return new GetRoomsWithUserResponse { Rooms = _mapper.Map<List<RoomDto>>(rooms) };
         }

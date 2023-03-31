@@ -3,7 +3,6 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using IdentityModel;
 using LetsTalk;
-using LetsTalk.Exceptions;
 using LetsTalk.Repositories;
 using LetsTalk.Roles;
 using LetsTalk.Rooms;

@@ -1,10 +1,11 @@
-﻿using AutoMapper;
-using FluentValidation;
-using LetsTalk.Exceptions;
+﻿using FluentValidation;
+using LetsTalk.Errors;
 using LetsTalk.Repositories;
 using LetsTalk.Rooms;
+using LetsTalk.Services;
 using LetsTalk.Users;
 using MediatR;
+using OneOf.Types;
 using System.Diagnostics.CodeAnalysis;
 
 namespace LetsTalk.Hubs.Commands;
@@ -12,12 +13,12 @@ namespace LetsTalk.Hubs.Commands;
 public sealed class JoinRoomResponse
 {
     [MemberNotNullWhen(true, nameof(Room))]
-    public bool HasUserJoined { get; init; }
-    public required UserDto User { get; init; }
-    public RoomDto? Room { get; init; }
+    public bool HasUserJoined { get => Room is not null; }
+    public required User User { get; init; }
+    public required Room? Room { get; init; }
 }
 
-public sealed class JoinRoomCommand : IRequest<JoinRoomResponse>
+public sealed class JoinRoomCommand : IRequest<Response<JoinRoomResponse>>
 {
     public required string UserId { get; init; }
     public required string RoomId { get; init; }
@@ -31,37 +32,42 @@ public sealed class JoinRoomCommand : IRequest<JoinRoomResponse>
         }
     }
 
-    public sealed class Handler : IRequestHandler<JoinRoomCommand, JoinRoomResponse>
+    public sealed class Handler : IRequestHandler<JoinRoomCommand, Response<JoinRoomResponse>>
     {
-        private readonly IMapper _mapper;
+        private readonly IValidatorService<JoinRoomCommand> _validator;
         private readonly IUserRepository _userRepository;
         private readonly IRoomRepository _roomRepository;
 
-        public Handler(IMapper mapper, IUserRepository userRepository, IRoomRepository roomRepository)
+        public Handler(IValidatorService<JoinRoomCommand> validator, IUserRepository userRepository, IRoomRepository roomRepository)
         {
-            _mapper = mapper;
+            _validator = validator;
             _userRepository = userRepository;
             _roomRepository = roomRepository;
         }
 
-        public async Task<JoinRoomResponse> Handle(JoinRoomCommand request, CancellationToken cancellationToken)
+        public async Task<Response<JoinRoomResponse>> Handle(JoinRoomCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken) ?? throw ExceptionFor<User>.Unauthorized();
-            if (user.Rooms.Contains(request.RoomId))
-                return new JoinRoomResponse { User = _mapper.Map<UserDto>(user) };
+            var validation = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validation.IsValid)
+                return new Invalid(validation.ToDictionary());
 
-            var room = await _roomRepository.GetByIdAsync(request.RoomId, cancellationToken) ?? throw ExceptionFor<Room>.NotFound(r => r.Id, request.RoomId);
+            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
+            if (user is null)
+                return new NotFound();
+
+            if (user.Rooms.Contains(request.RoomId))
+                return new JoinRoomResponse { User = user, Room = null };
+
+            var room = await _roomRepository.GetByIdAsync(request.RoomId, cancellationToken);
+            if (room is null)
+                return new NotFound();
+
             user.Rooms.Add(request.RoomId);
             room.Users.Add(request.UserId);
             await _userRepository.UpdateAsync(user, cancellationToken);
             await _roomRepository.UpdateAsync(room, cancellationToken);
 
-            return new JoinRoomResponse
-            {
-                HasUserJoined = true,
-                User = _mapper.Map<UserDto>(user),
-                Room = _mapper.Map<RoomDto>(room),
-            };
+            return new JoinRoomResponse { User = user, Room = room };
         }
     }
 }

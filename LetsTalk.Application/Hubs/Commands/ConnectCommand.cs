@@ -1,20 +1,14 @@
-﻿using AutoMapper;
-using FluentValidation;
-using LetsTalk.Exceptions;
+﻿using FluentValidation;
+using LetsTalk.Errors;
 using LetsTalk.Repositories;
 using LetsTalk.Services;
 using LetsTalk.Users;
 using MediatR;
+using OneOf.Types;
 
 namespace LetsTalk.Hubs.Commands;
-public sealed class ConnectCommandResponse
-{
-    public required UserDto User { get; init; }
 
-    public required IReadOnlyCollection<string> Rooms { get; init; }
-}
-
-public sealed class ConnectCommand : IRequest<ConnectCommandResponse>
+public sealed class ConnectCommand : IRequest<Response<User>>
 {
     public required string UserId { get; init; }
     public required string ConnectionId { get; init; }
@@ -28,29 +22,32 @@ public sealed class ConnectCommand : IRequest<ConnectCommandResponse>
         }
     }
 
-    public sealed class Handler : IRequestHandler<ConnectCommand, ConnectCommandResponse>
+    public sealed class Handler : IRequestHandler<ConnectCommand, Response<User>>
     {
-        private readonly IMapper _mapper;
+        private readonly IValidatorService<ConnectCommand> _validator;
         private readonly IHubConnectionManager _connectionManager;
         private readonly IUserRepository _userRepository;
 
-        public Handler(IMapper mapper, IHubConnectionManager connectionManager, IUserRepository userRepository)
+        public Handler(IValidatorService<ConnectCommand> validator, IHubConnectionManager connectionManager, IUserRepository userRepository)
         {
-            _mapper = mapper;
+            _validator = validator;
             _connectionManager = connectionManager;
             _userRepository = userRepository;
         }
 
-        public async Task<ConnectCommandResponse> Handle(ConnectCommand request, CancellationToken cancellationToken)
+        public async Task<Response<User>> Handle(ConnectCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken) ?? throw ExceptionFor<User>.Unauthorized();
+            var validation = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validation.IsValid)
+                return new Invalid(validation.ToDictionary());
+
+            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
+            if (user is null)
+                return new NotFound();
+
             _connectionManager.AddMapping(request.ConnectionId, user);
 
-            return new ConnectCommandResponse
-            {
-                User = _mapper.Map<UserDto>(user),
-                Rooms = user.Rooms
-            };
+            return user;
         }
     }
 }
