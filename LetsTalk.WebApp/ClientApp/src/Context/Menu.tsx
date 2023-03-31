@@ -26,6 +26,6 @@ export const MenuContextProvider = ({ children }: Props) => {
 
 export const useMenuContext = () => {
     const menuContext = useContext(MenuContext);
-    if (!menuContext) throw new Error('Context most be within provider!');
+    if (!menuContext) throw new Error('Context must be within provider!');
     return menuContext;
 }

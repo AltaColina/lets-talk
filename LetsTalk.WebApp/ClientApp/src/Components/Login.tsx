@@ -6,6 +6,14 @@ import { Navigate } from 'react-router-dom';
 import { UserProfile } from '../Security/user-profile';
 import { hubClient } from '../Services/hub-client';
 
+const areValidCredentials = (username?: string, password?: string): boolean => {
+  if (!username || !password)
+    return false;
+  if (username.length === 0 || password.length === 0)
+    return false;
+  return true;
+}
+
 export const Login = () => {
   const [userProfile, setUserProfile] = useState(UserProfile.guestProfile);
   const [isLoggedIn, setIsLoggedIn] = useState(false);

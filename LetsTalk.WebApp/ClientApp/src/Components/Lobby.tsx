@@ -111,7 +111,9 @@ export const Lobby = ({ getUserRooms }: { getUserRooms: () => GetUserRoomsRespon
                     }
                 }}>
                 <Toolbar />
-                <Room roomId={roomId} />
+                <Room
+                    //roomId={roomId}
+                />
             </Box>
             {/* <Box
                 // sx={{

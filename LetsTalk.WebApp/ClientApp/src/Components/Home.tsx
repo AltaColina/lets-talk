@@ -9,7 +9,7 @@ import { Lobby } from "./Lobby";
 import { Top } from "./Top";
 
 export const Home = () => {
-  const getUserRooms = wrapPromise(hubClient.getRoomsWithUserAsync());
+  const getUserRooms = wrapPromise(hubClient.getRoomsWithUser());
   return (
     <Suspense fallback={<Loading />}>
       <MenuContextProvider>
