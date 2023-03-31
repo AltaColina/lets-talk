@@ -3,6 +3,7 @@ using LetsTalk.Interfaces;
 using System.Reflection;
 
 namespace LetsTalk.Profiles;
+
 internal sealed class AutoMapperProfile : Profile
 {
     public AutoMapperProfile(params Assembly[] handlerAssemblyMarkerTypes)

@@ -4,6 +4,7 @@ using Docker.DotNet.Models;
 using FluentValidation;
 using LetsTalk.Behaviors;
 using LetsTalk.Profiles;
+using LetsTalk.Services;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
@@ -17,12 +18,12 @@ public static class DependencyInjection
         var currentAsm = typeof(DependencyInjection).Assembly;
         var callingAsm = Assembly.GetCallingAssembly();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnhandledExceptionBehavior<,>));
         services.AddAutoMapper(config => config.AddProfile(new AutoMapperProfile(currentAsm, callingAsm)));
         services.AddMediatR(opts => opts.RegisterServicesFromAssemblies(currentAsm, callingAsm));
         services.AddValidatorsFromAssembly(currentAsm);
         services.AddValidatorsFromAssembly(callingAsm);
+        services.AddScoped(typeof(IValidatorService<>), typeof(ValidatorService<>));
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
         return services;
     }

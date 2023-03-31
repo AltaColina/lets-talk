@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 using FluentValidation;
-using LetsTalk.Exceptions;
+using LetsTalk.Errors;
 using LetsTalk.Interfaces;
 using LetsTalk.Repositories;
 using LetsTalk.Services;
 using MediatR;
 
 namespace LetsTalk.Users.Commands;
-public sealed class CreateUserCommand : IRequest<UserDto>, IMapTo<User>
+
+public sealed class CreateUserCommand : IRequest<Response<UserDto>>, IMapTo<User>
 {
     public required string UserName { get; init; }
 
@@ -24,25 +25,33 @@ public sealed class CreateUserCommand : IRequest<UserDto>, IMapTo<User>
             RuleFor(e => e.Email).NotEmpty().Matches(RegexExpr.Email());
             //RuleFor(e => e.Password).NotEmpty().Matches(RegexExpr.Password());
         }
+
+        public static Validator Instance { get; } = new();
     }
 
-    public sealed class Handler : IRequestHandler<CreateUserCommand, UserDto>
+    public sealed class Handler : IRequestHandler<CreateUserCommand, Response<UserDto>>
     {
+        private readonly IValidatorService<CreateUserCommand> _validator;
         private readonly IMapper _mapper;
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHandler _passwordHandler;
 
-        public Handler(IMapper mapper, IUserRepository userRepository, IPasswordHandler passwordHandler)
+        public Handler(IValidatorService<CreateUserCommand> validator, IMapper mapper, IUserRepository userRepository, IPasswordHandler passwordHandler)
         {
+            _validator = validator;
             _mapper = mapper;
             _userRepository = userRepository;
             _passwordHandler = passwordHandler;
         }
 
-        public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+        public async Task<Response<UserDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            if ((await _userRepository.GetByNameAsync(request.UserName, cancellationToken)) is not null)
-                throw ExceptionFor<User>.AlreadyExists(u => u.Name, request.UserName);
+            var validation = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validation.IsValid)
+                return new Invalid(validation.ToDictionary());
+
+            if (await _userRepository.GetByNameAsync(request.UserName, cancellationToken) is not null)
+                return new AlreadyExists();
 
             var user = await _userRepository.AddAsync(new User
             {

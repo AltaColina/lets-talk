@@ -1,11 +1,13 @@
 ﻿using FluentValidation;
-using LetsTalk.Exceptions;
+using LetsTalk.Errors;
 using LetsTalk.Repositories;
+using LetsTalk.Services;
 using MediatR;
+using OneOf.Types;
 
 namespace LetsTalk.Users.Commands;
 
-public sealed class DeleteUserCommand : IRequest
+public sealed class DeleteUserCommand : IRequest<Response<Success>>
 {
     public required string Id { get; init; }
 
@@ -15,21 +17,34 @@ public sealed class DeleteUserCommand : IRequest
         {
             RuleFor(e => e.Id).NotEmpty();
         }
+
+        public static Validator Instance { get; } = new();
     }
 
-    public sealed class Handler : IRequestHandler<DeleteUserCommand>
+    public sealed class Handler : IRequestHandler<DeleteUserCommand, Response<Success>>
     {
+        private readonly IValidatorService<DeleteUserCommand> _validator;
         private readonly IUserRepository _userRepository;
 
-        public Handler(IUserRepository userRepository)
+        public Handler(IValidatorService<DeleteUserCommand> validator, IUserRepository userRepository)
         {
+            _validator = validator;
             _userRepository = userRepository;
         }
 
-        public async Task Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        public async Task<Response<Success>> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw ExceptionFor<User>.NotFound(r => r.Id, request.Id);
+            var validation = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validation.IsValid)
+                return new Invalid(validation.ToDictionary());
+
+            var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
+            if (user is null)
+                return new NotFound();
+
             await _userRepository.DeleteAsync(user, cancellationToken);
+
+            return new Success();
         }
     }
 }

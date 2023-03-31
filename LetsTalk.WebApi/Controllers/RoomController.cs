@@ -27,14 +27,14 @@ public class RoomController : ControllerBase
     public async Task<IActionResult> Get([FromRoute, Required] string roomId)
     {
         var response = await _mediator.Send(new GetRoomByIdQuery { RoomId = roomId, });
-        return Ok(response);
+        return response.ToActionResult(Ok, roomId);
     }
 
     [HttpPost, Authorize(Permissions.Room.Create)]
     public async Task<IActionResult> Post([FromBody, Required] CreateRoomCommand room)
     {
         var response = await _mediator.Send(room);
-        return CreatedAtRoute("GetRoomById", new { roomId = response.Id }, response);
+        return response.ToActionResult(room => CreatedAtRoute("GetRoomById", new { roomId = room.Id }, room), room.Name);
     }
 
     [HttpPut("{roomId}"), Authorize(Permissions.Room.Update)]
@@ -42,21 +42,20 @@ public class RoomController : ControllerBase
     {
         room.Id = roomId;
         var response = await _mediator.Send(room);
-        return Ok(response);
+        return response.ToActionResult(Ok, roomId);
     }
 
     [HttpDelete("{roomId}"), Authorize(Permissions.Room.Delete)]
     public async Task<IActionResult> Delete([FromRoute, Required] string roomId)
     {
-        var request = new DeleteRoomCommand { Id = roomId };
-        await _mediator.Send(request);
-        return NoContent();
+        var response = await _mediator.Send(new DeleteRoomCommand { Id = roomId });
+        return response.ToActionResult(success => NoContent(), roomId);
     }
 
     [HttpGet("{roomId}/user"), Authorize(Permissions.Room.User.Read)]
     public async Task<IActionResult> GetUsers([FromRoute, Required] string roomId)
     {
         var response = await _mediator.Send(new GetRoomUsersQuery { RoomId = roomId });
-        return Ok(response);
+        return response.ToActionResult(Ok, roomId);
     }
 }

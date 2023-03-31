@@ -27,12 +27,14 @@ public sealed class LetsTalkHub : Hub
             UserId = Context.User.GetSubjectId()
         });
 
-        await Task.WhenAll(response.Rooms.Select(roomId => Groups.AddToGroupAsync(Context.ConnectionId, roomId)));
+        var user = response.EnsureSuccess();
+
+        await Task.WhenAll(user.Rooms.Select(roomId => Groups.AddToGroupAsync(Context.ConnectionId, roomId)));
         await Clients.Others.SendAsync(new ConnectMessage
         {
-            UserId = response.User.Id,
-            UserName = response.User.Name,
-            UserImage = response.User.Image,
+            UserId = user.Id,
+            UserName = user.Name,
+            UserImage = user.Image,
         });
         await base.OnConnectedAsync();
     }
@@ -45,12 +47,14 @@ public sealed class LetsTalkHub : Hub
             UserId = Context.User.GetSubjectId()
         });
 
-        await Task.WhenAll(response.Rooms.Select(roomId => Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId)));
+        var user = response.EnsureSuccess();
+
+        await Task.WhenAll(user.Rooms.Select(roomId => Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId)));
         await Clients.Others.SendAsync(new DisconnectMessage
         {
-            UserId = response.User.Id,
-            UserName = response.User.Name,
-            UserImage = response.User.Image
+            UserId = user.Id,
+            UserName = user.Name,
+            UserImage = user.Image
         });
         await base.OnDisconnectedAsync(exception);
     }
@@ -63,19 +67,21 @@ public sealed class LetsTalkHub : Hub
             UserId = Context.User.GetSubjectId()
         });
 
-        if (response.HasUserJoined)
+        var join = response.EnsureSuccess();
+
+        if (join.HasUserJoined)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-            await Clients.Group(response.Room.Id).SendAsync(new JoinRoomMessage
+            await Clients.Group(join.Room.Id).SendAsync(new JoinRoomMessage
             {
-                RoomId = response.Room.Id,
-                RoomName = response.Room.Name,
-                UserId = response.User.Id,
-                UserName = response.User.Name,
+                RoomId = join.Room.Id,
+                RoomName = join.Room.Name,
+                UserId = join.User.Id,
+                UserName = join.User.Name,
             });
         }
 
-        return response;
+        return join;
     }
 
     public async Task<LeaveRoomResponse> LeaveRoomAsync(string roomId)
@@ -86,19 +92,21 @@ public sealed class LetsTalkHub : Hub
             UserId = Context.User.GetSubjectId()
         });
 
-        if (response.HasUserLeft)
+        var leave = response.EnsureSuccess();
+
+        if (leave.HasUserLeft)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
             await Clients.Group(roomId).SendAsync(new LeaveRoomMessage
             {
-                RoomId = response.Room.Id,
-                RoomName = response.Room.Name,
-                UserId = response.User.Id,
-                UserName = response.User.Name,
+                RoomId = leave.Room.Id,
+                RoomName = leave.Room.Name,
+                UserId = leave.User.Id,
+                UserName = leave.User.Name,
             });
         }
 
-        return response;
+        return leave;
     }
 
     public async Task SendContentMessageAsync(string roomId, string contentType, byte[] content)
@@ -116,25 +124,26 @@ public sealed class LetsTalkHub : Hub
     public async Task<GetUsersLoggedInResponse> GetUsersLoggedInAsync()
     {
         var response = await _mediator.Send(new GetUsersLoggedInQuery());
-        return response;
+
+        return response.EnsureSuccess();
     }
 
     public async Task<GetUsersLoggedInRoomResponse> GetUsersLoggedInRoomAsync(string roomId)
     {
         var response = await _mediator.Send(new GetUsersLoggedInRoomQuery { RoomId = roomId });
-        return response;
+        return response.EnsureSuccess();
     }
 
     public async Task<GetRoomsWithUserResponse> GetRoomsWithUserAsync()
     {
         var response = await _mediator.Send(new GetRoomsWithUserQuery { UserId = Context.User.GetSubjectId() });
-        return response;
+        return response.EnsureSuccess();
     }
 
     public async Task<GetRoomsWithoutUserResponse> GetRoomsWithoutUserAsync()
     {
         var response = await _mediator.Send(new GetRoomsWithoutUserQuery { UserId = Context.User.GetSubjectId() });
-        return response;
+        return response.EnsureSuccess();
     }
 }
 
