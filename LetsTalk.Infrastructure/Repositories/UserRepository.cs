@@ -3,7 +3,7 @@ using MongoDB.Driver;
 
 namespace LetsTalk.Repositories;
 
-internal sealed class UserRepository : MongoRepository<User>, IUserRepository
+internal sealed class UserRepository : MongoEntityRepository<User>, IUserRepository
 {
     public UserRepository(IMongoDatabase database) : base(database)
     {

@@ -11,6 +11,17 @@ services:
       - cache
       - database
       - logsink
+      - identity
+  identity:
+    container_name: LetsTalk.Identity
+    image: ${DOCKER_REGISTRY-}letstalkidentity
+    build:
+      context: .
+      dockerfile: LetsTalk.Identity/Dockerfile
+    depends_on:
+      - cache
+      - database
+      - logsink
   cache:
     container_name: RedisCache
     image: redis
@@ -33,3 +44,4 @@ services:
       - 5341:80
     environment:
       ACCEPT_EULA: 'Y'
+

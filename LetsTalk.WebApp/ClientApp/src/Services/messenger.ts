@@ -1,5 +1,5 @@
 import { Theme } from "@mui/material";
-import { IDisposable } from "../Callbacks/idisposable";
+import IDisposable from "../Callbacks/idisposable";
 import { LTMessageMap } from "../Messaging/lt-message";
 
 export interface UIMessageMap {

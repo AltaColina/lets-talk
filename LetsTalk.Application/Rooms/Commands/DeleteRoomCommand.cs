@@ -28,9 +28,7 @@ public sealed class DeleteRoomCommand : IRequest
 
         public async Task Handle(DeleteRoomCommand request, CancellationToken cancellationToken)
         {
-            var room = await _roomRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (room is null)
-                throw ExceptionFor<Room>.NotFound(r => r.Id, request.Id);
+            var room = await _roomRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw ExceptionFor<Room>.NotFound(r => r.Id, request.Id);
             await _roomRepository.DeleteAsync(room, cancellationToken);
         }
     }

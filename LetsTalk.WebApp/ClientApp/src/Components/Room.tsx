@@ -62,14 +62,14 @@ export const Room = () => {
             <Grid container style={{ padding: '20px' }}>
                 <Grid item xs={11}>
                     <TextField value={content} onChange={onTextFieldChanged} onKeyDown={onKeyDown} label="Type Something" fullWidth />
-                </Grid>
+                    </Grid>
                 <Grid item xs={1}>
                     <Fab color="primary" aria-label="add" onClick={sendMessage}><Send /></Fab>
+                    </Grid>
                 </Grid>
-            </Grid>
         </Container>
         //</Grid>
-
+            
         //? Original
         //<Box
         //    component="form"

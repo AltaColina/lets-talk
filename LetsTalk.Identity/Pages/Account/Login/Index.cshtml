@@ -1,0 +1,54 @@
+@page
+@model LetsTalk.Identity.Pages.Login.Index
+
+<div class="login-page">
+    <div class="lead">
+        <h1>Login</h1>
+    </div>
+
+    <partial name="_ValidationSummary" />
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Let's Talk Account</h2>
+                </div>
+
+                <div class="card-body">
+                    <form asp-page="/Account/Login/Index">
+                        <input type="hidden" asp-for="Input.ReturnUrl" />
+
+                        <div class="form-group">
+                            <label asp-for="Input.Username"></label>
+                            <input class="form-control" placeholder="Username" asp-for="Input.Username" autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Input.Password"></label>
+                            <input type="password" class="form-control" placeholder="Password" asp-for="Input.Password" autocomplete="off">
+                        </div>
+
+                        @if (Model.View.AllowRememberLogin)
+                        {
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" asp-for="Input.RememberLogin">
+                                    <label class="form-check-label" asp-for="Input.RememberLogin">
+                                        Remember My Login
+                                    </label>
+                                </div>
+                            </div>
+                        }
+
+                        <button class="btn btn-primary" name="Input.Button" value="login">Login</button>
+                        <button class="btn btn-secondary" name="Input.Button" value="cancel">Cancel</button>
+                    </form>
+                </div>
+
+                <div class="card-footer text-center">
+                    <h3>Don't have a Let's Talk Account? <a asp-page="/Account/Register/Index" asp-route-ReturnUrl="@Request.Query["ReturnUrl"]">Register here</a></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

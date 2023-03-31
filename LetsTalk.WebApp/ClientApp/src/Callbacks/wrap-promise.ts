@@ -1,6 +1,6 @@
 type PromiseState = 'pending' | 'success' | 'error';
 
-export function wrapPromise<T>(promise: PromiseLike<T>): () => T {
+export default function wrapPromise<T>(promise: PromiseLike<T>): () => T {
     let status: PromiseState = 'pending';
     let response: T;
     const suspender = promise.then(

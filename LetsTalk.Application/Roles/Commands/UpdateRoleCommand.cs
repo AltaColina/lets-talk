@@ -40,9 +40,7 @@ public sealed class UpdateRoleCommand : IRequest<RoleDto>, IMapTo<Role>
 
         public async Task<RoleDto> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
         {
-            var role = await _roleRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (role is null)
-                throw ExceptionFor<Role>.NotFound(r => r.Id, request.Id);
+            var role = await _roleRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw ExceptionFor<Role>.NotFound(r => r.Id, request.Id);
             role = _mapper.Map(request, role);
             await _roleRepository.UpdateAsync(role, cancellationToken);
             return _mapper.Map<RoleDto>(role);

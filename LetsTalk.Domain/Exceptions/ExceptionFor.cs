@@ -34,6 +34,11 @@ public static class ExceptionFor<T>
         return new InvalidOperationException($"{typeof(T).Name}: Invalid {key} '{value}'");
     }
 
+    public static InvalidOperationException Invalid(string key, IEnumerable<object?> values)
+    {
+        return new InvalidOperationException($"{typeof(T).Name}: Invalid {key} [{String.Join(',', values.Select(v => $"'{v}'"))}]");
+    }
+
     public static ForbiddenException Forbidden()
     {
         return new ForbiddenException($"{typeof(T).Name}: forbidden");

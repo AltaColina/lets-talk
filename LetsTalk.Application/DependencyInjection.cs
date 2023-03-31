@@ -19,7 +19,7 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnhandledExceptionBehavior<,>));
-        services.AddAutoMapper(config => config.AddProfile(new MappingProfile(currentAsm, callingAsm)));
+        services.AddAutoMapper(config => config.AddProfile(new AutoMapperProfile(currentAsm, callingAsm)));
         services.AddMediatR(opts => opts.RegisterServicesFromAssemblies(currentAsm, callingAsm));
         services.AddValidatorsFromAssembly(currentAsm);
         services.AddValidatorsFromAssembly(callingAsm);

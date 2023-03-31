@@ -1,4 +1,7 @@
 using Duende.Bff.Yarp;
+using IdentityModel;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,17 +15,17 @@ builder.Services.AddBff()
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultScheme = "cookie";
-    options.DefaultChallengeScheme = "oidc";
-    options.DefaultSignOutScheme = "oidc";
-}).AddCookie("cookie", options =>
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+    options.DefaultSignOutScheme = OpenIdConnectDefaults.AuthenticationScheme;
+}).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.Cookie.Name = "__Host-bff";
+    options.Cookie.Name = "letstalk_webapp";
     options.Cookie.SameSite = SameSiteMode.Strict;
-}).AddOpenIdConnect("oidc", options =>
+}).AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
 {
-    options.Authority = "https://demo.duendesoftware.com";
-    options.ClientId = "interactive.confidential";
+    options.Authority = builder.Configuration.GetConnectionString("LetsTalk.Identity");
+    options.ClientId = "web";
     options.ClientSecret = "secret";
     options.ResponseType = "code";
     options.ResponseMode = "query";
@@ -34,13 +37,13 @@ builder.Services.AddAuthentication(options =>
     options.Scope.Clear();
     options.Scope.Add("openid");
     options.Scope.Add("profile");
-    options.Scope.Add("api");
-    options.Scope.Add("offline_access");
+    options.Scope.Add("letstalk");
 
     options.TokenValidationParameters = new()
     {
-        NameClaimType = "name",
-        RoleClaimType = "role"
+        RoleClaimType = JwtClaimTypes.Role,
+        NameClaimType = JwtClaimTypes.Name,
+        ValidateAudience = false,
     };
 });
 builder.Services.AddAuthorization();
@@ -67,8 +70,8 @@ app.MapRemoteBffApiEndpoint("/api", $"{webApiUrl}/api")
      .WithOptionalUserAccessToken()
      .AllowAnonymous();
 
-app.MapRemoteBffApiEndpoint("/hubs/letstalk", $"{webApiUrl.Replace("https", "wss")}/hubs/letstalk")
-    .SkipResponseHandling()
+app.MapRemoteBffApiEndpoint("/hubs", $"{webApiUrl}/hubs")
+    .RequireAccessToken()
     .SkipAntiforgery();
 
 app.MapFallbackToFile("index.html");
