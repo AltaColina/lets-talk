@@ -1,0 +1,52 @@
+﻿@page "/room/{id}"
+@implements IDisposable
+@inject UserRoomsStateProvider UserRooms
+@inject IMessenger Messenger
+
+<PageTitle>Let's Talk - @UserRooms.RoomsById.GetValueOrDefault(Id)?.Name</PageTitle>
+
+<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
+    @foreach (var message in messages)
+    {
+        <RadzenStack Gap="1rem" class="rz-background-color-primary-lighter">
+            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">@($"{message.UserName} {message.Timestamp:R}")</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1"><b>@System.Text.Encoding.UTF8.GetString(message.Content)</b></RadzenText>
+            </RadzenStack>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public required string Id { get; set; }
+
+    private readonly List<ContentMessage> messages = new();
+
+    protected override void OnInitialized()
+    {
+        Messenger.Register<ContentMessage, string>(this, Id, OnNewContentMessage);
+        messages.Add(new ContentMessage
+        {
+            UserId = Guid.NewGuid().ToString(),
+            UserName = "tiago",
+            ContentType = "text/plain",
+            RoomId = Id,
+            Content = System.Text.Encoding.UTF8.GetBytes("Hello")
+        });
+    }
+
+    protected override void OnParametersSet()
+    {
+        messages.AddRange(UserRooms.GetRoomMessages(Id));
+    }
+
+    private void OnNewContentMessage(object sender, ContentMessage message)
+    {
+        messages.Add(message);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Messenger.Unregister<ContentMessage, string>(this, Id);
+    }
+}

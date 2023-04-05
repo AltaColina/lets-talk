@@ -7,24 +7,21 @@ using LetsTalk.Rooms.Queries;
 using LetsTalk.Users;
 using LetsTalk.Users.Commands;
 using LetsTalk.Users.Queries;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace LetsTalk.Services;
 
 internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
 {
-    private readonly HttpClient _httpClient;
-    private readonly IAccessTokenProvider _accessTokenProvider;
+    public HttpClient HttpClient { get; }
 
-    public LetsTalkHttpClient(HttpClient httpClient, IAccessTokenProvider accessTokenProvider)
+    public LetsTalkHttpClient(HttpClient httpClient)
     {
-        _httpClient = httpClient;
-        _accessTokenProvider = accessTokenProvider;
+        HttpClient = httpClient;
     }
 
-    public async Task<string> PingAsync() =>
-        await GetStringAsync("api/ping");
+    public async Task<string> GreetAsync() =>
+        await GetStringAsync("api/greet");
 
     public async Task<GetRoomsResponse> GetRoomsAsync() =>
         await GetJsonAsync<GetRoomsResponse>("api/room");
@@ -74,45 +71,27 @@ internal sealed class LetsTalkHttpClient : ILetsTalkHttpClient
     public async Task DeleteUserAsync(string userId) =>
         await DeleteAsync($"api/user/{userId}");
 
-    private async Task<string> GetStringAsync(string uri)
-    {
-        var response = await _httpClient.SendAsync(await CreateRequestAsync<string>(HttpMethod.Get, uri));
-        response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadAsStringAsync())!;
-    }
+    private async Task<string> GetStringAsync(string uri) => await HttpClient.GetStringAsync(uri);
 
-    private async Task<T> GetJsonAsync<T>(string uri)
-    {
-        var response = await _httpClient.SendAsync(await CreateRequestAsync<T>(HttpMethod.Get, uri));
-        response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<T>())!;
-    }
+    private async Task<T> GetJsonAsync<T>(string uri) => (await HttpClient.GetFromJsonAsync<T>(uri))!;
 
     private async Task<T2> PostJsonAsync<T1, T2>(string uri, T1? value)
     {
-        var response = await _httpClient.SendAsync(await CreateRequestAsync(HttpMethod.Post, uri, value));
+        var response = await HttpClient.PostAsJsonAsync(uri, value);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<T2>())!;
     }
 
     private async Task<T2> PutJsonAsync<T1, T2>(string uri, T1? value)
     {
-        var response = await _httpClient.SendAsync(await CreateRequestAsync(HttpMethod.Put, uri, value));
+        var response = await HttpClient.PutAsJsonAsync(uri, value);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<T2>())!;
     }
 
     private async Task DeleteAsync(string uri)
     {
-        var response = await _httpClient.SendAsync(await CreateRequestAsync<int>(HttpMethod.Delete, uri));
+        var response = await HttpClient.DeleteAsync(uri);
         response.EnsureSuccessStatusCode();
-    }
-
-    private async Task<HttpRequestMessage> CreateRequestAsync<T>(HttpMethod method, string uri, T? value = default)
-    {
-        var request = new HttpRequestMessage(method, uri);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await _accessTokenProvider.GetAccessTokenAsync());
-        request.Content = JsonContent.Create(value);
-        return request;
     }
 }

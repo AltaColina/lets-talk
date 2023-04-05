@@ -1,0 +1,50 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider Authentication
+@inject UserRoomsStateProvider UserRooms
+@inject ILetsTalkHubClient HubClient
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            @if (!AuthenticationState.User.IsAuthenticated())
+            {
+                <a href="/bff/login">Login</a>
+            }
+            else
+            {
+                <a href="@AuthenticationState.User.GetLogoutUrl()">Logout</a>
+            }
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    public AuthenticationState AuthenticationState { get; set; } =
+            new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(JwtClaimTypes.Subject, Guid.Empty.ToString()),
+                    new Claim(JwtClaimTypes.Name, "Guest")
+                })));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        AuthenticationState = await Authentication.GetAuthenticationStateAsync();
+
+        if (AuthenticationState.User.IsAuthenticated())
+        {
+            await HubClient.ConnectAsync();
+            var response = await HubClient.GetRoomsWithUserAsync();
+            UserRooms.RoomsById = response.Rooms.ToDictionary(r => r.Id);
+        }
+    }
+}

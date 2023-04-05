@@ -15,7 +15,6 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["LetsTalk.WebApi/LetsTalk.WebApi.csproj", "LetsTalk.WebApi/"]
-COPY ["LetsTalk.Shared/LetsTalk.Shared.csproj", "LetsTalk.Shared/"]
 RUN dotnet restore "LetsTalk.WebApi/LetsTalk.WebApi.csproj"
 COPY . .
 WORKDIR "/src/LetsTalk.WebApi"

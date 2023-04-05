@@ -35,7 +35,7 @@ internal sealed class PermissionHandler : AuthorizationHandler<PermissionRequire
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
-        var roleIds = context.User.Identity.GetRoles();
+        var roleIds = context.User!.GetRoles();
         if (roleIds.Any())
         {
             const string key = "permissions";
