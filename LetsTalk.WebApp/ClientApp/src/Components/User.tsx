@@ -1,5 +1,6 @@
-﻿import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
+﻿import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover, Link } from '@mui/material';
 import { useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { useProfileContext } from '../Context/User';
 import { User } from '../Users/user';
 
@@ -20,7 +21,8 @@ const MENU_OPTIONS = [
 
 export default function UserPopover() {
     const profileContext = useProfileContext();
-    console.log(profileContext.profile)
+    const profile = profileContext.profile;
+    console.log(profile)
     const [open, setOpen] = useState(null);
 
     const handleOpen = (event: any) => {
@@ -31,19 +33,26 @@ export default function UserPopover() {
         setOpen(null);
     };
 
+    //const handleCloseLink = (nav?: string) => {
+    //    setOpen(null);
+    //    if (nav)
+    //        window.location.href = nav;
+    //};
+
     return (
         <>
             <IconButton
                 onClick={handleOpen}
                 
             >
-                <Avatar src={profileContext.profile.picture} alt={profileContext.profile.displayName} />
+                <Avatar src={ profile.picture } alt={ profile.displayName } />
             </IconButton>
 
             <Popover
                 open={Boolean(open)}
                 anchorEl={open}
                 onClose={handleClose}
+                //onClose={() => { handleCloseLink("/#about") }}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 PaperProps={{
@@ -80,7 +89,12 @@ export default function UserPopover() {
 
                 <Divider sx={{ borderStyle: 'dashed' }} />
 
-                <MenuItem onClick={handleClose} sx={{ m: 1 }}>
+                <MenuItem
+                    component={Link}
+                    href={`${profile.logoutUrl}`}
+                    sx={{ m: 1 }}
+                    onClick={handleClose}
+                >
                     Logout
                 </MenuItem>
             </Popover>
