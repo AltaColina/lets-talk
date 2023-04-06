@@ -2,9 +2,8 @@
 import { Outlet } from 'react-router-dom';
 import { MenuContextProvider } from "../Context/Menu";
 import { RoomsContextProvider } from "../Context/Rooms";
-import Header from '../Components/Header';
-import Nav from "../Components/Nav";
 import { ProfileContextProvider } from '../Context/User';
+import Top from '../Components/Top';
 
 const APP_BAR_MOBILE = 64;
 const APP_BAR_DESKTOP = 92;
@@ -33,8 +32,7 @@ export default function Layout() {
             <ProfileContextProvider>
                 <MenuContextProvider>
                     <RoomsContextProvider>
-                        <Header />
-                        <Nav />
+                        <Top />
                         <Main>
                             <Outlet />
                         </Main>
