@@ -1,8 +1,7 @@
 ﻿import { Box, Stack, AppBar, Toolbar, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useMenuContext } from "../Context/Menu";
-import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
+import { Menu, Search } from '@mui/icons-material';
 import UserPopover from './User';
 
 const NAV_WIDTH = 280;
@@ -37,10 +36,10 @@ export default function Header() {
                         display: { lg: 'none' },
                     }}
                 >
-                    <MenuIcon />
+                    <Menu />
                 </IconButton>
 
-                <SearchIcon />
+                <Search />
                 <Box sx={{ flexGrow: 1 }} />
 
                 <Stack

@@ -1,4 +1,4 @@
-import Send from '@mui/icons-material/Send';
+import { Send } from '@mui/icons-material';
 import { Container, Divider, Fab, Grid, List, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useRoomsContext } from '../Context/Rooms';
