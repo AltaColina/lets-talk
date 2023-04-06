@@ -2,6 +2,8 @@
 @inject AuthenticationStateProvider Authentication
 @inject UserRoomsStateProvider UserRooms
 @inject ILetsTalkHubClient HubClient
+@inject NavigationManager Navigation
+@inject ContextMenuService ContextMenuService
 
 <div class="page">
     <div class="sidebar">
@@ -12,11 +14,11 @@
         <div class="top-row px-4">
             @if (!AuthenticationState.User.IsAuthenticated())
             {
-                <a href="/bff/login">Login</a>
+                <RadzenButton Icon="account_circle" Text="Login" Click=@(() => Navigation.NavigateTo("/bff/login", true)) ButtonStyle="ButtonStyle.Info" />
             }
             else
             {
-                <a href="@AuthenticationState.User.GetLogoutUrl()">Logout</a>
+                <RadzenImage Path="@AuthenticationState.User.GetPicture()" Style="width: 50px; height: 50px; border-radius: 50%;" Click="@(() => Navigation.NavigateTo(AuthenticationState.User.GetLogoutUrl(), true))" />
             }
         </div>
 
@@ -28,11 +30,11 @@
 
 @code {
     public AuthenticationState AuthenticationState { get; set; } =
-            new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-                {
+    new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+    {
                     new Claim(JwtClaimTypes.Subject, Guid.Empty.ToString()),
                     new Claim(JwtClaimTypes.Name, "Guest")
-                })));
+    })));
 
     protected override async Task OnInitializedAsync()
     {
@@ -45,6 +47,27 @@
             await HubClient.ConnectAsync();
             var response = await HubClient.GetRoomsWithUserAsync();
             UserRooms.RoomsById = response.Rooms.ToDictionary(r => r.Id);
+        }
+    }
+
+    private void ShowLoggedInContextMenu(MouseEventArgs args)
+    {
+        ContextMenuService.Open(args, new List<ContextMenuItem>
+        {
+            new ContextMenuItem { Text = "Logout", Icon = "logout", Value = "Logout" }
+        }, OnLoggedInContextMenuClick);
+    }
+
+    private void OnLoggedInContextMenuClick(MenuItemEventArgs args)
+    {
+        ContextMenuService.Close();
+        switch (args.Value)
+        {
+            case "Logout":
+                Navigation.NavigateTo(AuthenticationState.User.GetLogoutUrl(), true);
+                break;
+            default:
+                throw new InvalidOperationException($"Case {args.Value} not handled");
         }
     }
 }
