@@ -13,6 +13,7 @@ import Page404 from './Pages/404';
 import Layout from './Pages/Layout';
 import Test from './Pages/Test';
 import { Room } from './Components/Room';
+import Landing from './Pages/Landing';
 
 attachDebugListeners(messenger);
 
@@ -29,10 +30,13 @@ const App = () => {
                             <Route element={<PrivateRoutes />}>
                                 <Route element={<Layout />} path="/">
                                     <Route element={<Room />} index />
-                                    <Route element={<Test />} path="test" />
+                                    {/*<Route element={<Test />} path="/test" />*/}
                                 </Route>
                             </Route>
-                            <Route element={<Login />} path="/login" />
+                            <Route element={<Landing />} path="/">
+                                {/*<Route element={<Login />} path="/login" />*/}
+                                <Route element={<Test />} path="/test" />
+                            </Route>
                             <Route element={<Page404 />} path="*" />
                         </Routes>
                     </Router>

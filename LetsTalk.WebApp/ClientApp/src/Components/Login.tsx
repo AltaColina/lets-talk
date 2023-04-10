@@ -1,4 +1,4 @@
-import LockIcon from '@mui/icons-material/Lock';
+import { Lock } from '@mui/icons-material';
 import { Avatar, Paper } from "@mui/material";
 import { Box } from "@mui/system";
 import { useEffect, useState } from "react";
@@ -53,7 +53,7 @@ export const Login = () => {
         noValidate
         autoComplete="off">
         {isLoggedIn && (<Navigate to="/" replace={true} />)}
-        <Avatar sx={{ backgroundColor: 'green' }}><LockIcon /></Avatar>
+        <Avatar sx={{ backgroundColor: 'green' }}><Lock /></Avatar>
         <h2>Sign In</h2>
         {
           userProfile.isLoggedIn
