@@ -1,5 +1,4 @@
-﻿using Duende.IdentityServer.Extensions;
-using LetsTalk.Hubs.Commands;
+﻿using LetsTalk.Hubs.Commands;
 using LetsTalk.Hubs.Queries;
 using LetsTalk.Messaging;
 using LetsTalk.Rooms.Queries;
@@ -24,7 +23,7 @@ public sealed class LetsTalkHub : Hub
         var response = await _mediator.Send(new ConnectCommand
         {
             ConnectionId = Context.ConnectionId,
-            UserId = Context.User.GetSubjectId()
+            UserId = Context.User!.GetSubjectId()
         });
 
         var user = response.EnsureSuccess();
@@ -44,7 +43,7 @@ public sealed class LetsTalkHub : Hub
         var response = await _mediator.Send(new DisconnectCommand
         {
             ConnectionId = Context.ConnectionId,
-            UserId = Context.User.GetSubjectId()
+            UserId = Context.User!.GetSubjectId()
         });
 
         var user = response.EnsureSuccess();
@@ -64,7 +63,7 @@ public sealed class LetsTalkHub : Hub
         var response = await _mediator.Send(new JoinRoomCommand
         {
             RoomId = roomId,
-            UserId = Context.User.GetSubjectId()
+            UserId = Context.User!.GetSubjectId()
         });
 
         var join = response.EnsureSuccess();
@@ -89,7 +88,7 @@ public sealed class LetsTalkHub : Hub
         var response = await _mediator.Send(new LeaveRoomCommand
         {
             RoomId = roomId,
-            UserId = Context.User.GetSubjectId()
+            UserId = Context.User!.GetSubjectId()
         });
 
         var leave = response.EnsureSuccess();
@@ -114,8 +113,8 @@ public sealed class LetsTalkHub : Hub
         await Clients.Group(roomId).SendAsync(new ContentMessage
         {
             RoomId = roomId,
-            UserId = Context.User.GetSubjectId(),
-            UserName = Context.User.GetDisplayName(),
+            UserId = Context.User!.GetSubjectId(),
+            UserName = Context.User!.GetDisplayName(),
             ContentType = contentType,
             Content = content,
         });
@@ -136,13 +135,13 @@ public sealed class LetsTalkHub : Hub
 
     public async Task<GetRoomsWithUserResponse> GetRoomsWithUserAsync()
     {
-        var response = await _mediator.Send(new GetRoomsWithUserQuery { UserId = Context.User.GetSubjectId() });
+        var response = await _mediator.Send(new GetRoomsWithUserQuery { UserId = Context.User!.GetSubjectId() });
         return response.EnsureSuccess();
     }
 
     public async Task<GetRoomsWithoutUserResponse> GetRoomsWithoutUserAsync()
     {
-        var response = await _mediator.Send(new GetRoomsWithoutUserQuery { UserId = Context.User.GetSubjectId() });
+        var response = await _mediator.Send(new GetRoomsWithoutUserQuery { UserId = Context.User!.GetSubjectId() });
         return response.EnsureSuccess();
     }
 }

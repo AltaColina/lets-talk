@@ -55,13 +55,6 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddLetsTalk(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddHttpClient<ILetsTalkHttpClient, LetsTalkHttpClient>(opts => opts.BaseAddress = new(configuration.GetConnectionString("LetsTalk.WebApi")!));
-        services.AddSingleton<ILetsTalkHubClient, LetsTalkHubClient>();
-        return services;
-    }
-
     public static async Task InsertResourceDataAsync<THost>(this THost host, IConfiguration configuration, bool overwrite = false) where THost : IHost
     {
         var database = host.Services.GetRequiredService<IMongoClient>().GetDatabase("letstalk");

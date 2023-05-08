@@ -7,7 +7,7 @@ namespace LetsTalk.Services;
 public interface ILetsTalkHubClient
 {
     bool IsConnected { get; }
-    Task ConnectAsync();
+    Task ConnectAsync(Func<Task<string?>>? accessTokenProvider = null);
     Task DisconnectAsync();
     Task<JoinRoomResponse> JoinRoomAsync(string roomId);
     Task<LeaveRoomResponse> LeaveRoomAsync(string roomId);

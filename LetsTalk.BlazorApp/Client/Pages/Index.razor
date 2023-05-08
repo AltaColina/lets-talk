@@ -1,0 +1,16 @@
+﻿@page "/"
+@inject HttpClient httpClient
+
+<PageTitle>Let's Talk</PageTitle>
+
+<h1>@GreetResponse</h1>
+
+
+@code {
+    private string? GreetResponse { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        GreetResponse = await httpClient.GetStringAsync("/api/greet");
+    }
+}

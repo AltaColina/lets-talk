@@ -12,7 +12,9 @@ namespace LetsTalk.Services;
 
 public interface ILetsTalkHttpClient
 {
-    Task<string> PingAsync();
+    HttpClient HttpClient { get; }
+
+    Task<string> GreetAsync();
 
     Task<GetRoomsResponse> GetRoomsAsync();
     Task<RoomDto> GetRoomAsync(string roomId);

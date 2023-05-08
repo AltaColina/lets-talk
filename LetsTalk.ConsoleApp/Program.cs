@@ -1,5 +1,4 @@
 ﻿using LetsTalk;
-using LetsTalk.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,11 +8,10 @@ var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
     {
         services.AddApplication();
-        services.AddLetsTalk(hostContext.Configuration);
         services.AddTransient<MessageRecipient>();
         services.AddHttpClient("Identity", (services, client) => client.BaseAddress = new Uri(services.GetRequiredService<IConfiguration>().GetConnectionString("LetsTalk.Identity")!));
-        services.AddSingleton<IAccessTokenProvider, AccessTokenProvider>();
-        services.AddLetsTalk(hostContext.Configuration);
+        services.AddLetsTalkHttpClient(hostContext.Configuration);
+        services.AddLetsTalkHubClient(hostContext.Configuration);
         services.AddSingleton<App>();
     })
     .UseConsoleLifetime()
@@ -25,7 +23,7 @@ var app = host.Services.GetRequiredService<App>();
 
 await app.LoginAsync();
 
-Console.WriteLine(await app.PingWebApi());
+Console.WriteLine(await app.GreetAsync());
 
 await app.ConnectToHubAsync();
 

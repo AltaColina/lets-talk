@@ -4,6 +4,7 @@ using LetsTalk.Hubs.Queries;
 using LetsTalk.Messaging;
 using LetsTalk.Rooms.Queries;
 using LetsTalk.Services;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,26 +16,29 @@ internal sealed class LetsTalkHubClient : ILetsTalkHubClient
 {
     private readonly Listener _listener;
     private readonly string _hubEndpoint;
-    private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly IMessenger _messenger;
     private HubConnection? _connection;
 
     public bool IsConnected { get; private set; }
 
-    public LetsTalkHubClient(IAccessTokenProvider accessTokenProvider, IMessenger messenger, IConfiguration configuration)
+    public LetsTalkHubClient(IMessenger messenger, IConfiguration configuration)
     {
         _listener = new Listener(messenger);
         _hubEndpoint = $"{configuration.GetConnectionString("LetsTalk.WebApi")}/hubs/letstalk";
-        _accessTokenProvider = accessTokenProvider;
         _messenger = messenger;
     }
-    public async Task ConnectAsync()
+    public async Task ConnectAsync(Func<Task<string?>>? accessTokenProvider = null)
     {
         if (_connection is not null)
             await DisconnectAsync();
 
         _connection = new HubConnectionBuilder()
-            .WithUrl(_hubEndpoint, opts => opts.AccessTokenProvider = _accessTokenProvider.GetAccessTokenAsync)
+            .WithUrl(_hubEndpoint, opts =>
+            {
+                opts.SkipNegotiation = true;
+                opts.Transports = HttpTransportType.WebSockets;
+                opts.AccessTokenProvider = accessTokenProvider;
+            })
             .ConfigureLogging(opts => opts.SetMinimumLevel(LogLevel.Trace))
             .AddMessagePackProtocol()
             .Build();

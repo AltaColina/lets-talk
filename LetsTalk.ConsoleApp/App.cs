@@ -19,7 +19,6 @@ internal sealed class App
 
     private readonly HttpClient _identityClient;
     private readonly ILetsTalkHttpClient _webApiClient;
-    private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly ILetsTalkHubClient _hubClient;
     private readonly MessageRecipient _messageRecipient;
 
@@ -39,11 +38,10 @@ internal sealed class App
     [MemberNotNullWhen(true, nameof(DiscoveryDocument), nameof(Token), nameof(UserId), nameof(UserName), nameof(Room))]
     public bool HasJoinedRoom { get; private set; }
 
-    public App(IHttpClientFactory httpClientFactory, IAccessTokenProvider accessTokenProvider, ILetsTalkHttpClient webApiClient, ILetsTalkHubClient hubClient, MessageRecipient messageRecipient)
+    public App(IHttpClientFactory httpClientFactory, ILetsTalkHttpClient webApiClient, ILetsTalkHubClient hubClient, MessageRecipient messageRecipient)
     {
         _identityClient = httpClientFactory.CreateClient("Identity");
         _webApiClient = webApiClient;
-        _accessTokenProvider = accessTokenProvider;
         _hubClient = hubClient;
         _messageRecipient = messageRecipient;
     }
@@ -68,7 +66,6 @@ internal sealed class App
                 userName = null!;
                 continue;
             }
-
 
             var loginResponse = await _identityClient.RequestBackchannelAuthenticationAsync(new BackchannelAuthenticationRequest
             {
@@ -121,7 +118,7 @@ internal sealed class App
             UserId = token.Subject;
             UserName = token.GetClaim(JwtClaimTypes.Name).Value;
             IsAuthenticated = true;
-            ((AccessTokenProvider)_accessTokenProvider).AccessToken = Token.AccessToken;
+            _webApiClient.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token.AccessToken);
         }
 
         static Task OpenBrowserAsync(string url)
@@ -155,25 +152,23 @@ internal sealed class App
         }
     }
 
-    public Task<string> PingWebApi()
+    public Task<string> GreetAsync()
     {
-        if (!IsAuthenticated)
-            throw new InvalidOperationException("Not authenticated");
-        return _webApiClient.PingAsync();
+        return _webApiClient.GreetAsync();
     }
 
     public Task ConnectToHubAsync()
     {
         if (!IsAuthenticated)
             throw new InvalidOperationException("Not authenticated");
-        return _hubClient.ConnectAsync();
+        return _hubClient.ConnectAsync(() => Task.FromResult(Token?.AccessToken));
     }
 
     public Task DisconnectFromHubAsync()
     {
         if (!_hubClient.IsConnected)
             throw new InvalidOperationException("Not connected to the hub");
-        return _hubClient.ConnectAsync();
+        return _hubClient.DisconnectAsync();
     }
 
     public async Task JoinChatRoomAsync()

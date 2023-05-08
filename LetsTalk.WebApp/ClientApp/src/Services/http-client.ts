@@ -10,9 +10,9 @@ class BffApi {
   }
 }
 
-class PingApi {
+class GreetApi {
   async get(): Promise<string> {
-    return await Axios.get<string>('/api/ping').then(r => r.data);
+    return await Axios.get<string>('/api/greet').then(r => r.data);
   }
 }
 
@@ -47,7 +47,7 @@ class UserApi {
 
 class HttpClient {
   readonly bff = new BffApi();
-  readonly ping = new PingApi();
+  readonly greet = new GreetApi();
   readonly user = new UserApi();
 }
 

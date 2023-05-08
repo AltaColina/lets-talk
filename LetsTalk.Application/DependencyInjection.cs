@@ -48,4 +48,16 @@ public static class DependencyInjection
         configuration.AddInMemoryCollection(connectionStrings);
         return configuration;
     }
+
+    public static IServiceCollection AddLetsTalkHttpClient(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHttpClient<ILetsTalkHttpClient, LetsTalkHttpClient>(opts => opts.BaseAddress = new(configuration.GetConnectionString("LetsTalk.WebApi")!));
+        return services;
+    }
+
+    public static IServiceCollection AddLetsTalkHubClient(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<ILetsTalkHubClient, LetsTalkHubClient>();
+        return services;
+    }
 }

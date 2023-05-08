@@ -4,8 +4,12 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "letstalk.identity": "StartDebugging",
-        "webapi": "StartDebugging"
+        "cache": "StartWithoutDebugging",
+        "webapi": "StartWithoutDebugging",
+        "database": "StartWithoutDebugging",
+        "dbadmin": "StartWithoutDebugging",
+        "identity": "StartWithoutDebugging",
+        "logsink": "StartWithoutDebugging"
       }
     }
   }
