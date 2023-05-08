@@ -13,7 +13,7 @@ type Props = {
 };
 
 export const MenuContextProvider = ({ children }: Props) => {
-    const [ openMenu, setOpen ] = useState(true);
+    const [ openMenu, setOpen ] = useState(false);
     const toggleMenu = () => {
         setOpen(!openMenu)
     };

@@ -6,7 +6,7 @@ import { hubClient } from "../Services/hub-client";
 import { Footer } from "./Footer";
 import { Loading } from "./Loading";
 import { Lobby } from "./Lobby";
-import { Top } from "./Top";
+import Top from "./Top";
 
 export const Home = () => {
   const getUserRooms = wrapPromise(hubClient.getRoomsWithUser());
