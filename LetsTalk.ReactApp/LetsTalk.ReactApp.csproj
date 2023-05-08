@@ -11,6 +11,7 @@
     <SpaProxyServerUrl>https://localhost:44422</SpaProxyServerUrl>
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>LetsTalk</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

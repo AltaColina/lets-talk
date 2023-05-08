@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Application", "Let
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Infrastructure", "LetsTalk.Infrastructure\LetsTalk.Infrastructure.csproj", "{09CEEDC4-962B-4097-ADAB-8FAAA262E3A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.WebApp", "LetsTalk.WebApp\LetsTalk.WebApp.csproj", "{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.ReactApp", "LetsTalk.ReactApp\LetsTalk.ReactApp.csproj", "{EF7AECB2-876C-4DCC-A1CD-AFCB9BCE8CCB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsTalk.Identity", "LetsTalk.Identity\LetsTalk.Identity.csproj", "{A145DEFC-AC1D-45C1-879F-7D035C798E21}"
 EndProject
