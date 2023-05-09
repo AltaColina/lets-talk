@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "LetsTalk.ConsoleApp": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:60243;http://localhost:60246"
+    }
+  }
+}
