@@ -5,27 +5,47 @@ import path from "path";
 import { defineConfig } from 'vite';
 
 const apiTarget = process.env.ASPNETCORE_HTTPS_PORT
-	? `https://localhost:${process.env.ASPNETCORE_HTTPS_PORT}`
-	: process.env.ASPNETCORE_URLS
-		? process.env.ASPNETCORE_URLS.split(";")[0]
-		: "http://localhost:40457";
+    ? `https://localhost:${process.env.ASPNETCORE_HTTPS_PORT}`
+    : process.env.ASPNETCORE_URLS
+        ? process.env.ASPNETCORE_URLS.split(";")[0]
+        : "http://localhost:40457";
 
 export default defineConfig({
-	plugins: [sveltekit()],
-	server: {
+    plugins: [sveltekit()],
+    server: {
         strictPort: true,
         https: generateCerts(),
         proxy: {
-            // proxy API requests to the ASP.NET backend
             "/api": {
                 changeOrigin: true,
                 secure: false,
-                rewrite: (path) => path.replace(/^\/api/, "/api"),
+                //rewrite: (path) => path.replace(/^\/api/, "/api"),
                 // target taken from src/setupProxy.js in ASP.NET React template
                 target: apiTarget,
             },
+            "/bff": {
+                changeOrigin: true,
+                secure: false,
+                target: apiTarget,
+            },
+            "/signin-oidc": {
+                changeOrigin: true,
+                secure: false,
+                target: apiTarget,
+            },
+            "/signout-callback-oidc": {
+                changeOrigin: true,
+                secure: false,
+                target: apiTarget,
+            },
+            "/hubs": {
+                changeOrigin: true,
+                secure: false,
+                target: apiTarget,
+                ws: true
+            },
         },
-    },
+    }
 });
 
 /** Function taken from aspnetcore-https.js in ASP.NET React template */
@@ -54,15 +74,15 @@ function generateCerts() {
     if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
         const outp = execSync(
             "dotnet " +
-                [
-                    "dev-certs",
-                    "https",
-                    "--export-path",
-                    certFilePath,
-                    "--format",
-                    "Pem",
-                    "--no-password",
-                ].join(" ")
+            [
+                "dev-certs",
+                "https",
+                "--export-path",
+                certFilePath,
+                "--format",
+                "Pem",
+                "--no-password",
+            ].join(" ")
         );
         console.log(outp.toString());
     }
