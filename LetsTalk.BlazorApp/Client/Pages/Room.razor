@@ -1,11 +1,13 @@
 ﻿@page "/room/{id}"
+@using System.Text;
 @implements IDisposable
 @inject UserRoomsStateProvider UserRooms
 @inject IMessenger Messenger
+@inject ILetsTalkHubClient HubClient
 
 <PageTitle>Let's Talk - @UserRooms.RoomsById.GetValueOrDefault(Id)?.Name</PageTitle>
 
-<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
+<RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
     @foreach (var message in messages)
     {
         <RadzenStack Gap="1rem" class="rz-background-color-primary-lighter">
@@ -13,29 +15,32 @@
                 <RadzenText TextStyle="TextStyle.Body1"><b>@System.Text.Encoding.UTF8.GetString(message.Content)</b></RadzenText>
             </RadzenStack>
     }
+    <RadzenStack Orientation="Orientation.Horizontal">
+        <RadzenTextBox class="flex-fill" @bind-Value="@messageText">
+
+        </RadzenTextBox>
+        <RadzenButton Click="@SendContentMessage" Disabled="@(String.IsNullOrEmpty(messageText))">
+            Send
+        </RadzenButton>
+    </RadzenStack>
 </RadzenStack>
 
 @code {
     [Parameter]
     public required string Id { get; set; }
 
+    private string? messageText;
+
     private readonly List<ContentMessage> messages = new();
 
     protected override void OnInitialized()
     {
         Messenger.Register<ContentMessage, string>(this, Id, OnNewContentMessage);
-        messages.Add(new ContentMessage
-        {
-            UserId = Guid.NewGuid().ToString(),
-            UserName = "tiago",
-            ContentType = "text/plain",
-            RoomId = Id,
-            Content = System.Text.Encoding.UTF8.GetBytes("Hello")
-        });
     }
 
     protected override void OnParametersSet()
     {
+        messages.Clear();
         messages.AddRange(UserRooms.GetRoomMessages(Id));
     }
 
@@ -48,5 +53,14 @@
     public void Dispose()
     {
         Messenger.Unregister<ContentMessage, string>(this, Id);
+    }
+
+    private async Task SendContentMessage()
+    {
+        if (!String.IsNullOrEmpty(messageText))
+        {
+            await HubClient.SendContentMessageAsync(Id, "text/plain", Encoding.UTF8.GetBytes(messageText));
+            messageText = null;
+        }
     }
 }

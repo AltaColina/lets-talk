@@ -1,52 +1,8 @@
-using Duende.Bff.Yarp;
-using IdentityModel;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddContainersConfiguration("localhost");
-var webApiUrl = builder.Configuration.GetConnectionString("LetsTalk.WebApi");
-if (String.IsNullOrEmpty(webApiUrl))
-    throw new InvalidOperationException("Invalid WebApi URL");
 
-builder.Services.AddBff()
-    .AddRemoteApis();
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-    options.DefaultSignOutScheme = OpenIdConnectDefaults.AuthenticationScheme;
-}).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-{
-    options.Cookie.Name = "letstalk_webapp";
-    options.Cookie.SameSite = SameSiteMode.Strict;
-}).AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
-{
-    options.Authority = builder.Configuration.GetConnectionString("LetsTalk.Identity");
-    options.ClientId = "web";
-    options.ClientSecret = "secret";
-    options.ResponseType = "code";
-    options.ResponseMode = "query";
-
-    options.GetClaimsFromUserInfoEndpoint = true;
-    options.MapInboundClaims = false;
-    options.SaveTokens = true;
-
-    options.Scope.Clear();
-    options.Scope.Add("openid");
-    options.Scope.Add("profile");
-    options.Scope.Add("letstalk");
-
-    options.TokenValidationParameters = new()
-    {
-        RoleClaimType = JwtClaimTypes.Role,
-        NameClaimType = JwtClaimTypes.Name,
-        ValidateAudience = false,
-    };
-});
-builder.Services.AddAuthorization();
+builder.Services.AddLetsTalk(builder.Configuration);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -66,26 +22,14 @@ else
 }
 
 app.UseHttpsRedirection();
-
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
-app.UseRouting();
-app.UseAuthentication();
-app.UseBff();
-app.UseAuthorization();
-app.MapBffManagementEndpoints();
-
-app.MapRemoteBffApiEndpoint("/api", $"{webApiUrl}/api")
-     .WithOptionalUserAccessToken()
-     .AllowAnonymous();
-
-app.MapRemoteBffApiEndpoint("/hubs", $"{webApiUrl}/hubs")
-    .RequireAccessToken()
-    .SkipAntiforgery();
+app.MapLetsTalk();
 
 app.MapRazorPages();
 app.MapControllers();
+
 app.MapFallbackToFile("index.html");
 
 app.Run();

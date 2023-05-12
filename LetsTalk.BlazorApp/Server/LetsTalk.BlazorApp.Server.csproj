@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\LetsTalk.Application\LetsTalk.Application.csproj" />
+    <ProjectReference Include="..\..\LetsTalk.Application.Web\LetsTalk.Application.Web.csproj" />
     <ProjectReference Include="..\Client\LetsTalk.BlazorApp.Client.csproj" />
   </ItemGroup>
 
